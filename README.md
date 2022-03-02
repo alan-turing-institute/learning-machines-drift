@@ -2,6 +2,8 @@
 
 A python package for monitoring dataset drift in production ML pipelines.
 
+Built to run in any environment without uploading your data to external services.
+
 
 ## Background
 
@@ -13,7 +15,7 @@ Some background info in [this doc](https://hackmd.io/-_44PRS9SYSGa-3z9DTxCA).
 - [Evidently](https://github.com/evidentlyai/evidently)
 
 
-### Evidently 
+### Evidently
 
 > Evaluate and monitor ML models from validation to production.
 
@@ -21,7 +23,7 @@ Some background info in [this doc](https://hackmd.io/-_44PRS9SYSGa-3z9DTxCA).
 
 #### Cons
 
-- Limited stats. 
+- Limited stats.
 > To estimate the data drift, we compare distributions of each individual feature in the two datasets.
 We use statistical tests to detect if the distribution has changed significantly.;
 For numerical features, we use the two-sample Kolmogorov-Smirnov test.
