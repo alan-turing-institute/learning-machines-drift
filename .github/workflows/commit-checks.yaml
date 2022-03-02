@@ -64,4 +64,4 @@ jobs:
       - name: Run tests
         shell: bash
         run: |
-          poetry run pytest --hypothesis-show-statistics --cov-report term-missing --cov=drift
+          poetry run pytest --cov=learning_machines_drift
