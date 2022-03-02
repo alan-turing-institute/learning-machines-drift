@@ -5,7 +5,7 @@ description = ""
 authors = ["Oscar Giles <ogiles@turing.ac.uk>", "Mahed Abroshan <mabroshan@turing.ac.uk>", "Jannetta Steyn <jsteyn@turing.ac.uk>", "May Yong <myong@turing.ac.uk>"]
 
 [tool.poetry.dependencies]
-python = "^3.7"
+python = "^3.7,<3.10"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
@@ -20,6 +20,17 @@ pylint = "^2.12.2"
 
 [tool.isort]
 profile = "black"
+
+[tool.mypy]
+strict = true
+
+
+# You can turn off complaints about missing imports for individual modules.
+# See https://mypy.readthedocs.io/en/stable/running_mypy.html#ignore-missing-imports
+# Example here:
+# [tool.mypy-module.*]
+# ignore_missing_imports = true
+
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
