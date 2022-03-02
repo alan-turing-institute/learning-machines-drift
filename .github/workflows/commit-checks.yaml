@@ -3,9 +3,13 @@
 name: All checks and tests
 
 on:
+  push:
+    branches:
+      - main
   pull_request:
     branches:
       - main
+
 
 ###############
 # Set the Job #
