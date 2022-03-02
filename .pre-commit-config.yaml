@@ -1,0 +1,62 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.0.1
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+  - repo: local
+    hooks:
+      - id: black
+        name: Black
+        entry: poetry run black
+        language: system
+        types: ['python']
+        exclude: ^(explore-frameworks)/
+  - repo: local
+    hooks:
+      - id: isort
+        name: isort
+        entry: poetry run isort
+        language: system
+        types: ['python']
+        exclude: ^(explore-frameworks)/
+  - repo: local
+    hooks:
+      - id: safety
+        name: Safety
+        entry: poetry run safety check --full-report
+        pass_filenames: false
+        language: system
+  - repo: local
+    hooks:
+      - id: mypy
+        name: MyPy
+        entry: poetry run mypy --install-types --non-interactive
+        language: system
+        types: ['python']
+        exclude: ^(explore-frameworks)/
+  - repo: local
+    hooks:
+      - id: pylint
+        name: Pylint
+        entry: poetry run pylint --rcfile=.pylintrc
+        language: system
+        types: ['python']
+        exclude: ^(explore-frameworks)/
+  - repo: local
+    hooks:
+      - id: flake8
+        name: Flake8
+        entry: poetry run flake8
+        language: system
+        types: ['python']
+        exclude: ^(explore-frameworks)/
+    # Uncomment if you want to check shell scripts
+  # - repo: https://github.com/shellcheck-py/shellcheck-py
+  #   rev: v0.7.2.1
+  #   hooks:
+  #     - id: shellcheck
