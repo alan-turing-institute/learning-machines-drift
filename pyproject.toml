@@ -5,7 +5,9 @@ description = ""
 authors = ["Oscar Giles <ogiles@turing.ac.uk>", "Mahed Abroshan <mabroshan@turing.ac.uk>", "Jannetta Steyn <jsteyn@turing.ac.uk>", "May Yong <myong@turing.ac.uk>"]
 
 [tool.poetry.dependencies]
-python = "^3.7,<3.10"
+python = "^3.8,<3.10"
+numpy = "^1.22.3"
+scipy = "^1.8.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
@@ -17,6 +19,8 @@ pre-commit = "^2.17.0"
 safety = "^1.10.3"
 pylint = "^2.12.2"
 pytest-cov = "^3.0.0"
+matplotlib = "^3.5.1"
+seaborn = "^0.11.2"
 
 
 [tool.isort]
@@ -24,7 +28,7 @@ profile = "black"
 
 [tool.mypy]
 strict = true
-
+plugins = ["numpy.typing.mypy_plugin"]
 
 # You can turn off complaints about missing imports for individual modules.
 # See https://mypy.readthedocs.io/en/stable/running_mypy.html#ignore-missing-imports
