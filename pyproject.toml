@@ -36,6 +36,10 @@ plugins = ["numpy.typing.mypy_plugin"]
 # [tool.mypy-module.*]
 # ignore_missing_imports = true
 
+[[tool.mypy.overrides]]
+module = "scipy.*"
+ignore_missing_imports = true
+
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

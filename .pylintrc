@@ -275,7 +275,7 @@ ignored-classes=optparse.Values,thread._local,_thread._local
 # (useful for modules/projects where namespaces are manipulated during runtime
 # and thus existing member attributes cannot be deduced by static analysis). It
 # supports qualified module names, as well as Unix pattern matching.
-ignored-modules=
+ignored-modules=scipy.special
 
 # Show a hint with possible names when a member name was not found. The aspect
 # of finding the hint is based on edit distance.
@@ -439,7 +439,11 @@ good-names=i,
            ax,
            e,
            df,
-           n
+           n,
+           N,
+           X,
+           Y,
+
 
 # Good variable names regexes, separated by a comma. If names match any regex,
 # they will always be accepted
@@ -567,7 +571,7 @@ valid-metaclass-classmethod-first-arg=cls
 [DESIGN]
 
 # Maximum number of arguments for function / method.
-max-args=5
+max-args=7
 
 # Maximum number of attributes for a class (see R0902).
 max-attributes=7
