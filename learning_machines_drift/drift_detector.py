@@ -1,29 +1,31 @@
 from dataclasses import dataclass
+from pydantic import BaseModel
+from pygments import highlight, lexers, formatters
 
 
-@dataclass(frozen=True)
-class FeatureSummary:
+class FeatureSummary(BaseModel):
     n_rows: int
     n_features: int
 
 
-@dataclass(frozen=True)
-class LabelSummary:
+class LabelSummary(BaseModel):
     n_rows: int
     n_labels: int
 
 
-@dataclass(frozen=True)
-class ShapeSummary:
+class ShapeSummary(BaseModel):
 
     features: FeatureSummary
     labels: LabelSummary
 
 
-@dataclass(frozen=True)
-class BaselineSummary:
+class BaselineSummary(BaseModel):
 
     shapes: ShapeSummary
+
+    def __str__(self) -> str:
+        output = self.json(indent=2)
+        return highlight(output, lexers.JsonLexer(), formatters.TerminalFormatter())
 
 
 class DriftDetector:

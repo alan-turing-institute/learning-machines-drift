@@ -2,6 +2,7 @@ import pytest
 
 from learning_machines_drift import DriftDetector, datasets
 
+
 N_ROWS = 10
 N_FEATURES = 3
 N_LABELS = 2
@@ -25,14 +26,17 @@ def test_register_dataset(detector_with_ref_data: DriftDetector) -> None:
     # Given we have a reference dataset
     detector = detector_with_ref_data
 
-    # Then we can see a summary of the dataset
+    # When we get a summary of the reference set
     summary = detector.ref_summary()
 
+    # Then we can access summary information
     assert summary.shapes.features.n_rows == N_ROWS
     assert summary.shapes.features.n_features == N_FEATURES
-
     assert summary.shapes.labels.n_rows == N_ROWS
     assert summary.shapes.labels.n_labels == N_LABELS
+
+    # And print in a nice format (needs test)
+    print(summary)
 
 
 # def test_register_features_and_labels(detector_with_ref_data: DriftDetector) -> None:
