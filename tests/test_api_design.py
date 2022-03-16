@@ -8,11 +8,10 @@ N_FEATURES = 3
 N_LABELS = 2
 
 
-@pytest.fixture()
-def detector_with_ref_data() -> DriftDetector:
+def detector_with_ref_data(n_rows: int) -> DriftDetector:
 
     # Given we have a reference dataset
-    X_reference, Y_reference = datasets.logistic_model(size=N_ROWS)
+    X_reference, Y_reference = datasets.logistic_model(size=n_rows)
 
     # When we register the dataset
     detector = DriftDetector(tag="test")
@@ -21,18 +20,19 @@ def detector_with_ref_data() -> DriftDetector:
     return detector
 
 
-def test_register_dataset(detector_with_ref_data: DriftDetector) -> None:
+@pytest.mark.parametrize("n_rows", [5, 10, 100, 1000, 10000])
+def test_register_dataset(n_rows) -> None:
 
     # Given we have a reference dataset
-    detector = detector_with_ref_data
+    detector = detector_with_ref_data(n_rows)
 
     # When we get a summary of the reference set
     summary = detector.ref_summary()
 
     # Then we can access summary information
-    assert summary.shapes.features.n_rows == N_ROWS
+    assert summary.shapes.features.n_rows == n_rows
     assert summary.shapes.features.n_features == N_FEATURES
-    assert summary.shapes.labels.n_rows == N_ROWS
+    assert summary.shapes.labels.n_rows == n_rows
     assert summary.shapes.labels.n_labels == N_LABELS
 
     # And print in a nice format (needs test)
