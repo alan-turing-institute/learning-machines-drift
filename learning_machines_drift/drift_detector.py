@@ -45,8 +45,15 @@ class DataSet:
 
 
 class DriftDetector:
-    def __init__(self, tag: str):
+    def __init__(
+        self,
+        tag: str,
+        expect_features: bool = True,
+        expect_labels: bool = True,
+        expect_latent: bool = False,
+    ):
 
+        self.tag = tag
         self.ref_dataset: Optional[DataSet] = None
 
     def register_ref_dataset(
@@ -72,3 +79,27 @@ class DriftDetector:
                 labels=LabelSummary(n_rows=label_n_row, n_labels=2),
             )
         )
+
+    def log_features(self, features: npt.ArrayLike) -> None:
+
+        pass
+
+    def log_labels(self, labels: npt.ArrayLike) -> None:
+
+        pass
+
+    def log_latent(self, latent: npt.ArrayLike) -> None:
+
+        pass
+
+    def drift_summary(self):
+
+        pass
+
+    def __enter__(self) -> "DriftDetector":
+
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+
+        pass

@@ -48,23 +48,26 @@ def test_ref_summary_no_dataset() -> None:
         _ = detector.ref_summary()
 
 
-# def test_register_features_and_labels(detector_with_ref_data: DriftDetector) -> None:
+def test_register_features_labels_latent() -> None:
 
-#     # Given we have registered a reference dataset
-#     detector = detector_with_ref_data
+    # Given we have registered a reference dataset
+    detector = detector_with_ref_data(100)
 
-#     # When we log features and labels of new data
-#     with DriftDetector(
-#         tag="test", expect_features=True, expect_labels=True, expect_latent=False
-#     ) as detector:
+    # And we have features and predicted labels
+    X, Y_pred = datasets.logistic_model()
+    latent_x = X.mean(axis=0)
 
-#         X, Y = datasets.logistic_model()
+    # When we log features and labels of new data
+    with DriftDetector(
+        tag="test", expect_features=True, expect_labels=True, expect_latent=True
+    ) as detector:
 
-#         detector.log_features(X)
-#         detector.log_labels(Y)
+        detector.log_features(X)
+        detector.log_labels(Y_pred)
+        detector.log_latent(latent_x)
 
-#     # Then we can get a summary of registrations
-#     detector.log_summary()
+    # Then we can get a summary of registrations
+    detector.drift_summary()
 
 
 # def test_monitor_drift(detector_with_ref_data: DriftDetector) -> None:
