@@ -47,8 +47,6 @@ def test_ref_summary_no_dataset() -> None:
     with pytest.raises(ReferenceDatasetMissing):
         _ = detector.ref_summary()
 
-    detector.ref_summary()
-
 
 # def test_register_features_and_labels(detector_with_ref_data: DriftDetector) -> None:
 
