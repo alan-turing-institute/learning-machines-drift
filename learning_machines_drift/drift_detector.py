@@ -56,6 +56,15 @@ class DriftDetector:
         self.tag = tag
         self.ref_dataset: Optional[DataSet] = None
 
+        self.expect_features = expect_features
+        self.expect_labels = expect_labels
+        self.expect_latent = expect_latent
+
+        # Registrations
+        self.registered_features: Optional[npt.NDArray[Any]] = None
+        self.registered_labels: Optional[npt.NDArray[np.int_]] = None
+        self.registered_latent: Optional[npt.NDArray[Any]] = None
+
     def register_ref_dataset(
         self, features: npt.ArrayLike, labels: npt.ArrayLike
     ) -> None:
@@ -82,19 +91,29 @@ class DriftDetector:
 
     def log_features(self, features: npt.ArrayLike) -> None:
 
-        pass
+        self.registered_features = np.array(features)
 
     def log_labels(self, labels: npt.ArrayLike) -> None:
 
-        pass
+        self.registered_labels = np.array(labels)
 
     def log_latent(self, latent: npt.ArrayLike) -> None:
 
-        pass
+        self.registered_latent = np.array(latent)
 
-    def drift_summary(self):
+    def all_registered(self):
 
-        pass
+        if self.expect_features and self.registered_features is None:
+
+            return False
+
+        if self.expect_labels and self.registered_labels is None:
+            return False
+
+        if self.expect_latent and self.registered_latent is None:
+            return False
+
+        return True
 
     def __enter__(self) -> "DriftDetector":
 
