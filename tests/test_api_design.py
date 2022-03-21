@@ -48,7 +48,7 @@ def test_ref_summary_no_dataset() -> None:
         _ = detector.ref_summary()
 
 
-def test_register_features_labels_latent() -> None:
+def test_all_registered() -> None:
 
     # Given we have registered a reference dataset
     detector = detector_with_ref_data(100)
