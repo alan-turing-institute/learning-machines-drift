@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any, Optional, List
 
 import numpy as np
 import numpy.typing as npt
@@ -66,7 +66,11 @@ class DriftDetector:
         self.registered_latent: Optional[npt.NDArray[Any]] = None
 
     def register_ref_dataset(
-        self, features: npt.ArrayLike, labels: npt.ArrayLike
+        self,
+        features: npt.ArrayLike,
+        feature_col_names: List[str],
+        labels: npt.ArrayLike,
+        label_name: str = "y",
     ) -> None:
 
         self.ref_dataset = DataSet(features=np.array(features), labels=np.array(labels))
@@ -97,7 +101,7 @@ class DriftDetector:
 
         self.registered_labels = np.array(labels)
 
-    def log_latent(self, latent: npt.ArrayLike) -> None:
+    def log_latent(self, latent: npt.ArrayLike, latent_col_names=List[str]) -> None:
 
         self.registered_latent = np.array(latent)
 

@@ -10,10 +10,16 @@ def detector_with_ref_data(n_rows: int) -> DriftDetector:
 
     # Given we have a reference dataset
     X_reference, Y_reference = datasets.logistic_model(size=n_rows)
+    feature_col_names = ["age", "height", "bp"]
 
     # When we register the dataset
     detector = DriftDetector(tag="test")
-    detector.register_ref_dataset(features=X_reference, labels=Y_reference)
+    detector.register_ref_dataset(
+        features=X_reference,
+        feature_col_names=feature_col_names,
+        labels=Y_reference,
+        label_name="y",
+    )
 
     return detector
 
@@ -64,7 +70,9 @@ def test_all_registered() -> None:
 
         detector.log_features(X)
         detector.log_labels(Y_pred)
-        detector.log_latent(latent_x)
+        detector.log_latent(
+            latent_x, latent_col_names=["mean_age", "mean_height", "mean_bp"]
+        )
 
     # Then we can ensure that everything is registered
     assert detector.all_registered()
