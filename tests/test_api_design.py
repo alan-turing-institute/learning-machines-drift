@@ -1,9 +1,7 @@
 import pytest
 
-from learning_machines_drift import DriftDetector, datasets
+from learning_machines_drift import DriftDetector, ReferenceDatasetMissing, datasets
 
-
-N_ROWS = 10
 N_FEATURES = 3
 N_LABELS = 2
 
@@ -21,7 +19,7 @@ def detector_with_ref_data(n_rows: int) -> DriftDetector:
 
 
 @pytest.mark.parametrize("n_rows", [5, 10, 100, 1000, 10000])
-def test_register_dataset(n_rows) -> None:
+def test_register_dataset(n_rows: int) -> None:
 
     # Given we have a reference dataset
     detector = detector_with_ref_data(n_rows)
@@ -37,6 +35,19 @@ def test_register_dataset(n_rows) -> None:
 
     # And print in a nice format (needs test)
     print(summary)
+
+
+def test_ref_summary_no_dataset() -> None:
+
+    # Given a detector with no reference dataset registered
+    detector = DriftDetector(tag="test")
+
+    # When we get the reference dataset summary
+    # Then raise an exception
+    with pytest.raises(ReferenceDatasetMissing):
+        _ = detector.ref_summary()
+
+    detector.ref_summary()
 
 
 # def test_register_features_and_labels(detector_with_ref_data: DriftDetector) -> None:
@@ -72,6 +83,7 @@ def test_register_dataset(n_rows) -> None:
 
 #         detector.log_features(X)
 #         detector.log_labels(Y)
+#         detector.log_latent(latent_vars)
 
 #     # Then we can get a summary of drift
 #     detector.drift_summary()

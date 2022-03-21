@@ -1,6 +1,14 @@
 from dataclasses import dataclass
+from typing import Any, Optional
+
+import numpy as np
+import numpy.typing as npt
+
+# from numpy.typing import ArrayLike, NDArray
 from pydantic import BaseModel
-from pygments import highlight, lexers, formatters
+from pygments import formatters, highlight, lexers
+
+from learning_machines_drift.exceptions import ReferenceDatasetMissing
 
 
 class FeatureSummary(BaseModel):
@@ -25,23 +33,42 @@ class BaselineSummary(BaseModel):
 
     def __str__(self) -> str:
         output = self.json(indent=2)
-        return highlight(output, lexers.JsonLexer(), formatters.TerminalFormatter())
+        return str(
+            highlight(output, lexers.JsonLexer(), formatters.TerminalFormatter())
+        )
+
+
+@dataclass
+class DataSet:
+    features: npt.NDArray[Any]
+    labels: npt.NDArray[np.int_]
 
 
 class DriftDetector:
     def __init__(self, tag: str):
 
-        pass
+        self.ref_dataset: Optional[DataSet] = None
 
-    def register_ref_dataset(self, features, labels) -> None:
+    def register_ref_dataset(
+        self, features: npt.ArrayLike, labels: npt.ArrayLike
+    ) -> None:
 
-        pass
+        self.ref_dataset = DataSet(features=np.array(features), labels=np.array(labels))
 
     def ref_summary(self) -> BaselineSummary:
 
+        if self.ref_dataset is None:
+
+            raise ReferenceDatasetMissing
+
+        feature_n_rows, feature_n_features = self.ref_dataset.features.shape
+        label_n_row = self.ref_dataset.labels.shape[0]
+
         return BaselineSummary(
             shapes=ShapeSummary(
-                features=FeatureSummary(n_rows=10, n_features=3),
-                labels=LabelSummary(n_rows=10, n_labels=2),
+                features=FeatureSummary(
+                    n_rows=feature_n_rows, n_features=feature_n_features
+                ),
+                labels=LabelSummary(n_rows=label_n_row, n_labels=2),
             )
         )
