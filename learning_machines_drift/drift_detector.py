@@ -74,12 +74,12 @@ class DriftDetector:
         self.expect_latent = expect_latent
 
         # Registrations
-        self.registered_features: Optional[Features] = None
-        self.registered_labels: Optional[Labels] = None
-        self.registered_latent: Optional[npt.NDArray[Any]] = None
+        self.registered_features: Optional[pd.DataFrame] = None
+        self.registered_labels: Optional[pd.Series] = None
+        self.registered_latent: Optional[pd.DataFrame] = None
 
     def register_ref_dataset(
-        self, features: Dict[str, npt.NDArray[Any]], labels: npt.NDArray[np.int_],
+        self, features: pd.DataFrame, labels: pd.DataFrame
     ) -> None:
 
         self.ref_dataset = Dataset(features=features, labels=labels)
@@ -103,17 +103,17 @@ class DriftDetector:
             )
         )
 
-    def log_features(self, features: Dict[str, npt.NDArray[Any]]) -> None:
+    def log_features(self, features: pd.DataFrame) -> None:
 
-        self.registered_features = Features(values=features)
+        self.registered_features = features
 
-    def log_labels(self, labels: npt.ArrayLike, label_name: str) -> None:
+    def log_labels(self, labels: pd.Series) -> None:
 
-        self.registered_labels = Labels(values=np.array(labels), label_name=label_name)
+        self.registered_labels = labels
 
-    def log_latent(self, latent: npt.ArrayLike, latent_col_names=List[str]) -> None:
+    def log_latent(self, latent: pd.DataFrame) -> None:
 
-        self.registered_latent = np.array(latent)
+        self.registered_latent = latent
 
     def all_registered(self):
 
@@ -129,10 +129,10 @@ class DriftDetector:
 
         return True
 
-    @property
-    def hypothesis_tests(self):
+    # @property
+    # def hypothesis_tests(self):
 
-        return HypothesisTests(self.ref_dataset)
+    #     return HypothesisTests(self.ref_dataset)
 
     def __enter__(self) -> "DriftDetector":
 
@@ -143,13 +143,13 @@ class DriftDetector:
         pass
 
 
-class HypothesisTests:
-    def __init__(
-        self, reference_dataset: Dataset, new_dataset: Dict[str, npt.NDArray[Any]],
-    ):
-        self.reference_dataset = reference_dataset
-        self.new_dataset = new_dataset
+# class HypothesisTests:
+#     def __init__(
+#         self, reference_dataset: Dataset, new_dataset: Dict[str, npt.NDArray[Any]],
+#     ):
+#         self.reference_dataset = reference_dataset
+#         self.new_dataset = new_dataset
 
-    def kolmogorov_smirnov(self,) -> None:
+#     def kolmogorov_smirnov(self,) -> None:
 
-        pass
+#         pass

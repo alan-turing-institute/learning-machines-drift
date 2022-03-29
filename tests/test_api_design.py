@@ -73,11 +73,18 @@ def test_all_registered() -> None:
     ) as detector:
 
         detector.log_features(
-            {"age": X[:, 0], "height": X[:, 1], "bp": X[:, 2],}
+            pd.DataFrame({"age": X[:, 0], "height": X[:, 1], "bp": X[:, 2],})
         )
-        detector.log_labels(Y_pred, "y")
+        detector.log_labels(pd.Series(Y_pred, name="y"))
         detector.log_latent(
-            latent_x, latent_col_names=["mean_age", "mean_height", "mean_bp"]
+            pd.DataFrame(
+                {
+                    "mean_age": latent_x[0],
+                    "mean_height": latent_x[1],
+                    "mean_bp": latent_x[2],
+                },
+                index=[0],
+            )
         )
 
     # Then we can ensure that everything is registered
@@ -99,15 +106,22 @@ def test_statistics_summary() -> None:
         latent_x = X.mean(axis=0)
 
         detector.log_features(
-            {"age": X[:, 0], "height": X[:, 1], "bp": X[:, 2],}
+            pd.DataFrame({"age": X[:, 0], "height": X[:, 1], "bp": X[:, 2],})
         )
-        detector.log_labels(Y_pred, "y")
+        detector.log_labels(pd.Series(Y_pred, name="y"))
         detector.log_latent(
-            latent_x, latent_col_names=["mean_age", "mean_height", "mean_bp"]
+            pd.DataFrame(
+                {
+                    "mean_age": latent_x[0],
+                    "mean_height": latent_x[1],
+                    "mean_bp": latent_x[2],
+                },
+                index=[0],
+            )
         )
 
         # When we get drift statistics
-        drift_stats = detector.hypothesis_tests.kolmogorov_smirnov()
+        # drift_stats = detector.hypothesis_tests.kolmogorov_smirnov()
 
 
 # def test_monitor_drift(detector_with_ref_data: DriftDetector) -> None:
