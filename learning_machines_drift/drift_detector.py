@@ -1,6 +1,7 @@
 from dataclasses import dataclass
-from typing import Any, Optional, List
+from typing import Any, Optional, List, Dict
 
+import pandas as pd
 import numpy as np
 import numpy.typing as npt
 
@@ -39,9 +40,21 @@ class BaselineSummary(BaseModel):
 
 
 @dataclass
-class DataSet:
-    features: npt.NDArray[Any]
-    labels: npt.NDArray[np.int_]
+class Features:
+    values: Dict[str, npt.NDArray[Any]]
+
+
+@dataclass
+class Labels:
+    values: npt.NDArray[np.int_]
+    label_name: str
+
+
+@dataclass
+class Dataset:
+
+    features: pd.DataFrame
+    labels: pd.Series
 
 
 class DriftDetector:
@@ -54,26 +67,22 @@ class DriftDetector:
     ):
 
         self.tag = tag
-        self.ref_dataset: Optional[DataSet] = None
+        self.ref_dataset: Optional[Dataset] = None
 
         self.expect_features = expect_features
         self.expect_labels = expect_labels
         self.expect_latent = expect_latent
 
         # Registrations
-        self.registered_features: Optional[npt.NDArray[Any]] = None
-        self.registered_labels: Optional[npt.NDArray[np.int_]] = None
+        self.registered_features: Optional[Features] = None
+        self.registered_labels: Optional[Labels] = None
         self.registered_latent: Optional[npt.NDArray[Any]] = None
 
     def register_ref_dataset(
-        self,
-        features: npt.ArrayLike,
-        feature_col_names: List[str],
-        labels: npt.ArrayLike,
-        label_name: str = "y",
+        self, features: Dict[str, npt.NDArray[Any]], labels: npt.NDArray[np.int_],
     ) -> None:
 
-        self.ref_dataset = DataSet(features=np.array(features), labels=np.array(labels))
+        self.ref_dataset = Dataset(features=features, labels=labels)
 
     def ref_summary(self) -> BaselineSummary:
 
@@ -81,7 +90,8 @@ class DriftDetector:
 
             raise ReferenceDatasetMissing
 
-        feature_n_rows, feature_n_features = self.ref_dataset.features.shape
+        feature_n_rows = self.ref_dataset.features.shape[0]
+        feature_n_features = self.ref_dataset.features.shape[1]
         label_n_row = self.ref_dataset.labels.shape[0]
 
         return BaselineSummary(
@@ -93,13 +103,13 @@ class DriftDetector:
             )
         )
 
-    def log_features(self, features: npt.ArrayLike) -> None:
+    def log_features(self, features: Dict[str, npt.NDArray[Any]]) -> None:
 
-        self.registered_features = np.array(features)
+        self.registered_features = Features(values=features)
 
-    def log_labels(self, labels: npt.ArrayLike) -> None:
+    def log_labels(self, labels: npt.ArrayLike, label_name: str) -> None:
 
-        self.registered_labels = np.array(labels)
+        self.registered_labels = Labels(values=np.array(labels), label_name=label_name)
 
     def log_latent(self, latent: npt.ArrayLike, latent_col_names=List[str]) -> None:
 
@@ -119,10 +129,27 @@ class DriftDetector:
 
         return True
 
+    @property
+    def hypothesis_tests(self):
+
+        return HypothesisTests(self.ref_dataset)
+
     def __enter__(self) -> "DriftDetector":
 
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
+
+        pass
+
+
+class HypothesisTests:
+    def __init__(
+        self, reference_dataset: Dataset, new_dataset: Dict[str, npt.NDArray[Any]],
+    ):
+        self.reference_dataset = reference_dataset
+        self.new_dataset = new_dataset
+
+    def kolmogorov_smirnov(self,) -> None:
 
         pass

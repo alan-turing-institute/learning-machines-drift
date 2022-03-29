@@ -1,5 +1,5 @@
 import pytest
-
+import pandas as pd
 from learning_machines_drift import DriftDetector, ReferenceDatasetMissing, datasets
 
 N_FEATURES = 3
@@ -10,16 +10,20 @@ def detector_with_ref_data(n_rows: int) -> DriftDetector:
 
     # Given we have a reference dataset
     X_reference, Y_reference = datasets.logistic_model(size=n_rows)
-    feature_col_names = ["age", "height", "bp"]
+
+    features_df = pd.DataFrame(
+        {
+            "age": X_reference[:, 0],
+            "height": X_reference[:, 1],
+            "bp": X_reference[:, 2],
+        }
+    )
+
+    labels_df = pd.Series(Y_reference, name="y")
 
     # When we register the dataset
     detector = DriftDetector(tag="test")
-    detector.register_ref_dataset(
-        features=X_reference,
-        feature_col_names=feature_col_names,
-        labels=Y_reference,
-        label_name="y",
-    )
+    detector.register_ref_dataset(features=features_df, labels=labels_df)
 
     return detector
 
@@ -68,14 +72,42 @@ def test_all_registered() -> None:
         tag="test", expect_features=True, expect_labels=True, expect_latent=True,
     ) as detector:
 
-        detector.log_features(X)
-        detector.log_labels(Y_pred)
+        detector.log_features(
+            {"age": X[:, 0], "height": X[:, 1], "bp": X[:, 2],}
+        )
+        detector.log_labels(Y_pred, "y")
         detector.log_latent(
             latent_x, latent_col_names=["mean_age", "mean_height", "mean_bp"]
         )
 
     # Then we can ensure that everything is registered
     assert detector.all_registered()
+
+
+def test_statistics_summary() -> None:
+
+    # Given we have registered a reference dataset
+    detector = detector_with_ref_data(100)
+
+    # And we have logged features, labels and latent
+    with DriftDetector(
+        tag="test", expect_features=True, expect_labels=True, expect_latent=True,
+    ) as detector:
+
+        # And we have features and predicted labels
+        X, Y_pred = datasets.logistic_model()
+        latent_x = X.mean(axis=0)
+
+        detector.log_features(
+            {"age": X[:, 0], "height": X[:, 1], "bp": X[:, 2],}
+        )
+        detector.log_labels(Y_pred, "y")
+        detector.log_latent(
+            latent_x, latent_col_names=["mean_age", "mean_height", "mean_bp"]
+        )
+
+        # When we get drift statistics
+        drift_stats = detector.hypothesis_tests.kolmogorov_smirnov()
 
 
 # def test_monitor_drift(detector_with_ref_data: DriftDetector) -> None:
