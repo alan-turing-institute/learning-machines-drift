@@ -13,67 +13,14 @@ from scipy import stats
 
 from learning_machines_drift.exceptions import ReferenceDatasetMissing
 
-
-class FeatureSummary(BaseModel):
-    n_rows: int
-    n_features: int
-
-
-class LabelSummary(BaseModel):
-    n_rows: int
-    n_labels: int
-
-
-class ShapeSummary(BaseModel):
-
-    features: FeatureSummary
-    labels: LabelSummary
-
-
-class BaselineSummary(BaseModel):
-
-    shapes: ShapeSummary
-
-    def __str__(self) -> str:
-        output = self.json(indent=2)
-        return str(
-            highlight(output, lexers.JsonLexer(), formatters.TerminalFormatter())
-        )
-
-
-@dataclass
-class Features:
-    values: Dict[str, npt.NDArray[Any]]
-
-
-@dataclass
-class Labels:
-    values: npt.NDArray[np.int_]
-    label_name: str
-
-
-@dataclass
-class Dataset:
-
-    features: pd.DataFrame
-    labels: pd.Series
-
-    @property
-    def feature_names(self) -> List[str]:
-
-        return list(self.features.columns)
-
-
-@dataclass
-class DatasetLatent:
-
-    dataset: Dataset
-    latent: Optional[pd.DataFrame]
-
-    @staticmethod
-    def from_dataset(dataset: Dataset) -> "DatasetLatent":
-
-        return DatasetLatent(dataset=dataset, latent=None)
+from learning_machines_drift.types import (
+    Dataset,
+    BaselineSummary,
+    ShapeSummary,
+    FeatureSummary,
+    LabelSummary,
+)
+from learning_machines_drift.hypothesis_tests import HypothesisTests
 
 
 class DriftDetector:
@@ -159,7 +106,7 @@ class DriftDetector:
     def hypothesis_tests(self) -> HypothesisTests:
 
         if self.ref_dataset is None:
-            raise ValueError("A reference dataset has not been registered")
+            raise ReferenceDatasetMissing
 
         if self.registered_dataset is None:
             raise ValueError("A reference dataset is registered but not a new datasets")
@@ -174,30 +121,3 @@ class DriftDetector:
 
         pass
 
-
-class HypothesisTests:
-    def __init__(self, reference_dataset: Dataset, registered_dataset: Dataset):
-        self.reference_dataset = reference_dataset
-        self.registered_dataset = registered_dataset
-
-    def _calc(self, f: Callable[[npt.ArrayLike, npt.ArrayLike], Any]) -> Any:
-
-        results = {}
-        for feature in self.reference_dataset.feature_names:
-            ref_col = self.reference_dataset.features[feature]
-            reg_col = self.registered_dataset.features[feature]
-            results[feature] = f(ref_col, reg_col)
-
-        return results
-
-    def kolmogorov_smirnov(self) -> Any:
-
-        return self._calc(stats.ks_2samp)
-
-    @staticmethod
-    def _chi_square(data1: npt.ArrayLike, data2: npt.ArrayLike) -> Any:
-
-        d1_unique, d1_counts = np.unique(data1, return_counts=True)
-        d2_unique, d2_counts = np.unique(data1, return_counts=True)
-
-        return stats.chisquare(d1_counts, d2_counts)
