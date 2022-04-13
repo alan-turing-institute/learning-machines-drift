@@ -1,13 +1,15 @@
+from atexit import register
 from dataclasses import dataclass
-from typing import Any, Optional, List, Dict
+from typing import Any, Callable, Dict, List, Optional
 
-import pandas as pd
 import numpy as np
 import numpy.typing as npt
+import pandas as pd
 
 # from numpy.typing import ArrayLike, NDArray
 from pydantic import BaseModel
 from pygments import formatters, highlight, lexers
+from scipy import stats
 
 from learning_machines_drift.exceptions import ReferenceDatasetMissing
 
@@ -55,6 +57,23 @@ class Dataset:
 
     features: pd.DataFrame
     labels: pd.Series
+
+    @property
+    def feature_names(self) -> List[str]:
+
+        return list(self.features.columns)
+
+
+@dataclass
+class DatasetLatent:
+
+    dataset: Dataset
+    latent: Optional[pd.DataFrame]
+
+    @staticmethod
+    def from_dataset(dataset: Dataset) -> "DatasetLatent":
+
+        return DatasetLatent(dataset=dataset, latent=None)
 
 
 class DriftDetector:
@@ -115,10 +134,9 @@ class DriftDetector:
 
         self.registered_latent = latent
 
-    def all_registered(self):
+    def all_registered(self) -> bool:
 
         if self.expect_features and self.registered_features is None:
-
             return False
 
         if self.expect_labels and self.registered_labels is None:
@@ -129,27 +147,57 @@ class DriftDetector:
 
         return True
 
-    # @property
-    # def hypothesis_tests(self):
+    @property
+    def registered_dataset(self) -> Dataset:
 
-    #     return HypothesisTests(self.ref_dataset)
+        # ToDo: Mypy prob will make a fuss
+        # This should check these two things are not None
+
+        return Dataset(self.registered_features, self.registered_labels)
+
+    @property
+    def hypothesis_tests(self) -> HypothesisTests:
+
+        if self.ref_dataset is None:
+            raise ValueError("A reference dataset has not been registered")
+
+        if self.registered_dataset is None:
+            raise ValueError("A reference dataset is registered but not a new datasets")
+
+        return HypothesisTests(self.ref_dataset, self.registered_dataset)
 
     def __enter__(self) -> "DriftDetector":
 
         return self
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(self, exc_type, exc_value, traceback) -> None:
 
         pass
 
 
-# class HypothesisTests:
-#     def __init__(
-#         self, reference_dataset: Dataset, new_dataset: Dict[str, npt.NDArray[Any]],
-#     ):
-#         self.reference_dataset = reference_dataset
-#         self.new_dataset = new_dataset
+class HypothesisTests:
+    def __init__(self, reference_dataset: Dataset, registered_dataset: Dataset):
+        self.reference_dataset = reference_dataset
+        self.registered_dataset = registered_dataset
 
-#     def kolmogorov_smirnov(self,) -> None:
+    def _calc(self, f: Callable[[npt.ArrayLike, npt.ArrayLike], Any]) -> Any:
 
-#         pass
+        results = {}
+        for feature in self.reference_dataset.feature_names:
+            ref_col = self.reference_dataset.features[feature]
+            reg_col = self.registered_dataset.features[feature]
+            results[feature] = f(ref_col, reg_col)
+
+        return results
+
+    def kolmogorov_smirnov(self) -> Any:
+
+        return self._calc(stats.ks_2samp)
+
+    @staticmethod
+    def _chi_square(data1: npt.ArrayLike, data2: npt.ArrayLike) -> Any:
+
+        d1_unique, d1_counts = np.unique(data1, return_counts=True)
+        d2_unique, d2_counts = np.unique(data1, return_counts=True)
+
+        return stats.chisquare(d1_counts, d2_counts)

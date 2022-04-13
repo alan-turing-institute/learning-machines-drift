@@ -50,6 +50,10 @@ ignore_missing_imports = true
 module = "pygments.*"
 ignore_missing_imports = true
 
+[[tool.mypy.overrides]]
+module = "pandas.*"
+ignore_missing_imports = true
+
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
