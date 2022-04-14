@@ -21,6 +21,10 @@ from learning_machines_drift.types import (
     LabelSummary,
 )
 from learning_machines_drift.hypothesis_tests import HypothesisTests
+from learning_machines_drift.backends import Backend, FileBackend
+
+import os
+from pathlib import Path
 
 
 class DriftDetector:
@@ -30,14 +34,20 @@ class DriftDetector:
         expect_features: bool = True,
         expect_labels: bool = True,
         expect_latent: bool = False,
+        backend: Optional[Backend] = None,
     ):
 
-        self.tag = tag
+        self.backend: Backend = (
+            backend
+            if backend is not None
+            else FileBackend(Path(os.getcwd()).joinpath("lm-drift-data"))
+        )
+        self.tag: str = tag
         self.ref_dataset: Optional[Dataset] = None
 
-        self.expect_features = expect_features
-        self.expect_labels = expect_labels
-        self.expect_latent = expect_latent
+        self.expect_features: bool = expect_features
+        self.expect_labels: bool = expect_labels
+        self.expect_latent: bool = expect_latent
 
         # Registrations
         self.registered_features: Optional[pd.DataFrame] = None
@@ -120,4 +130,3 @@ class DriftDetector:
     def __exit__(self, exc_type, exc_value, traceback) -> None:
 
         pass
-
