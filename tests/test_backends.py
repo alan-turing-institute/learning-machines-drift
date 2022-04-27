@@ -1,10 +1,13 @@
 import pathlib
+import string
 from typing import Tuple
+from uuid import uuid4
 
 import pandas as pd
 from pandas.testing import assert_frame_equal
 
 from learning_machines_drift import Dataset, FileBackend, datasets
+from learning_machines_drift.backends import get_identifier
 
 
 def example_dataset(n_rows: int) -> Tuple[pd.DataFrame, pd.DataFrame]:
@@ -46,35 +49,98 @@ def test_file_backend_features(tmp_path: pathlib.Path) -> None:
 
     # Given
     tag = "test_tag"
-    features_df_1, _ = example_dataset(5)
-    features_df_2, _ = example_dataset(5)
-    features_df_3, _ = example_dataset(5)
-    features_df_4, _ = example_dataset(5)
+    features_df_1, labels_df_1 = example_dataset(5)
+    features_df_2, labels_df_2 = example_dataset(5)
+    features_df_3, labels_df_3 = example_dataset(5)
 
     expected_df = (
         pd.concat(
             [
-                features_df_1,
-                features_df_2,
-                features_df_3,
-                features_df_4,
+                pd.concat([features_df_1, labels_df_1], axis=1),
+                pd.concat([features_df_2, labels_df_2], axis=1),
+                pd.concat([features_df_3, labels_df_3], axis=1),
             ]
         )
         .sort_values(by="age")
         .reset_index(drop=True)
     )
 
-    # When
+    # When we log feature and labels
     backend = FileBackend(tmp_path)
-    backend.save_logged_features(tag, features_df_1)
-    backend.save_logged_features(tag, features_df_2)
-    backend.save_logged_features(tag, features_df_3)
-    backend.save_logged_features(tag, features_df_4)
 
-    # Then
-    recovered_df = backend.load_logged_features(tag)
+    identifier_1 = uuid4()
+    backend.save_logged_features(tag, identifier_1, features_df_1)
+    backend.save_logged_labels(tag, identifier_1, labels_df_1)
+
+    identifier_2 = uuid4()
+    backend.save_logged_features(tag, identifier_2, features_df_2)
+    backend.save_logged_labels(tag, identifier_2, labels_df_2)
+
+    identifier_3 = uuid4()
+    backend.save_logged_features(tag, identifier_3, features_df_3)
+    backend.save_logged_labels(tag, identifier_3, labels_df_3)
+
+    # Then we should be able to load them all back
+    recovered_dataset: Dataset = backend.load_logged_dataset(tag)
+    recovered_df = recovered_dataset.unify()
+
     assert_frame_equal(
         expected_df,
         recovered_df.sort_values(by="age").reset_index(drop=True),
         check_exact=False,
     )
+
+
+def test_get_identifier():
+
+    expected_uuid = uuid4()
+
+    string_with_id = f"{expected_uuid}_any_other_text.csv"
+    assert get_identifier(string_with_id) == expected_uuid
+
+
+def test_labels():
+
+    import re
+
+    RE_LABEL = re.compile("labels", re.I)
+
+    print(RE_LABEL.search("asdfsa_labels"))
+
+
+# def test_file_backend_labels(tmp_path: pathlib.Path) -> None:
+
+#     # Given
+#     tag = "test_tag"
+#     _, labels_df_1 = example_dataset(5)
+#     _, labels_df_2 = example_dataset(5)
+#     _, labels_df_3 = example_dataset(5)
+#     _, labels_df_4 = example_dataset(5)
+
+#     expected_df = (
+#         pd.concat(
+#             [
+#                 labels_df_1,
+#                 labels_df_2,
+#                 labels_df_3,
+#                 labels_df_4,
+#             ]
+#         )
+#         .sort_values(by="age")
+#         .reset_index(drop=True)
+#     )
+
+#     # When
+#     backend = FileBackend(tmp_path)
+#     backend.save_logged_labels(tag, labels_df_1)
+#     backend.save_logged_labels(tag, labels_df_2)
+#     backend.save_logged_labels(tag, labels_df_3)
+#     backend.save_logged_labels(tag, labels_df_4)
+
+#     # Then
+#     recovered_df = backend.load_logged_labels(tag)
+#     assert_frame_equal(
+#         expected_df,
+#         recovered_df.sort_values(by="age").reset_index(drop=True),
+#         check_exact=False,
+#     )

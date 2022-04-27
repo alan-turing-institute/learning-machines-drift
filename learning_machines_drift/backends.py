@@ -1,11 +1,29 @@
 import glob
+import re
 import uuid
 from pathlib import Path
-from typing import Protocol
+from typing import Dict, List, Optional, Protocol, Tuple, Union
+from uuid import UUID
 
 import pandas as pd
 
 from learning_machines_drift.types import Dataset
+
+UUIDHex4 = re.compile(
+    "^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})", re.I
+)
+
+RE_LABEL = re.compile("(labels)", re.I)
+
+
+def get_identifier(x: Union[str, Path]) -> Optional[UUID]:
+
+    a = UUIDHex4.match(Path(x).stem)
+
+    if a is None:
+        return None
+
+    return UUID(a.groups()[0])
 
 
 class Backend(Protocol):
@@ -15,17 +33,19 @@ class Backend(Protocol):
     def load_reference_dataset(self, tag: str) -> Dataset:
         pass
 
-    def save_logged_features(self, tag: str, dataframe: pd.DataFrame) -> None:
+    def save_logged_features(
+        self, tag: str, identifier: UUID, dataframe: pd.DataFrame
+    ) -> None:
         pass
 
-    # def save_logged_labels(self, dataframe: pd.DataFrame) -> None:
-    #     pass
-
-    def load_logged_features(self, tag: str) -> pd.DataFrame:
+    def save_logged_labels(
+        self, tag: str, identifier: UUID, dataframe: pd.DataFrame
+    ) -> None:
         pass
 
-    # def load_logged_labels(self) -> pd.DataFrame:
-    #     pass
+    def load_logged_dataset(self, tag: str) -> Dataset:
+        """Return a Dataset consisting of two pd.DataFrames. The dataframes must have the same index"""
+        pass
 
 
 class FileBackend:
@@ -87,16 +107,55 @@ class FileBackend:
 
         return Dataset(features_df, labels_df)
 
-    def save_logged_features(self, tag: str, dataframe: pd.DataFrame) -> None:
+    def save_logged_features(
+        self, tag: str, identifier: UUID, dataframe: pd.DataFrame
+    ) -> None:
 
         logged_dir = self._get_logged_path(tag)
-        name = str(uuid.uuid4())
-        dataframe.to_csv(logged_dir.joinpath(f"{name}.csv"), index=False)
+        dataframe.to_csv(logged_dir.joinpath(f"{identifier}_features.csv"), index=False)
 
-    def load_logged_features(self, tag: str) -> pd.DataFrame:
+    def save_logged_labels(
+        self, tag: str, identifier: UUID, dataframe: pd.DataFrame
+    ) -> None:
 
-        files = glob.glob(f"{self._get_logged_path(tag)}/*")
-        all_df = []
+        logged_dir = self._get_logged_path(tag)
+
+        dataframe.to_csv(logged_dir.joinpath(f"{identifier}_labels.csv"), index=False)
+
+    def load_logged_dataset(self, tag: str) -> Dataset:
+        """Return a Dataset consisting of two pd.DataFrames. The dataframes must have the same index"""
+
+        files = [Path(f) for f in glob.glob(f"{self._get_logged_path(tag)}/*")]
+        file_pairs: List[Tuple[Path, Path]] = []
+        matcher: Dict[UUID, Path] = {}
+
         for f in files:
-            all_df.append(pd.read_csv(f, index_col=False))
-        return pd.concat(all_df).reset_index(drop=True)
+
+            key = get_identifier(Path(f))
+            if key is None:
+                raise IOError("File name does not start with a UUID")
+
+            value = matcher.pop(key, None)
+
+            if value is not None:
+                file_pairs.append((value, f))
+            else:
+                matcher[key] = f
+
+        # Check which is the label
+
+        all_feature_dfs = []
+        all_label_dfs = []
+        for pair in file_pairs:
+
+            if RE_LABEL.search(pair[0].stem) is not None:
+
+                all_feature_dfs.append(pd.read_csv(pair[1]))
+                all_label_dfs.append(pd.read_csv(pair[0]))
+            else:
+                all_feature_dfs.append(pd.read_csv(pair[0]))
+                all_label_dfs.append(pd.read_csv(pair[1]))
+
+        return Dataset(
+            features=pd.concat(all_feature_dfs), labels=pd.concat(all_label_dfs)
+        )

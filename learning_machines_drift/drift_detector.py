@@ -3,6 +3,7 @@ from atexit import register
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
+from uuid import UUID, uuid4
 
 import numpy as np
 import numpy.typing as npt
@@ -35,12 +36,22 @@ class DriftDetector:
         backend: Optional[Backend] = None,
     ):
 
-        self.backend: Backend = (
-            backend
-            if backend is not None
-            else FileBackend(Path(os.getcwd()).joinpath("lm-drift-data"))
-        )
+        if backend:
+            self.backend: Backend = backend
+        else:
+            self.backend = FileBackend(Path(os.getcwd()).joinpath("lm-drift-data"))
+
+        # (
+
+        #     backend
+        #     if backend is not None
+        #     else FileBackend(Path(os.getcwd()).joinpath("lm-drift-data"))
+        # )
         self.tag: str = tag
+
+        self._identifier: Optional[
+            UUID
+        ] = None  # A unique identifier used to match logged features and labels
         self.ref_dataset: Optional[Dataset] = None
 
         self.expect_features: bool = expect_features
@@ -51,6 +62,14 @@ class DriftDetector:
         self.registered_features: Optional[pd.DataFrame] = None
         self.registered_labels: Optional[pd.Series] = None
         self.registered_latent: Optional[pd.DataFrame] = None
+
+    @property
+    def identifier(self) -> UUID:
+
+        if self._identifier is None:
+            raise ValueError("DriftDetector must be used in a context manager")
+
+        return self._identifier
 
     def register_ref_dataset(
         self, features: pd.DataFrame, labels: pd.DataFrame
@@ -82,11 +101,16 @@ class DriftDetector:
     def log_features(self, features: pd.DataFrame) -> None:
 
         self.registered_features = features
-        self.backend.save_logged_features(self.tag, self.registered_features)
+        self.backend.save_logged_features(
+            self.tag, self.identifier, self.registered_features
+        )
 
     def log_labels(self, labels: pd.Series) -> None:
 
         self.registered_labels = labels
+        self.backend.save_logged_labels(
+            self.tag, self.identifier, self.registered_labels
+        )
 
     def log_latent(self, latent: pd.DataFrame) -> None:
 
@@ -126,8 +150,10 @@ class DriftDetector:
 
     def __enter__(self) -> "DriftDetector":
 
+        self._identifier = uuid4()
         return self
 
     def __exit__(self, exc_type, exc_value, traceback) -> None:
 
+        self._identifier = None
         pass

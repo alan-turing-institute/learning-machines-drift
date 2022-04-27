@@ -44,6 +44,10 @@ class Dataset:
 
         return list(self.features.columns)
 
+    def unify(self) -> pd.DataFrame:
+
+        return pd.concat([self.features, self.labels], axis=1)
+
 
 @dataclass
 class DatasetLatent:

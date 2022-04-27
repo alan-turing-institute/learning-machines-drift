@@ -4,8 +4,7 @@ from typing import Callable, Tuple
 import numpy as np
 import pandas as pd
 import pytest
-from pytest_mock import mocker, MockerFixture
-
+from pytest_mock import MockerFixture, mocker
 from this import d
 
 from learning_machines_drift import DriftDetector, ReferenceDatasetMissing, datasets
@@ -110,7 +109,6 @@ def test_all_registered(
         # ToDo: I set these false here as the backend doesn't support them yet
         # Should discuss how we want to handle this
         detector.expect_labels = False
-        detector.expect_latent = False
 
         detector.log_features(
             pd.DataFrame(
@@ -121,7 +119,7 @@ def test_all_registered(
                 }
             )
         )
-        # detector.log_labels(pd.Series(Y_pred, name="y"))
+        detector.log_labels(pd.Series(Y_pred, name="y"))
         # detector.log_latent(
         #     pd.DataFrame(
         #         {
@@ -141,6 +139,9 @@ def test_all_registered(
 
     # And we saved the logged features
     detector.backend.save_logged_features.assert_called_once()
+
+    # And we saved the logged labels
+    detector.backend.save_logged_labels.assert_called_once()
 
 
 def test_statistics_summary(detector: DriftDetector) -> None:
