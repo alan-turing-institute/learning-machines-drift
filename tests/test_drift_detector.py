@@ -1,13 +1,25 @@
-from typing import Tuple
+import pathlib
+from typing import Callable, Tuple
 
 import numpy as np
 import pandas as pd
 import pytest
 
-from learning_machines_drift import DriftDetector, ReferenceDatasetMissing, datasets
+from learning_machines_drift import (
+    DriftDetector,
+    FileBackend,
+    ReferenceDatasetMissing,
+    datasets,
+)
 
 N_FEATURES = 3
 N_LABELS = 2
+
+
+@pytest.fixture()
+def detector(tmp_path: pathlib.Path) -> DriftDetector:
+    """Return a DriftDetector which writes data to a temporary directory"""
+    return DriftDetector(tag="test", backend=FileBackend(tmp_path))
 
 
 def example_dataset(n_rows: int) -> Tuple[pd.DataFrame, pd.DataFrame]:
@@ -28,19 +40,28 @@ def example_dataset(n_rows: int) -> Tuple[pd.DataFrame, pd.DataFrame]:
     return (features_df, labels_df)
 
 
-def detector_with_ref_data(n_rows: int) -> DriftDetector:
+@pytest.fixture()
+def detector_with_ref_data(
+    tmp_path: pathlib.Path, detector: DriftDetector
+) -> Callable[[int], DriftDetector]:
+    """Return a DriftDetector with a reference dataset registered which writes data to a temporary directory"""
 
-    features_df, labels_df = example_dataset(n_rows)
+    def _detector_with_ref_data(n_rows: int) -> DriftDetector:
 
-    # When we register the dataset
-    detector = DriftDetector(tag="test")
-    detector.register_ref_dataset(features=features_df, labels=labels_df)
+        features_df, labels_df = example_dataset(n_rows)
 
-    return detector
+        # When we register the dataset
+        detector.register_ref_dataset(features=features_df, labels=labels_df)
+
+        return detector
+
+    return _detector_with_ref_data
 
 
 @pytest.mark.parametrize("n_rows", [5, 10, 100, 1000, 10000])
-def test_register_dataset(n_rows: int) -> None:
+def test_register_dataset(
+    detector_with_ref_data: Callable[[int], DriftDetector], n_rows: int
+) -> None:
 
     # Given we have a reference dataset
     detector = detector_with_ref_data(n_rows)
@@ -58,10 +79,9 @@ def test_register_dataset(n_rows: int) -> None:
     print(summary)
 
 
-def test_ref_summary_no_dataset() -> None:
+def test_ref_summary_no_dataset(detector: DriftDetector) -> None:
 
     # Given a detector with no reference dataset registered
-    detector = DriftDetector(tag="test")
 
     # When we get the reference dataset summary
     # Then raise an exception
@@ -69,7 +89,9 @@ def test_ref_summary_no_dataset() -> None:
         _ = detector.ref_summary()
 
 
-def test_all_registered() -> None:
+def test_all_registered(
+    detector_with_ref_data: Callable[[int], DriftDetector], tmp_path: pathlib.Path
+) -> None:
 
     # Given we have registered a reference dataset
     detector = detector_with_ref_data(100)
@@ -84,6 +106,7 @@ def test_all_registered() -> None:
         expect_features=True,
         expect_labels=True,
         expect_latent=True,
+        backend=FileBackend(tmp_path),
     ) as detector:
 
         detector.log_features(

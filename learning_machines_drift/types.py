@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from typing import List, Optional
 
-
 import pandas as pd
 from pydantic import BaseModel
 from pygments import formatters, highlight, lexers
