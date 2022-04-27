@@ -1,7 +1,11 @@
-from typing import Protocol
-from learning_machines_drift.types import Dataset
+import glob
+import uuid
 from pathlib import Path
+from typing import Protocol
+
 import pandas as pd
+
+from learning_machines_drift.types import Dataset
 
 
 class Backend(Protocol):
@@ -11,11 +15,17 @@ class Backend(Protocol):
     def load_reference_dataset(self, tag: str) -> Dataset:
         pass
 
-    def save_logged_dataset(self, dataset: Dataset) -> None:
+    def save_logged_features(self, tag: str, dataframe: pd.DataFrame) -> None:
         pass
 
-    def load_logged_dataset(self) -> Dataset:
+    # def save_logged_labels(self, dataframe: pd.DataFrame) -> None:
+    #     pass
+
+    def load_logged_features(self, tag: str) -> pd.DataFrame:
         pass
+
+    # def load_logged_labels(self) -> pd.DataFrame:
+    #     pass
 
 
 class FileBackend:
@@ -46,6 +56,20 @@ class FileBackend:
 
         return reference_dir
 
+    def _get_logged_path(self, tag: str) -> Path:
+
+        # Make a directory for the current tag
+        tag_dir = self.root_dir.joinpath(tag)
+        if not tag_dir.exists():
+            tag_dir.mkdir()
+
+        # Make a directory for the reference data
+        logged_dir = tag_dir.joinpath("logged")
+        if not logged_dir.exists():
+            logged_dir.mkdir()
+
+        return logged_dir
+
     def save_reference_dataset(self, tag: str, dataset: Dataset) -> None:
 
         reference_dir = self._get_reference_path(tag)
@@ -60,8 +84,16 @@ class FileBackend:
 
         return Dataset(features_df, labels_df)
 
-    # def save_logged_dataset(self, dataset: Dataset) -> None:
-    #     raise NotImplementedError
+    def save_logged_features(self, tag: str, dataframe: pd.DataFrame) -> None:
 
-    # def load_logged_dataset(self) -> Dataset:
-    #     raise NotImplementedError
+        logged_dir = self._get_logged_path(tag)
+        name = str(uuid.uuid4())
+        dataframe.to_csv(logged_dir.joinpath(f"{name}.csv"), index=False)
+
+    def load_logged_features(self, tag: str) -> pd.DataFrame:
+
+        files = glob.glob(f"{self._get_logged_path(tag)}/*")
+        all_df = []
+        for f in files:
+            all_df.append(pd.read_csv(f, index_col=False))
+        return pd.concat(all_df).reset_index(drop=True)

@@ -1,10 +1,8 @@
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import List, Optional
 
-import numpy as np
-import numpy.typing as npt
+
 import pandas as pd
-
 from pydantic import BaseModel
 from pygments import formatters, highlight, lexers
 
@@ -34,17 +32,6 @@ class BaselineSummary(BaseModel):
         return str(
             highlight(output, lexers.JsonLexer(), formatters.TerminalFormatter())
         )
-
-
-@dataclass
-class Features:
-    values: Dict[str, npt.NDArray[Any]]
-
-
-@dataclass
-class Labels:
-    values: npt.NDArray[np.int_]
-    label_name: str
 
 
 @dataclass
