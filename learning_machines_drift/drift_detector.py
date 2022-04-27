@@ -1,5 +1,7 @@
+import os
 from atexit import register
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
 import numpy as np
@@ -11,20 +13,16 @@ from pydantic import BaseModel
 from pygments import formatters, highlight, lexers
 from scipy import stats
 
+from learning_machines_drift.backends import Backend, FileBackend
 from learning_machines_drift.exceptions import ReferenceDatasetMissing
-
+from learning_machines_drift.hypothesis_tests import HypothesisTests
 from learning_machines_drift.types import (
-    Dataset,
     BaselineSummary,
-    ShapeSummary,
+    Dataset,
     FeatureSummary,
     LabelSummary,
+    ShapeSummary,
 )
-from learning_machines_drift.hypothesis_tests import HypothesisTests
-from learning_machines_drift.backends import Backend, FileBackend
-
-import os
-from pathlib import Path
 
 
 class DriftDetector:
@@ -60,6 +58,8 @@ class DriftDetector:
 
         self.ref_dataset = Dataset(features=features, labels=labels)
 
+        self.backend.save_reference_dataset(self.tag, self.ref_dataset)
+
     def ref_summary(self) -> BaselineSummary:
 
         if self.ref_dataset is None:
@@ -82,6 +82,7 @@ class DriftDetector:
     def log_features(self, features: pd.DataFrame) -> None:
 
         self.registered_features = features
+        self.backend.save_logged_features(self.tag, self.registered_features)
 
     def log_labels(self, labels: pd.Series) -> None:
 

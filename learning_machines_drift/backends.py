@@ -29,6 +29,9 @@ class Backend(Protocol):
 
 
 class FileBackend:
+
+    """Implements the Backend protocol. Writes files to the filesystem"""
+
     def __init__(self, root_dir: Path) -> None:
         self.root_dir = root_dir
 

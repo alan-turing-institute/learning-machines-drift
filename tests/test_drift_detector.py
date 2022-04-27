@@ -4,6 +4,8 @@ from typing import Callable, Tuple
 import numpy as np
 import pandas as pd
 import pytest
+from pytest_mock import mocker
+from this import d
 
 from learning_machines_drift import (
     DriftDetector,
@@ -17,9 +19,12 @@ N_LABELS = 2
 
 
 @pytest.fixture()
-def detector(tmp_path: pathlib.Path) -> DriftDetector:
+def detector(mocker) -> DriftDetector:
     """Return a DriftDetector which writes data to a temporary directory"""
-    return DriftDetector(tag="test", backend=FileBackend(tmp_path))
+
+    detector = DriftDetector(tag="test")
+    mocker.patch.object(detector, "backend")
+    return detector
 
 
 def example_dataset(n_rows: int) -> Tuple[pd.DataFrame, pd.DataFrame]:
@@ -75,8 +80,8 @@ def test_register_dataset(
     assert summary.shapes.labels.n_rows == n_rows
     assert summary.shapes.labels.n_labels == N_LABELS
 
-    # And print in a nice format (needs test)
-    print(summary)
+    # And we saved the data to the backend
+    detector.backend.save_reference_dataset.assert_called_once()
 
 
 def test_ref_summary_no_dataset(detector: DriftDetector) -> None:
@@ -87,6 +92,9 @@ def test_ref_summary_no_dataset(detector: DriftDetector) -> None:
     # Then raise an exception
     with pytest.raises(ReferenceDatasetMissing):
         _ = detector.ref_summary()
+
+    # And we should not have saved any reference data
+    detector.backend.save_reference_dataset.assert_not_called()
 
 
 def test_all_registered(
@@ -101,13 +109,7 @@ def test_all_registered(
     latent_x = X.mean(axis=0)
 
     # When we log features and labels of new data
-    with DriftDetector(
-        tag="test",
-        expect_features=True,
-        expect_labels=True,
-        expect_latent=True,
-        backend=FileBackend(tmp_path),
-    ) as detector:
+    with detector:
 
         detector.log_features(
             pd.DataFrame(
@@ -133,19 +135,20 @@ def test_all_registered(
     # Then we can ensure that everything is registered
     assert detector.all_registered()
 
+    # And we saved a reference dataset
+    detector.backend.save_reference_dataset.assert_called_once()
 
-def test_statistics_summary() -> None:
+    # And we saved the logged features
+    detector.backend.save_logged_features.assert_called_once()
+
+
+def test_statistics_summary(detector: DriftDetector) -> None:
 
     # Given we have registered a reference dataset
     features_df, labels_df = example_dataset(100)
 
     # And we have logged features, labels and latent
-    with DriftDetector(
-        tag="test",
-        expect_features=True,
-        expect_labels=True,
-        expect_latent=True,
-    ) as detector:
+    with detector:
 
         detector.register_ref_dataset(features=features_df, labels=labels_df)
 

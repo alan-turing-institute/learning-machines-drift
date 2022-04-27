@@ -23,6 +23,7 @@ pylint = "^2.12.2"
 pytest-cov = "^3.0.0"
 matplotlib = "^3.5.1"
 seaborn = "^0.11.2"
+pytest-mock = "^3.7.0"
 
 
 [tool.isort]
