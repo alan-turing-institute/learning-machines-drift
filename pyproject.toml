@@ -8,6 +8,8 @@ authors = ["Oscar Giles <ogiles@turing.ac.uk>", "Mahed Abroshan <mabroshan@turin
 python = "^3.8,<3.10"
 numpy = "^1.22.3"
 scipy = "^1.8.0"
+pydantic = "^1.9.0"
+Pygments = "^2.11.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
@@ -21,6 +23,7 @@ pylint = "^2.12.2"
 pytest-cov = "^3.0.0"
 matplotlib = "^3.5.1"
 seaborn = "^0.11.2"
+pytest-mock = "^3.7.0"
 
 
 [tool.isort]
@@ -28,7 +31,7 @@ profile = "black"
 
 [tool.mypy]
 strict = true
-plugins = ["numpy.typing.mypy_plugin"]
+plugins = ["numpy.typing.mypy_plugin", "pydantic.mypy"]
 
 # You can turn off complaints about missing imports for individual modules.
 # See https://mypy.readthedocs.io/en/stable/running_mypy.html#ignore-missing-imports
@@ -40,6 +43,17 @@ plugins = ["numpy.typing.mypy_plugin"]
 module = "scipy.*"
 ignore_missing_imports = true
 
+[[tool.mypy.overrides]]
+module = "pytest.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "pygments.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "pandas.*"
+ignore_missing_imports = true
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
