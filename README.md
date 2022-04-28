@@ -4,6 +4,19 @@ A python package for monitoring dataset drift in production ML pipelines.
 
 Built to run in any environment without uploading your data to external services.
 
+## Getting started
+
+### Install
+```bash
+pip install git+https://github.com/alan-turing-institute/learning-machines-drift
+```
+
+### Simple example
+
+```python
+import DriftDetector from learning_machines_drift
+```
+
 
 ## Background
 
