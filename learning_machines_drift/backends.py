@@ -52,8 +52,9 @@ class FileBackend:
 
     """Implements the Backend protocol. Writes files to the filesystem"""
 
-    def __init__(self, root_dir: Path) -> None:
-        self.root_dir = root_dir
+    def __init__(self, root_dir: Union[str, Path]) -> None:
+        self.root_dir = Path(root_dir)
+        self.root_dir.mkdir(exist_ok=True)
 
     def _get_reference_path(self, tag: str) -> Path:
         """Get the directory for storing reference data,
