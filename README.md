@@ -18,6 +18,39 @@ import DriftDetector from learning_machines_drift
 ```
 
 
+## Developer
+
+Install the package and dev dependencies with:
+
+```
+poetry install
+```
+
+
+### Run tests
+```bash
+poetry run pytest
+```
+
+### Run pre-commit checks
+```bash
+poetry run pre-commit run --all-files
+```
+
+If you want to run the checks before every commit install as a pre-commit hook:
+
+```bash
+poetry run pre-commit install
+```
+
+If you then want to skip the checks run:
+
+```bash
+git commit --no-verify
+```
+
+
+
 ## Background
 
 Some background info in [this doc](https://hackmd.io/-_44PRS9SYSGa-3z9DTxCA).
