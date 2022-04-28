@@ -41,12 +41,6 @@ class DriftDetector:
         else:
             self.backend = FileBackend(Path(os.getcwd()).joinpath("lm-drift-data"))
 
-        # (
-
-        #     backend
-        #     if backend is not None
-        #     else FileBackend(Path(os.getcwd()).joinpath("lm-drift-data"))
-        # )
         self.tag: str = tag
 
         self._identifier: Optional[
