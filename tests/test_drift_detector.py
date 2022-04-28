@@ -7,7 +7,13 @@ import pytest
 from pytest_mock import MockerFixture, mocker
 from this import d
 
-from learning_machines_drift import DriftDetector, ReferenceDatasetMissing, datasets
+from learning_machines_drift import (
+    DriftDetector,
+    DriftMeasure,
+    ReferenceDatasetMissing,
+    datasets,
+)
+from learning_machines_drift.backends import FileBackend
 
 N_FEATURES = 3
 N_LABELS = 2
@@ -184,6 +190,59 @@ def test_statistics_summary(detector: DriftDetector) -> None:
         # Check we get a dictionary with an entry for every feature column
         assert isinstance(res, dict)
         assert res.keys() == set(features_df.columns)
+
+
+def test_load_all_logged_data(
+    detector_with_ref_data: Callable[[int], DriftDetector], tmp_path
+) -> None:
+
+    # Given we have registered a reference dataset
+    detector = DriftDetector(tag="test", backend=FileBackend(tmp_path))
+    features_df, labels_df = example_dataset(20)
+    detector.register_ref_dataset(features=features_df, labels=labels_df)
+
+    # And we have features and predicted labels
+    X, Y_pred = datasets.logistic_model(size=2)
+
+    # When we log features and labels of new data
+    with detector:
+
+        detector.log_features(
+            pd.DataFrame(
+                {
+                    "age": X[:, 0],
+                    "height": X[:, 1],
+                    "bp": X[:, 2],
+                }
+            )
+        )
+        detector.log_labels(pd.Series(Y_pred, name="y"))
+
+    # And we have features and predicted labels
+    X, Y_pred = datasets.logistic_model(size=2)
+
+    with detector:
+
+        detector.log_features(
+            pd.DataFrame(
+                {
+                    "age": X[:, 0],
+                    "height": X[:, 1],
+                    "bp": X[:, 2],
+                }
+            )
+        )
+        detector.log_labels(pd.Series(Y_pred, name="y"))
+
+    # Load data
+    measure = DriftMeasure(tag="test", backend=FileBackend(tmp_path))
+    recovered_dataset = measure.load_data()
+
+    dimensions = recovered_dataset.unify().shape
+    assert dimensions[0] == 4
+    assert dimensions[1] == 4
+
+    print(recovered_dataset.unify())
 
 
 # def test_monitor_drift(detector_with_ref_data: DriftDetector) -> None:
