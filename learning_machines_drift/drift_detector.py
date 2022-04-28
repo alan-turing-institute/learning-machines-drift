@@ -16,7 +16,6 @@ from scipy import stats
 
 from learning_machines_drift.backends import Backend, FileBackend
 from learning_machines_drift.exceptions import ReferenceDatasetMissing
-from learning_machines_drift.hypothesis_tests import HypothesisTests
 from learning_machines_drift.types import (
     BaselineSummary,
     Dataset,
@@ -130,17 +129,6 @@ class DriftDetector:
         # This should check these two things are not None
 
         return Dataset(self.registered_features, self.registered_labels)
-
-    @property
-    def hypothesis_tests(self) -> HypothesisTests:
-
-        if self.ref_dataset is None:
-            raise ReferenceDatasetMissing
-
-        if self.registered_dataset is None:
-            raise ValueError("A reference dataset is registered but not a new datasets")
-
-        return HypothesisTests(self.ref_dataset, self.registered_dataset)
 
     def __enter__(self) -> "DriftDetector":
 

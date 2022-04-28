@@ -97,8 +97,8 @@ class FileBackend:
     def save_reference_dataset(self, tag: str, dataset: Dataset) -> None:
 
         reference_dir = self._get_reference_path(tag)
-        dataset.features.to_csv(reference_dir.joinpath("features.csv"))
-        dataset.labels.to_csv(reference_dir.joinpath("labels.csv"))
+        dataset.features.to_csv(reference_dir.joinpath("features.csv"), index=False)
+        dataset.labels.to_csv(reference_dir.joinpath("labels.csv"), index=False)
 
     def load_reference_dataset(self, tag: str) -> Dataset:
         reference_dir = self._get_reference_path(tag)
