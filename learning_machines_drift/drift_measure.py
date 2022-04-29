@@ -8,7 +8,7 @@ from learning_machines_drift.hypothesis_tests import HypothesisTests
 from learning_machines_drift.types import Dataset
 
 
-class DriftMeasure:
+class Monitor:
     def __init__(
         self,
         tag: str,

@@ -25,7 +25,7 @@ from learning_machines_drift.types import (
 )
 
 
-class DriftDetector:
+class Registry:
     def __init__(
         self,
         tag: str,
@@ -130,7 +130,7 @@ class DriftDetector:
 
         return Dataset(self.registered_features, self.registered_labels)
 
-    def __enter__(self) -> "DriftDetector":
+    def __enter__(self) -> "Registry":
 
         self._identifier = uuid4()
         return self

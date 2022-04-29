@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from learning_machines_drift import DriftDetector, DriftMeasure, FileBackend, datasets
+from learning_machines_drift import Registry, Monitor, FileBackend, datasets
 
 # Generate a reference dataset
 X, Y = datasets.logistic_model(X_mu=np.array([0.0, 0.0, 0.0]), size=100)
@@ -16,7 +16,7 @@ features_df = pd.DataFrame(
 labels_df = pd.DataFrame({"y": Y})
 
 # Log our reference dataset
-detector = DriftDetector(tag="simple_example", backend=FileBackend("my-data"))
+detector = Registry(tag="simple_example", backend=FileBackend("my-data"))
 detector.register_ref_dataset(features=features_df, labels=labels_df)
 
 
@@ -43,13 +43,14 @@ for i in range(10):
         detector.log_labels(labels_monitor_df)
 
 
-measure = DriftMeasure(tag="simple_example", backend=FileBackend("my-data"))
+measure = Monitor(tag="simple_example", backend=FileBackend("my-data"))
 measure.load_data()
+
+print(measure.hypothesis_tests.kolmogorov_smirnov())
 
 # print(detector.registered_features)
 # print(detector.registered_labels)
 # print(detector.ref_dataset)
-print(measure.hypothesis_tests.kolmogorov_smirnov())
 
 
 # logged_datasets = detector.backend.load_logged_dataset("simple_example")
