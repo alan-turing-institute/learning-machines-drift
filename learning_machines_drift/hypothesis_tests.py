@@ -3,7 +3,8 @@ from typing import Any, Callable
 from scipy import stats
 import numpy.typing as npt
 import numpy as np
-
+# from sdmetrics.single_table import LogisticDetection
+from sdmetrics.single_table import GMLogLikelihood
 
 class HypothesisTests:
     def __init__(self, reference_dataset: Dataset, registered_dataset: Dataset):
@@ -31,3 +32,7 @@ class HypothesisTests:
         d2_unique, d2_counts = np.unique(data1, return_counts=True)
 
         return stats.chisquare(d1_counts, d2_counts)
+    
+    def sdv_evaluate(self) -> Any:
+        # return LogisticDetection.compute(self.reference_dataset.unify(), self.registered_dataset.unify())
+        return GMLogLikelihood.compute(self.reference_dataset.unify(), self.registered_dataset.unify())

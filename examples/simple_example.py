@@ -49,7 +49,8 @@ measure.load_data()
 # print(detector.registered_features)
 # print(detector.registered_labels)
 # print(detector.ref_dataset)
-print(measure.hypothesis_tests.kolmogorov_smirnov())
+#print(measure.hypothesis_tests.kolmogorov_smirnov())
+print(measure.hypothesis_tests.sdv_evaluate())
 
 
 # logged_datasets = detector.backend.load_logged_dataset("simple_example")
