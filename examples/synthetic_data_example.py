@@ -32,7 +32,7 @@ with detector:
     detector.log_features(monitor_1998_features)
     detector.log_labels(monitor_1998_labels)
 
-measure = Monitor(tag="simple_example", backend=FileBackend("my-data"))
+measure = Monitor(tag="alzheimer_example", backend=FileBackend("my-data"))
 measure.load_data()
 
 
