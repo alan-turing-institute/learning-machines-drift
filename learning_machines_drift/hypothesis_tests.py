@@ -4,7 +4,7 @@ import numpy as np
 import numpy.typing as npt
 from scipy import stats
 from sdmetrics.single_table import GMLogLikelihood, KSTest, LogisticDetection
-from sdv.evaluation import evaluate
+# from sdv.evaluation import evaluate
 
 from learning_machines_drift.types import Dataset
 
@@ -85,17 +85,17 @@ the average log likelihood of the synthetic data on them."""
         )
         return results
 
-    def sd_evaluate(self, verbose=True) -> Any:
-        method = "SD Evaluate"
-        description = "Detection metric based on a LogisticRegression classifier from scikit-learn"
-        about_str = "\nMethod: {method}\nDescription:{description}"
-        about_str = about_str.format(method=method, description=description)
+    # def sd_evaluate(self, verbose=True) -> Any:
+    #     method = "SD Evaluate"
+    #     description = "Detection metric based on a LogisticRegression classifier from scikit-learn"
+    #     about_str = "\nMethod: {method}\nDescription:{description}"
+    #     about_str = about_str.format(method=method, description=description)
 
-        if verbose:
-            print(about_str)
-        results = evaluate(
-            self.reference_dataset.unify(),
-            self.registered_dataset.unify(),
-            aggregate=False,
-        )
-        return results
+    #     if verbose:
+    #         print(about_str)
+    #     results = evaluate(
+    #         self.reference_dataset.unify(),
+    #         self.registered_dataset.unify(),
+    #         aggregate=False,
+    #     )
+    #     return results
