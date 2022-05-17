@@ -5,7 +5,6 @@ import numpy.typing as npt
 from scipy import stats
 from sdmetrics.single_table import GMLogLikelihood, KSTest, LogisticDetection
 from sdv.evaluation import evaluate
-from torch import AggregationType
 
 from learning_machines_drift.types import Dataset
 
@@ -23,10 +22,10 @@ class HypothesisTests:
             results[feature] = f(ref_col, reg_col)
         return results
 
-    def scipy_kolmogorov_smirnov(self, verbose=True) -> any:
+    def scipy_kolmogorov_smirnov(self, verbose=True) -> Any:
         method = "SciPy Kolmogorov Smirnov"
         description = "This metric uses the two-sample Kolmogorov–Smirnov test to compare the distributions of continuous columns using the empirical CDF. The output for each column is 1 minus the KS Test D statistic, which indicates the maximum distance between the expected CDF and the observed CDF values."
-        about_str = "\nMethod: {method}\nDescription:{description}"
+        about_str = "\nMethods: {method}\nDescription:{description}"
         about_str = about_str.format(method=method, description=description)
 
         results = self._calc(stats.ks_2samp)
@@ -59,7 +58,7 @@ class HypothesisTests:
         return stats.chisquare(d1_counts, d2_counts)
 
     def gaussian_mixture_log_likelihood(self, verbose=True) -> Any:
-        method = "Gaussian Mixture Log Likelihood"
+        method: str = "Gaussian Mixture Log Likelihood"
         description = """This metric fits multiple GaussianMixture models to the real data and then evaluates
 the average log likelihood of the synthetic data on them."""
         about_str = "\nMethod: {method}\nDescription:{description}"
