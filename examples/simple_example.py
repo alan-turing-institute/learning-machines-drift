@@ -20,10 +20,10 @@ detector = Registry(tag="simple_example", backend=FileBackend("my-data"))
 detector.register_ref_dataset(features=features_df, labels=labels_df)
 
 
-for i in range(10):
+for i in range(1):
     # Generate drift data
     X_monitor, Y_monitor = datasets.logistic_model(
-        X_mu=np.array([0.0, 1.0, 0.0]), alpha=10, size=100
+        X_mu=np.array([0.0, 1.0, 0.0]), alpha=10, size=2
     )
 
     features_monitor_df = pd.DataFrame(
@@ -38,21 +38,29 @@ for i in range(10):
 
     # Log features
     with detector:
-
         detector.log_features(features_monitor_df)
         detector.log_labels(labels_monitor_df)
 
 
 measure = Monitor(tag="simple_example", backend=FileBackend("my-data"))
 measure.load_data()
+print(measure.hypothesis_tests.scipy_kolmogorov_smirnov())
+print(measure.hypothesis_tests.sdv_kolmogorov_smirnov())
+print(measure.hypothesis_tests.gaussian_mixture_log_likelihood())
+print(measure.hypothesis_tests.logistic_detection())
+print(measure.hypothesis_tests.sd_evaluate())
 
-print(measure.hypothesis_tests.kolmogorov_smirnov())
+
+
+# logged_datasets = detector.backend.load_logged_dataset("simple_example")
+# print(logged_datasets.labels)
+
 
 # print(detector.registered_features)
 # print(detector.registered_labels)
 # print(detector.ref_dataset)
 #print(measure.hypothesis_tests.kolmogorov_smirnov())
-print(measure.hypothesis_tests.sdv_evaluate())
+# print(measure.hypothesis_tests.sdv_evaluate())
 
 
 # logged_datasets = detector.backend.load_logged_dataset("simple_example")
