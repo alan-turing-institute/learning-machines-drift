@@ -1,7 +1,7 @@
-from learning_machines_drift import datasets
-from learning_machines_drift import Registry, Monitor, FileBackend, datasets
-import pandas as pd
 import numpy as np
+import pandas as pd
+
+from learning_machines_drift import FileBackend, Monitor, Registry, datasets
 
 # Generate a reference dataset
 

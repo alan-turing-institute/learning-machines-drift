@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from learning_machines_drift import Registry, Monitor, FileBackend, datasets
+from learning_machines_drift import FileBackend, Monitor, Registry, datasets
 
 # Generate a reference dataset
 X, Y = datasets.logistic_model(X_mu=np.array([0.0, 0.0, 0.0]), size=100)
@@ -48,8 +48,7 @@ print(measure.hypothesis_tests.scipy_kolmogorov_smirnov())
 print(measure.hypothesis_tests.sdv_kolmogorov_smirnov())
 print(measure.hypothesis_tests.gaussian_mixture_log_likelihood())
 print(measure.hypothesis_tests.logistic_detection())
-print(measure.hypothesis_tests.sd_evaluate())
-
+# print(measure.hypothesis_tests.sd_evaluate())
 
 
 # logged_datasets = detector.backend.load_logged_dataset("simple_example")
@@ -59,7 +58,7 @@ print(measure.hypothesis_tests.sd_evaluate())
 # print(detector.registered_features)
 # print(detector.registered_labels)
 # print(detector.ref_dataset)
-#print(measure.hypothesis_tests.kolmogorov_smirnov())
+# print(measure.hypothesis_tests.kolmogorov_smirnov())
 # print(measure.hypothesis_tests.sdv_evaluate())
 
 
@@ -67,9 +66,3 @@ print(measure.hypothesis_tests.sd_evaluate())
 
 # print(logged_datasets.features)
 # print(logged_datasets.labels)
-
-
-# detector.log_labels()
-# print(features_df)
-
-# print(labels_df)
