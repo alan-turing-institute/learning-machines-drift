@@ -22,6 +22,7 @@ class Monitor:
 
         self.tag = tag
         self.ref_dataset: Optional[Dataset] = None
+        self.registered_dataset: Optional[Dataset] = None
 
     def load_data(self) -> Dataset:
 

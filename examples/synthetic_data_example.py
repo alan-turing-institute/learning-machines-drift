@@ -1,7 +1,6 @@
-import numpy as np
 import pandas as pd
 
-from learning_machines_drift import FileBackend, Monitor, Registry, datasets
+from learning_machines_drift import FileBackend, Monitor, Registry
 
 # Generate a reference dataset
 
@@ -36,5 +35,5 @@ measure = Monitor(tag="alzheimer_example", backend=FileBackend("my-data"))
 measure.load_data()
 
 
-print("KS score: {}".format(measure.hypothesis_tests.kolmogorov_smirnov()))
-print("GM Likelihood score: {}".format(measure.hypothesis_tests.sdv_evaluate()))
+print("KS score: {}".format(measure.hypothesis_tests.scipy_kolmogorov_smirnov()))
+print("GM Likelihood score: {}".format(measure.hypothesis_tests.logistic_detection))
