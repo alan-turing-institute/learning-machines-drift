@@ -7,10 +7,10 @@ import pytest
 from pytest_mock import MockerFixture, mocker
 from this import d
 
-from learning_machines_drift import (
-    DriftDetector,
-    DriftMeasure,
+from learning_machines_drift import (  # DriftDetector,; DriftMeasure,
+    Monitor,
     ReferenceDatasetMissing,
+    Registry,
     datasets,
 )
 from learning_machines_drift.backends import FileBackend
@@ -20,19 +20,26 @@ N_LABELS = 2
 
 
 @pytest.fixture()
-def detector(mocker: MockerFixture) -> DriftDetector:
+def detector(mocker: MockerFixture) -> Registry:
     """Return a DriftDetector which writes data to a temporary directory"""
 
-    detector = DriftDetector(tag="test")
+    detector = Registry(tag="test")
     mocker.patch.object(detector, "backend")
     return detector
 
 
-def example_dataset(n_rows: int) -> Tuple[pd.DataFrame, pd.DataFrame]:
+@pytest.fixture()
+def measure(mocker: MockerFixture) -> Monitor:
+    """Return a DriftDetector which writes data to a temporary directory"""
 
+    measure = Monitor(tag="test")
+    mocker.patch.object(measure, "backend")
+    return measure
+
+
+def example_dataset(n_rows: int) -> Tuple[pd.DataFrame, pd.DataFrame]:
     # Given we have a reference dataset
     X_reference, Y_reference = datasets.logistic_model(size=n_rows)
-
     features_df = pd.DataFrame(
         {
             "age": X_reference[:, 0],
@@ -48,11 +55,11 @@ def example_dataset(n_rows: int) -> Tuple[pd.DataFrame, pd.DataFrame]:
 
 @pytest.fixture()
 def detector_with_ref_data(
-    tmp_path: pathlib.Path, detector: DriftDetector
-) -> Callable[[int], DriftDetector]:
+    tmp_path: pathlib.Path, detector: Registry
+) -> Callable[[int], Registry]:
     """Return a DriftDetector with a reference dataset registered which writes data to a temporary directory"""
 
-    def _detector_with_ref_data(n_rows: int) -> DriftDetector:
+    def _detector_with_ref_data(n_rows: int) -> Registry:
 
         features_df, labels_df = example_dataset(n_rows)
 
@@ -66,7 +73,7 @@ def detector_with_ref_data(
 
 @pytest.mark.parametrize("n_rows", [5, 10, 100, 1000, 10000])
 def test_register_dataset(
-    detector_with_ref_data: Callable[[int], DriftDetector], n_rows: int
+    detector_with_ref_data: Callable[[int], Registry], n_rows: int
 ) -> None:
 
     # Given we have a reference dataset
@@ -85,7 +92,7 @@ def test_register_dataset(
     detector.backend.save_reference_dataset.assert_called_once()
 
 
-def test_ref_summary_no_dataset(detector: DriftDetector) -> None:
+def test_ref_summary_no_dataset(detector: Registry) -> None:
 
     # Given a detector with no reference dataset registered
 
@@ -99,7 +106,7 @@ def test_ref_summary_no_dataset(detector: DriftDetector) -> None:
 
 
 def test_all_registered(
-    detector_with_ref_data: Callable[[int], DriftDetector], tmp_path: pathlib.Path
+    detector_with_ref_data: Callable[[int], Registry], tmp_path: pathlib.Path
 ) -> None:
 
     # Given we have registered a reference dataset
@@ -150,54 +157,57 @@ def test_all_registered(
     detector.backend.save_logged_labels.assert_called_once()
 
 
-def test_statistics_summary(detector: DriftDetector) -> None:
+def test_statistics_summary(tmp_path) -> None:
 
     # Given we have registered a reference dataset
     features_df, labels_df = example_dataset(100)
+    detector = Registry(tag="test", backend=FileBackend(tmp_path))
+    detector.register_ref_dataset(features=features_df, labels=labels_df)
 
-    # And we have logged features, labels and latent
+    # And we have features and predicted labels
+    X_monitor, Y_monitor = datasets.logistic_model()
+    latent_x = X_monitor.mean(axis=0)
+    features_monitor_df = pd.DataFrame(
+        {
+            "age": X_monitor[:, 0],
+            "height": X_monitor[:, 1],
+            "bp": X_monitor[:, 2],
+        }
+    )
+    labels_monitor_df = pd.DataFrame({"y": Y_monitor})
+
     with detector:
+        # And we have logged features, labels and latent
+        detector.log_features(features_monitor_df)
+        detector.log_labels(labels_monitor_df)
+        # detector.log_latent(
+        #     pd.DataFrame(
+        #         {
+        #             "mean_age": latent_x[0],
+        #             "mean_height": latent_x[1],
+        #             "mean_bp": latent_x[2],
+        #         },
+        #         index=[0],
+        #     )
+        # )
 
-        detector.register_ref_dataset(features=features_df, labels=labels_df)
+    measure = Monitor(tag="test", backend=FileBackend(tmp_path))
+    measure.load_data()
+    res = measure.hypothesis_tests.scipy_kolmogorov_smirnov(verbose=True)
 
-        # And we have features and predicted labels
-        X, Y_pred = datasets.logistic_model()
-        latent_x = X.mean(axis=0)
-
-        detector.log_features(
-            pd.DataFrame(
-                {
-                    "age": X[:, 0],
-                    "height": X[:, 1],
-                    "bp": X[:, 2],
-                }
-            )
-        )
-        detector.log_labels(pd.Series(Y_pred, name="y"))
-        detector.log_latent(
-            pd.DataFrame(
-                {
-                    "mean_age": latent_x[0],
-                    "mean_height": latent_x[1],
-                    "mean_bp": latent_x[2],
-                },
-                index=[0],
-            )
-        )
-
-        res = detector.hypothesis_tests.kolmogorov_smirnov()
-
-        # Check we get a dictionary with an entry for every feature column
-        assert isinstance(res, dict)
-        assert res.keys() == set(features_df.columns)
+    # Check we get a dictionary with an entry for every feature column
+    assert isinstance(res, dict)
+    # print(set(features_df.columns))
+    # print(res)
+    assert res.keys() == set(features_df.columns)
 
 
 def test_load_all_logged_data(
-    detector_with_ref_data: Callable[[int], DriftDetector], tmp_path
+    detector_with_ref_data: Callable[[int], Registry], tmp_path
 ) -> None:
 
     # Given we have registered a reference dataset
-    detector = DriftDetector(tag="test", backend=FileBackend(tmp_path))
+    detector = Registry(tag="test", backend=FileBackend(tmp_path))
     features_df, labels_df = example_dataset(20)
     detector.register_ref_dataset(features=features_df, labels=labels_df)
 
@@ -235,7 +245,7 @@ def test_load_all_logged_data(
         detector.log_labels(pd.Series(Y_pred, name="y"))
 
     # Load data
-    measure = DriftMeasure(tag="test", backend=FileBackend(tmp_path))
+    measure = Monitor(tag="test", backend=FileBackend(tmp_path))
     recovered_dataset = measure.load_data()
 
     dimensions = recovered_dataset.unify().shape
