@@ -16,17 +16,17 @@ class HypothesisTests:
         self.reference_dataset = reference_dataset
         self.registered_dataset = registered_dataset
 
-    def _calc(self, f: Callable[[npt.ArrayLike, npt.ArrayLike], Any]) -> Any:
+    def _calc(self, func: Callable[[npt.ArrayLike, npt.ArrayLike], Any]) -> Any:
         results = {}
         for feature in self.reference_dataset.feature_names:
             ref_col = self.reference_dataset.features[feature]
             reg_col = self.registered_dataset.features[feature]
-            results[feature] = f(ref_col, reg_col)
+            results[feature] = func(ref_col, reg_col)
         return results
 
     def scipy_kolmogorov_smirnov(self, verbose=True) -> Any:
         method = "SciPy Kolmogorov Smirnov"
-        description = "This metric uses the two-sample Kolmogorov–Smirnov test to compare the distributions of continuous columns using the empirical CDF. The output for each column is 1 minus the KS Test D statistic, which indicates the maximum distance between the expected CDF and the observed CDF values."
+        description = ""
         about_str = "\nMethods: {method}\nDescription:{description}"
         about_str = about_str.format(method=method, description=description)
 
@@ -53,9 +53,9 @@ class HypothesisTests:
         return results
 
     @staticmethod
-    def _chi_square(data1: npt.ArrayLike, data2: npt.ArrayLike) -> Any:
-        d1_unique, d1_counts = np.unique(data1, return_counts=True)
-        d2_unique, d2_counts = np.unique(data1, return_counts=True)
+    def _chi_square(data1: npt.ArrayLike) -> Any:
+        d1_counts = np.unique(data1, return_counts=True)
+        d2_counts = np.unique(data1, return_counts=True)
 
         return stats.chisquare(d1_counts, d2_counts)
 

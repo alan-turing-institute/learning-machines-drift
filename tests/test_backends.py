@@ -1,5 +1,5 @@
 import pathlib
-import string
+import re
 from typing import Tuple
 from uuid import uuid4
 
@@ -100,12 +100,8 @@ def test_get_identifier():
 
 
 def test_labels():
-
-    import re
-
-    RE_LABEL = re.compile("labels", re.I)
-
-    print(RE_LABEL.search("asdfsa_labels"))
+    re_label = re.compile("labels", re.I)
+    print(re_label.search("asdfsa_labels"))
 
 
 # def test_file_backend_labels(tmp_path: pathlib.Path) -> None:
