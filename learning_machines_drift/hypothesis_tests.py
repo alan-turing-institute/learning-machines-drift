@@ -11,7 +11,6 @@ from learning_machines_drift.types import Dataset
 # from sdv.metrics.tabular import KSTest
 
 
-
 class HypothesisTests:
     def __init__(self, reference_dataset: Dataset, registered_dataset: Dataset):
         self.reference_dataset = reference_dataset
