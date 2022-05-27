@@ -3,8 +3,9 @@ from typing import Any, Callable
 import numpy as np
 import numpy.typing as npt
 from scipy import stats
-from sdmetrics.single_table import GMLogLikelihood, KSTest, LogisticDetection
+from sdmetrics.single_table import GMLogLikelihood,KSTest, LogisticDetection
 # from sdv.evaluation import evaluate
+# from sdv.metrics.tabular import KSTest
 
 from learning_machines_drift.types import Dataset
 
