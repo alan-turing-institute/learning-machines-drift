@@ -16,14 +16,14 @@ UUIDHex4 = re.compile(
 RE_LABEL = re.compile("(labels)", re.I)
 
 
-def get_identifier(x: Union[str, Path]) -> Optional[UUID]:
+def get_identifier(path_object: Union[str, Path]) -> Optional[UUID]:
 
-    a = UUIDHex4.match(Path(x).stem)
+    a_match = UUIDHex4.match(Path(path_object).stem)
 
-    if a is None:
+    if a_match is None:
         return None
 
-    return UUID(a.groups()[0])
+    return UUID(a_match.groups()[0])
 
 
 class Backend(Protocol):
@@ -130,18 +130,18 @@ class FileBackend:
         file_pairs: List[Tuple[Path, Path]] = []
         matcher: Dict[UUID, Path] = {}
 
-        for f in files:
+        for file in files:
 
-            key = get_identifier(Path(f))
+            key = get_identifier(Path(file))
             if key is None:
                 raise IOError("File name does not start with a UUID")
 
             value = matcher.pop(key, None)
 
             if value is not None:
-                file_pairs.append((value, f))
+                file_pairs.append((value, file))
             else:
-                matcher[key] = f
+                matcher[key] = file
 
         # Check which is the label
 
