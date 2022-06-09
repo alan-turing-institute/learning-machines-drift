@@ -1,3 +1,4 @@
+"""TODO PEP 257"""
 import pathlib
 import re
 from typing import Tuple
@@ -11,24 +12,26 @@ from learning_machines_drift.backends import get_identifier
 
 
 def example_dataset(n_rows: int) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    """TODO PEP 257"""
 
     # Given we have a reference dataset
-    X_reference, Y_reference = datasets.logistic_model(size=n_rows)
+    x_reference, y_reference = datasets.logistic_model(size=n_rows)
 
     features_df = pd.DataFrame(
         {
-            "age": X_reference[:, 0],
-            "height": X_reference[:, 1],
-            "bp": X_reference[:, 2],
+            "age": x_reference[:, 0],
+            "height": x_reference[:, 1],
+            "bp": x_reference[:, 2],
         }
     )
 
-    labels_df = pd.Series(Y_reference, name="y")
+    labels_df = pd.Series(y_reference, name="y")
 
     return (features_df, labels_df)
 
 
 def test_file_backend_reference(tmp_path: pathlib.Path) -> None:
+    """TODO PEP 257"""
 
     # Given
     tag = "test_tag"
@@ -46,6 +49,7 @@ def test_file_backend_reference(tmp_path: pathlib.Path) -> None:
 
 
 def test_file_backend_features(tmp_path: pathlib.Path) -> None:
+    """TODO PEP 257"""
 
     # Given
     tag = "test_tag"
@@ -92,6 +96,7 @@ def test_file_backend_features(tmp_path: pathlib.Path) -> None:
 
 
 def test_get_identifier():
+    """TODO PEP 257"""
 
     expected_uuid = uuid4()
 
@@ -100,6 +105,7 @@ def test_get_identifier():
 
 
 def test_labels():
+    """TODO PEP 257"""
     re_label = re.compile("labels", re.I)
     print(re_label.search("asdfsa_labels"))
 

@@ -1,10 +1,11 @@
+"""TODO PEP 257"""
 import numpy as np
 import pandas as pd
 
 from learning_machines_drift import FileBackend, Monitor, Registry, datasets
 
 # Generate a reference dataset
-X, Y = datasets.logistic_model(X_mu=np.array([0.0, 0.0, 0.0]), size=100)
+X, Y = datasets.logistic_model(x_mu=np.array([0.0, 0.0, 0.0]), size=100)
 
 features_df = pd.DataFrame(
     {
@@ -23,7 +24,7 @@ detector.register_ref_dataset(features=features_df, labels=labels_df)
 for i in range(1):
     # Generate drift data
     X_monitor, Y_monitor = datasets.logistic_model(
-        X_mu=np.array([0.0, 1.0, 0.0]), alpha=10, size=2
+        x_mu=np.array([0.0, 1.0, 0.0]), alpha=10, size=2
     )
 
     features_monitor_df = pd.DataFrame(

@@ -1,3 +1,4 @@
+"""TODO PEP 257"""
 import pandas as pd
 
 from learning_machines_drift import FileBackend, Monitor, Registry
@@ -35,5 +36,5 @@ measure = Monitor(tag="alzheimer_example", backend=FileBackend("my-data"))
 measure.load_data()
 
 
-print("KS score: {}".format(measure.hypothesis_tests.scipy_kolmogorov_smirnov()))
-print("GM Likelihood score: {}".format(measure.hypothesis_tests.logistic_detection))
+print(f"KS score: {measure.hypothesis_tests.scipy_kolmogorov_smirnov()}")
+print(f"GM Likelihood score: {measure.hypothesis_tests.logistic_detection}")
