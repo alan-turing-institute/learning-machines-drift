@@ -157,7 +157,7 @@ class Registry:
         self._identifier = uuid4()
         return self
 
-    def __exit__(self, exc_type, exc_value, traceback) -> None:
+    def __exit__(self, exc_type, exc_value, traceback) -> None:  # type: ignore
         """TODO PEP 257"""
 
         self._identifier = None

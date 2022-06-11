@@ -5,7 +5,11 @@ from typing import Any, Callable
 import numpy as np
 import numpy.typing as npt
 from scipy import stats
-from sdmetrics.single_table import GMLogLikelihood, KSTest, LogisticDetection
+from sdmetrics.single_table import (  # type: ignore
+    GMLogLikelihood,
+    KSTest,
+    LogisticDetection,
+)
 
 from learning_machines_drift.types import Dataset
 
@@ -16,7 +20,7 @@ from learning_machines_drift.types import Dataset
 class HypothesisTests:
     """TODO PEP 257"""
 
-    def __init__(self, reference_dataset: Dataset, registered_dataset: Dataset):
+    def __init__(self, reference_dataset: Dataset, registered_dataset: Dataset) -> None:
         """TODO PEP 257"""
         self.reference_dataset = reference_dataset
         self.registered_dataset = registered_dataset
@@ -30,7 +34,7 @@ class HypothesisTests:
             results[feature] = func(ref_col, reg_col)
         return results
 
-    def scipy_kolmogorov_smirnov(self, verbose=True) -> Any:
+    def scipy_kolmogorov_smirnov(self, verbose=True) -> Any:  # type: ignore
         """TODO PEP 257"""
         method = "SciPy Kolmogorov Smirnov"
         description = ""
@@ -42,7 +46,7 @@ class HypothesisTests:
             print(about_str)
         return results
 
-    def sdv_kolmogorov_smirnov(self, verbose=True) -> Any:
+    def sdv_kolmogorov_smirnov(self, verbose=True) -> Any:  # type: ignore
         """TODO PEP 257"""
         method = "SDV Kolmogorov Smirnov"
         description = """This metric uses the two-sample Kolmogorov–Smirnov
@@ -71,7 +75,7 @@ class HypothesisTests:
 
         return stats.chisquare(d1_counts, d2_counts)
 
-    def gaussian_mixture_log_likelihood(self, verbose=True) -> Any:
+    def gaussian_mixture_log_likelihood(self, verbose=True) -> Any:  # type: ignore
         """TODO PEP 257"""
         method: str = "Gaussian Mixture Log Likelihood"
         description = """This metric fits multiple GaussianMixture models
@@ -88,7 +92,7 @@ class HypothesisTests:
         )
         return results
 
-    def logistic_detection(self, verbose=True) -> Any:
+    def logistic_detection(self, verbose=True) -> Any:  # type: ignore
         """TODO PEP 257"""
         method = "Logistic Detection"
         description = "Detection metric based on a LogisticRegression classifier from scikit-learn."
