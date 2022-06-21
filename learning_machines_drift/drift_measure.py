@@ -1,3 +1,4 @@
+"""TODO PEP 257"""
 import os
 from pathlib import Path
 from typing import Optional
@@ -9,11 +10,14 @@ from learning_machines_drift.types import Dataset
 
 
 class Monitor:
+    """TODO PEP 257"""
+
     def __init__(
         self,
         tag: str,
         backend: Optional[Backend] = None,
     ) -> None:
+        """TODO PEP 257"""
 
         if backend:
             self.backend: Backend = backend
@@ -25,6 +29,7 @@ class Monitor:
         self.registered_dataset: Optional[Dataset] = None
 
     def load_data(self) -> Dataset:
+        """TODO PEP 257"""
 
         self.ref_dataset = self.backend.load_reference_dataset(self.tag)
         loaded_dataset = self.backend.load_logged_dataset(self.tag)
@@ -35,6 +40,7 @@ class Monitor:
 
     @property
     def hypothesis_tests(self) -> HypothesisTests:
+        """TODO PEP 257"""
 
         if self.ref_dataset is None:
             raise ReferenceDatasetMissing
