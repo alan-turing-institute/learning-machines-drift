@@ -102,7 +102,7 @@ class Registry:
         )
 
     def log_features(self, features: pd.DataFrame) -> None:
-        """TODO PEP 257"""
+        """Log dataset features"""
 
         self.registered_features = features
         self.backend.save_logged_features(
@@ -110,7 +110,7 @@ class Registry:
         )
 
     def log_labels(self, labels: pd.Series) -> None:
-        """TODO PEP 257"""
+        """Log dataset labels"""
 
         self.registered_labels = labels
         self.backend.save_logged_labels(
