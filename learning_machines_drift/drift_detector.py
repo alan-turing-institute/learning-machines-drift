@@ -1,18 +1,21 @@
+# pylint: disable=C0103
+# pylint: disable=W0621
+# pylint: disable=R0913
+
+"""TODO PEP 257"""
 import os
-from atexit import register
-from dataclasses import dataclass
+
+# from atexit import register
+# from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional
+from typing import Optional
+
+# , Any, Callable, Dict, List
 from uuid import UUID, uuid4
 
-import numpy as np
-import numpy.typing as npt
+# import numpy as np
+# import numpy.typing as npt
 import pandas as pd
-
-# from numpy.typing import ArrayLike, NDArray
-from pydantic import BaseModel
-from pygments import formatters, highlight, lexers
-from scipy import stats
 
 from learning_machines_drift.backends import Backend, FileBackend
 from learning_machines_drift.exceptions import ReferenceDatasetMissing
@@ -24,8 +27,17 @@ from learning_machines_drift.types import (
     ShapeSummary,
 )
 
+# from numpy.typing import ArrayLike, NDArray
+# from pydantic import BaseModel
+# from pygments import formatters, highlight, lexers
+# from scipy import stats
+
 
 class Registry:
+    """TODO PEP 257"""
+
+    # pylint: disable=too-many-instance-attributes
+
     def __init__(
         self,
         tag: str,
@@ -34,6 +46,8 @@ class Registry:
         expect_latent: bool = False,
         backend: Optional[Backend] = None,
     ):
+        """TODO PEP 257"""
+        # pylint: disable=too-many-instance-attributes
 
         if backend:
             self.backend: Backend = backend
@@ -58,6 +72,7 @@ class Registry:
 
     @property
     def identifier(self) -> UUID:
+        """TODO PEP 257"""
 
         if self._identifier is None:
             raise ValueError("DriftDetector must be used in a context manager")
@@ -67,12 +82,14 @@ class Registry:
     def register_ref_dataset(
         self, features: pd.DataFrame, labels: pd.DataFrame
     ) -> None:
+        """TODO PEP 257"""
 
         self.ref_dataset = Dataset(features=features, labels=labels)
 
         self.backend.save_reference_dataset(self.tag, self.ref_dataset)
 
     def ref_summary(self) -> BaselineSummary:
+        """TODO PEP 257"""
 
         if self.ref_dataset is None:
 
@@ -92,6 +109,7 @@ class Registry:
         )
 
     def log_features(self, features: pd.DataFrame) -> None:
+        """TODO PEP 257"""
 
         self.registered_features = features
         self.backend.save_logged_features(
@@ -99,6 +117,7 @@ class Registry:
         )
 
     def log_labels(self, labels: pd.Series) -> None:
+        """TODO PEP 257"""
 
         self.registered_labels = labels
         self.backend.save_logged_labels(
@@ -106,10 +125,12 @@ class Registry:
         )
 
     def log_latent(self, latent: pd.DataFrame) -> None:
+        """TODO PEP 257"""
 
         self.registered_latent = latent
 
     def all_registered(self) -> bool:
+        """TODO PEP 257"""
 
         if self.expect_features and self.registered_features is None:
             return False
@@ -124,18 +145,22 @@ class Registry:
 
     @property
     def registered_dataset(self) -> Dataset:
+        """TODO PEP 257"""
 
-        # ToDo: Mypy prob will make a fuss
         # This should check these two things are not None
 
         return Dataset(self.registered_features, self.registered_labels)
 
     def __enter__(self) -> "Registry":
+        """TODO PEP 257"""
 
         self._identifier = uuid4()
         return self
 
     def __exit__(self, exc_type, exc_value, traceback) -> None:
+        """TODO PEP 257"""
 
         self._identifier = None
-        pass
+
+
+#        pass

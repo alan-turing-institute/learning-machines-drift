@@ -31,7 +31,6 @@ repos:
         entry: poetry run safety check --full-report
         pass_filenames: false
         language: system
-
   # - repo: local
   #   hooks:
   #     - id: mypy
@@ -40,14 +39,14 @@ repos:
   #       language: system
   #       types: ['python']
   #       exclude: ^(explore-frameworks)/
-  # - repo: local
-  #   hooks:
-  #     - id: pylint
-  #       name: Pylint
-  #       entry: poetry run pylint --rcfile=.pylintrc
-  #       language: system
-  #       types: ['python']
-  #       exclude: ^(explore-frameworks)/
+  - repo: local
+    hooks:
+      - id: pylint
+        name: Pylint
+        entry: poetry run pylint --rcfile=.pylintrc
+        language: system
+        types: ['python']
+        exclude: ^(explore-frameworks)/
   # - repo: local
   #   hooks:
   #     - id: flake8

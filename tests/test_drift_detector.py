@@ -1,11 +1,15 @@
+"""TODO PEP 257"""
+# pylint: disable=C0103
+# pylint: disable=W0621
+# pylint: disable=R0913
+
 import pathlib
 from typing import Callable, Tuple
 
-import numpy as np
+# import numpy as np
 import pandas as pd
 import pytest
-from pytest_mock import MockerFixture, mocker
-from this import d
+from pytest_mock import MockerFixture
 
 from learning_machines_drift import (  # DriftDetector,; DriftMeasure,
     Monitor,
@@ -15,6 +19,10 @@ from learning_machines_drift import (  # DriftDetector,; DriftMeasure,
 )
 from learning_machines_drift.backends import FileBackend
 
+# , mocker
+# from this import d
+
+
 N_FEATURES = 3
 N_LABELS = 2
 
@@ -23,43 +31,49 @@ N_LABELS = 2
 def detector(mocker: MockerFixture) -> Registry:
     """Return a DriftDetector which writes data to a temporary directory"""
 
-    detector = Registry(tag="test")
-    mocker.patch.object(detector, "backend")
-    return detector
+    det = Registry(tag="test")
+    mocker.patch.object(det, "backend")
+    return det
 
 
 @pytest.fixture()
 def measure(mocker: MockerFixture) -> Monitor:
     """Return a DriftDetector which writes data to a temporary directory"""
 
-    measure = Monitor(tag="test")
-    mocker.patch.object(measure, "backend")
-    return measure
+    meas = Monitor(tag="test")
+    mocker.patch.object(meas, "backend")
+    return meas
 
 
 def example_dataset(n_rows: int) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    """TODO PEP 257"""
     # Given we have a reference dataset
-    X_reference, Y_reference = datasets.logistic_model(size=n_rows)
+    x_reference, y_reference = datasets.logistic_model(size=n_rows)
     features_df = pd.DataFrame(
         {
-            "age": X_reference[:, 0],
-            "height": X_reference[:, 1],
-            "bp": X_reference[:, 2],
+            "age": x_reference[:, 0],
+            "height": x_reference[:, 1],
+            "bp": x_reference[:, 2],
         }
     )
 
-    labels_df = pd.Series(Y_reference, name="y")
+    labels_df = pd.Series(y_reference, name="y")
 
     return (features_df, labels_df)
 
 
 @pytest.fixture()
 def detector_with_ref_data(
-    tmp_path: pathlib.Path, detector: Registry
+    tmp_path: pathlib.Path, detector
 ) -> Callable[[int], Registry]:
-    """Return a DriftDetector with a reference dataset registered which writes data to a temporary directory"""
+    """Return a DriftDetector with a reference dataset registered
+    which writes data to a temporary directory"""
+
+    tmp_path = ""
+    print(tmp_path)
 
     def _detector_with_ref_data(n_rows: int) -> Registry:
+        """TODO PEP 257"""
 
         features_df, labels_df = example_dataset(n_rows)
 
@@ -75,12 +89,13 @@ def detector_with_ref_data(
 def test_register_dataset(
     detector_with_ref_data: Callable[[int], Registry], n_rows: int
 ) -> None:
+    """TODO PEP 257"""
 
     # Given we have a reference dataset
-    detector = detector_with_ref_data(n_rows)
+    det = detector_with_ref_data(n_rows)
 
     # When we get a summary of the reference set
-    summary = detector.ref_summary()
+    summary = det.ref_summary()
 
     # Then we can access summary information
     assert summary.shapes.features.n_rows == n_rows
@@ -89,10 +104,11 @@ def test_register_dataset(
     assert summary.shapes.labels.n_labels == N_LABELS
 
     # And we saved the data to the backend
-    detector.backend.save_reference_dataset.assert_called_once()
+    det.backend.save_reference_dataset.assert_called_once()
 
 
-def test_ref_summary_no_dataset(detector: Registry) -> None:
+def test_ref_summary_no_dataset(detector) -> None:
+    """TODO PEP 257"""
 
     # Given a detector with no reference dataset registered
 
@@ -108,31 +124,32 @@ def test_ref_summary_no_dataset(detector: Registry) -> None:
 def test_all_registered(
     detector_with_ref_data: Callable[[int], Registry], tmp_path: pathlib.Path
 ) -> None:
-
+    """TODO PEP 257"""
+    tmp_path = ""
+    print(tmp_path)
     # Given we have registered a reference dataset
-    detector = detector_with_ref_data(100)
+    det = detector_with_ref_data(100)
 
     # And we have features and predicted labels
-    X, Y_pred = datasets.logistic_model()
-    latent_x = X.mean(axis=0)
+    x_pred, y_pred = datasets.logistic_model()
+    # latent_x = x_pred.mean(axis=0)
 
     # When we log features and labels of new data
-    with detector:
-
-        # ToDo: I set these false here as the backend doesn't support them yet
+    with det:
+        # I set these false here as the backend doesn't support them yet
         # Should discuss how we want to handle this
-        detector.expect_labels = False
+        det.expect_labels = False
 
-        detector.log_features(
+        det.log_features(
             pd.DataFrame(
                 {
-                    "age": X[:, 0],
-                    "height": X[:, 1],
-                    "bp": X[:, 2],
+                    "age": x_pred[:, 0],
+                    "height": x_pred[:, 1],
+                    "bp": x_pred[:, 2],
                 }
             )
         )
-        detector.log_labels(pd.Series(Y_pred, name="y"))
+        det.log_labels(pd.Series(y_pred, name="y"))
         # detector.log_latent(
         #     pd.DataFrame(
         #         {
@@ -145,41 +162,42 @@ def test_all_registered(
         # )
 
     # Then we can ensure that everything is registered
-    assert detector.all_registered()
+    assert det.all_registered()
 
     # And we saved a reference dataset
-    detector.backend.save_reference_dataset.assert_called_once()
+    det.backend.save_reference_dataset.assert_called_once()
 
     # And we saved the logged features
-    detector.backend.save_logged_features.assert_called_once()
+    det.backend.save_logged_features.assert_called_once()
 
     # And we saved the logged labels
-    detector.backend.save_logged_labels.assert_called_once()
+    det.backend.save_logged_labels.assert_called_once()
 
 
 def test_statistics_summary(tmp_path) -> None:
+    """TODO PEP 257"""
 
     # Given we have registered a reference dataset
     features_df, labels_df = example_dataset(100)
-    detector = Registry(tag="test", backend=FileBackend(tmp_path))
-    detector.register_ref_dataset(features=features_df, labels=labels_df)
+    det = Registry(tag="test", backend=FileBackend(tmp_path))
+    det.register_ref_dataset(features=features_df, labels=labels_df)
 
     # And we have features and predicted labels
-    X_monitor, Y_monitor = datasets.logistic_model()
-    latent_x = X_monitor.mean(axis=0)
+    x_monitor, y_monitor = datasets.logistic_model()
+    # latent_x = x_monitor.mean(axis=0)
     features_monitor_df = pd.DataFrame(
         {
-            "age": X_monitor[:, 0],
-            "height": X_monitor[:, 1],
-            "bp": X_monitor[:, 2],
+            "age": x_monitor[:, 0],
+            "height": x_monitor[:, 1],
+            "bp": x_monitor[:, 2],
         }
     )
-    labels_monitor_df = pd.DataFrame({"y": Y_monitor})
+    labels_monitor_df = pd.DataFrame({"y": y_monitor})
 
-    with detector:
+    with det:
         # And we have logged features, labels and latent
-        detector.log_features(features_monitor_df)
-        detector.log_labels(labels_monitor_df)
+        det.log_features(features_monitor_df)
+        det.log_labels(labels_monitor_df)
         # detector.log_latent(
         #     pd.DataFrame(
         #         {
@@ -191,9 +209,9 @@ def test_statistics_summary(tmp_path) -> None:
         #     )
         # )
 
-    measure = Monitor(tag="test", backend=FileBackend(tmp_path))
-    measure.load_data()
-    res = measure.hypothesis_tests.scipy_kolmogorov_smirnov(verbose=True)
+    meas = Monitor(tag="test", backend=FileBackend(tmp_path))
+    meas.load_data()
+    res = meas.hypothesis_tests.scipy_kolmogorov_smirnov(verbose=True)
 
     # Check we get a dictionary with an entry for every feature column
     assert isinstance(res, dict)
@@ -205,48 +223,47 @@ def test_statistics_summary(tmp_path) -> None:
 def test_load_all_logged_data(
     detector_with_ref_data: Callable[[int], Registry], tmp_path
 ) -> None:
-
+    """TODO PEP 257"""
+    # pylint: disable=unused-argument
     # Given we have registered a reference dataset
-    detector = Registry(tag="test", backend=FileBackend(tmp_path))
+    det = Registry(tag="test", backend=FileBackend(tmp_path))
     features_df, labels_df = example_dataset(20)
-    detector.register_ref_dataset(features=features_df, labels=labels_df)
+    det.register_ref_dataset(features=features_df, labels=labels_df)
 
     # And we have features and predicted labels
-    X, Y_pred = datasets.logistic_model(size=2)
+    x_pred, y_pred = datasets.logistic_model(size=2)
 
     # When we log features and labels of new data
-    with detector:
-
-        detector.log_features(
+    with det:
+        det.log_features(
             pd.DataFrame(
                 {
-                    "age": X[:, 0],
-                    "height": X[:, 1],
-                    "bp": X[:, 2],
+                    "age": x_pred[:, 0],
+                    "height": x_pred[:, 1],
+                    "bp": x_pred[:, 2],
                 }
             )
         )
-        detector.log_labels(pd.Series(Y_pred, name="y"))
+        det.log_labels(pd.Series(y_pred, name="y"))
 
     # And we have features and predicted labels
-    X, Y_pred = datasets.logistic_model(size=2)
+    x_pred, y_pred = datasets.logistic_model(size=2)
 
-    with detector:
-
-        detector.log_features(
+    with det:
+        det.log_features(
             pd.DataFrame(
                 {
-                    "age": X[:, 0],
-                    "height": X[:, 1],
-                    "bp": X[:, 2],
+                    "age": x_pred[:, 0],
+                    "height": x_pred[:, 1],
+                    "bp": x_pred[:, 2],
                 }
             )
         )
-        detector.log_labels(pd.Series(Y_pred, name="y"))
+        det.log_labels(pd.Series(y_pred, name="y"))
 
     # Load data
-    measure = Monitor(tag="test", backend=FileBackend(tmp_path))
-    recovered_dataset = measure.load_data()
+    meas = Monitor(tag="test", backend=FileBackend(tmp_path))
+    recovered_dataset = meas.load_data()
 
     dimensions = recovered_dataset.unify().shape
     assert dimensions[0] == 4
