@@ -65,4 +65,3 @@ jobs:
         shell: bash
         run: |
           poetry run pytest --cov=learning_machines_drift
-
