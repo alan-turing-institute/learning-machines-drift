@@ -57,7 +57,15 @@ def example_dataset(n_rows: int) -> Tuple[pd.DataFrame, pd.DataFrame]:
         }
     )
 
-    labels_df = pd.Series(y_reference, name="y")
+    labels_df = pd.DataFrame(
+        {
+            "outcome": x_reference[:, 0],
+            "height": x_reference[:, 1],
+            "bp": x_reference[:, 2],
+        }
+    )
+
+    # labels_df = pd.Series(y_reference, name="y")
 
     return (features_df, labels_df)
 
