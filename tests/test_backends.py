@@ -13,10 +13,8 @@ from learning_machines_drift.backends import get_identifier
 
 def example_dataset(n_rows: int) -> Tuple[pd.DataFrame, pd.DataFrame]:
     """TODO PEP 257"""
-
     # Given we have a reference dataset
     x_reference, y_reference = datasets.logistic_model(size=n_rows)
-
     features_df = pd.DataFrame(
         {
             "age": x_reference[:, 0],
@@ -95,7 +93,7 @@ def test_file_backend_features(tmp_path: pathlib.Path) -> None:
     )
 
 
-def test_get_identifier():
+def test_get_identifier() -> None:
     """TODO PEP 257"""
 
     expected_uuid = uuid4()
@@ -104,7 +102,7 @@ def test_get_identifier():
     assert get_identifier(string_with_id) == expected_uuid
 
 
-def test_labels():
+def test_labels() -> None:
     """TODO PEP 257"""
     re_label = re.compile("labels", re.I)
     print(re_label.search("asdfsa_labels"))

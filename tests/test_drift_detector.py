@@ -1,7 +1,5 @@
 """TODO PEP 257"""
-# pylint: disable=C0103
 # pylint: disable=W0621
-# pylint: disable=R0913
 
 import pathlib
 from typing import Callable, Tuple
@@ -71,13 +69,11 @@ def example_dataset(n_rows: int) -> Tuple[pd.DataFrame, pd.DataFrame]:
 
 
 @pytest.fixture()
-def detector_with_ref_data(
+def detector_with_ref_data(  # type: ignore
     tmp_path: pathlib.Path, detector
 ) -> Callable[[int], Registry]:
     """Return a DriftDetector with a reference dataset registered
     which writes data to a temporary directory"""
-
-    tmp_path = ""
     print(tmp_path)
 
     def _detector_with_ref_data(n_rows: int) -> Registry:
@@ -88,7 +84,7 @@ def detector_with_ref_data(
         # When we register the dataset
         detector.register_ref_dataset(features=features_df, labels=labels_df)
 
-        return detector
+        return detector  # type: ignore
 
     return _detector_with_ref_data
 
@@ -100,7 +96,7 @@ def test_register_dataset(
     """TODO PEP 257"""
 
     # Given we have a reference dataset
-    det = detector_with_ref_data(n_rows)
+    det: Registry = detector_with_ref_data(n_rows)
 
     # When we get a summary of the reference set
     summary = det.ref_summary()
@@ -112,10 +108,10 @@ def test_register_dataset(
     assert summary.shapes.labels.n_labels == N_LABELS
 
     # And we saved the data to the backend
-    det.backend.save_reference_dataset.assert_called_once()
+    det.backend.save_reference_dataset.assert_called_once()  # type: ignore
 
 
-def test_ref_summary_no_dataset(detector) -> None:
+def test_ref_summary_no_dataset(detector) -> None:  # type: ignore
     """TODO PEP 257"""
 
     # Given a detector with no reference dataset registered
@@ -133,7 +129,6 @@ def test_all_registered(
     detector_with_ref_data: Callable[[int], Registry], tmp_path: pathlib.Path
 ) -> None:
     """TODO PEP 257"""
-    tmp_path = ""
     print(tmp_path)
     # Given we have registered a reference dataset
     det = detector_with_ref_data(100)
@@ -173,16 +168,16 @@ def test_all_registered(
     assert det.all_registered()
 
     # And we saved a reference dataset
-    det.backend.save_reference_dataset.assert_called_once()
+    det.backend.save_reference_dataset.assert_called_once()  # type: ignore
 
     # And we saved the logged features
-    det.backend.save_logged_features.assert_called_once()
+    det.backend.save_logged_features.assert_called_once()  # type: ignore
 
     # And we saved the logged labels
-    det.backend.save_logged_labels.assert_called_once()
+    det.backend.save_logged_labels.assert_called_once()  # type: ignore
 
 
-def test_statistics_summary(tmp_path) -> None:
+def test_statistics_summary(tmp_path) -> None:  # type: ignore
     """TODO PEP 257"""
 
     # Given we have registered a reference dataset
@@ -228,7 +223,7 @@ def test_statistics_summary(tmp_path) -> None:
     assert res.keys() == set(features_df.columns)
 
 
-def test_load_all_logged_data(
+def test_load_all_logged_data(  # type: ignore
     detector_with_ref_data: Callable[[int], Registry], tmp_path
 ) -> None:
     """TODO PEP 257"""
