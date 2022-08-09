@@ -59,6 +59,8 @@ class HypothesisTests:
         about_str = "\nMethod: {method}\nDescription:{description}"
         about_str = about_str.format(method=method, description=description)
 
+        # TODO: check the computation process for KSTest unify, do we want this
+        # to include the labels?
         results = KSTest.compute(
             self.reference_dataset.unify(), self.registered_dataset.unify()
         )
