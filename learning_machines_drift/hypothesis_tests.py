@@ -1,6 +1,6 @@
 """TODO PEP 257"""
 
-from typing import Any, Callable
+from typing import Any, Callable, Optional
 
 import numpy as np
 import numpy.typing as npt
@@ -20,10 +20,16 @@ from learning_machines_drift.types import Dataset
 class HypothesisTests:
     """TODO PEP 257"""
 
-    def __init__(self, reference_dataset: Dataset, registered_dataset: Dataset) -> None:
+    def __init__(
+        self,
+        reference_dataset: Dataset,
+        registered_dataset: Dataset,
+        random_state: Optional[int] = None,
+    ) -> None:
         """TODO PEP 257"""
         self.reference_dataset = reference_dataset
         self.registered_dataset = registered_dataset
+        self.random_state = random_state
 
     def _calc(self, func: Callable[[npt.ArrayLike, npt.ArrayLike], Any]) -> Any:
         """TODO PEP 257"""
@@ -46,6 +52,54 @@ class HypothesisTests:
             print(about_str)
         return results
 
+    def scipy_permutation(
+        self,
+        func: Callable[..., float] = np.mean,
+        verbose: bool = True,
+    ) -> Any:
+        """
+        Performs permutation test on all features.
+
+        Args:
+            func: Function for comparing two samples.
+            verbose: Print outputs
+        Returns:
+            scipy.stats.permutation_test object with test results.
+
+        """
+        method = "SciPy Permutation Test"
+        description = """
+            Performs permutation test on all features with passed stat_fn measuring
+            the difference between samples.
+        """
+        about_str = "\nMethods: {method}\nDescription:{description}"
+        about_str = about_str.format(method=method, description=description)
+
+        # Statistic for evaluating the difference between permuted samples
+        def statistic(
+            lhs: npt.ArrayLike,
+            rhs: npt.ArrayLike,
+            axis: int = 0,
+        ) -> float:
+            return func(lhs, axis=axis) - func(rhs, axis=axis)
+
+        results = {}
+        for feature in self.reference_dataset.feature_names:
+            ref_col = self.reference_dataset.features[feature]
+            reg_col = self.registered_dataset.features[feature]
+            results[feature] = stats.permutation_test(
+                (ref_col, reg_col),
+                statistic,
+                permutation_type="independent",
+                alternative="two-sided",
+                n_resamples=9999,
+                random_state=self.random_state,
+            )
+        if verbose:
+            print(about_str)
+
+        return results
+
     def sdv_kolmogorov_smirnov(self, verbose=True) -> Any:  # type: ignore
         """TODO PEP 257"""
         method = "SDV Kolmogorov Smirnov"
@@ -59,7 +113,7 @@ class HypothesisTests:
         about_str = "\nMethod: {method}\nDescription:{description}"
         about_str = about_str.format(method=method, description=description)
 
-        # TODO: check the computation process for KSTest unify, do we want this
+        # TODO: check the computation process for KSTest unify, do we want this #pylint: disable=fixme
         # to include the labels?
         results = KSTest.compute(
             self.reference_dataset.unify(), self.registered_dataset.unify()

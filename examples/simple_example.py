@@ -46,9 +46,10 @@ for i in range(1):
 measure = Monitor(tag="simple_example", backend=FileBackend("my-data"))
 measure.load_data()
 print(measure.hypothesis_tests.scipy_kolmogorov_smirnov())
+print(measure.hypothesis_tests.scipy_permutation())
 print(measure.hypothesis_tests.sdv_kolmogorov_smirnov())
-# print(measure.hypothesis_tests.gaussian_mixture_log_likelihood())
-# print(measure.hypothesis_tests.logistic_detection())
+print(measure.hypothesis_tests.gaussian_mixture_log_likelihood())
+print(measure.hypothesis_tests.logistic_detection())
 # print(measure.hypothesis_tests.sd_evaluate())
 
 
