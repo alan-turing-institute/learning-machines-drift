@@ -123,10 +123,9 @@ class HypothesisTests:
         about_str = "\nMethod: {method}\nDescription:{description}"
         about_str = about_str.format(method=method, description=description)
 
-        # TODO: check the computation process for KSTest unify, do we want this #pylint: disable=fixme
-        # to include the labels?
+        # Only run computation on predictors; exclude labels
         results = KSTest.compute(
-            self.reference_dataset.unify(), self.registered_dataset.unify()
+            self.reference_dataset.features, self.registered_dataset.features
         )
 
         if verbose:
