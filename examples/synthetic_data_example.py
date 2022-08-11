@@ -47,6 +47,7 @@ measure.load_data()
 
 print(f"KS score: {measure.hypothesis_tests.scipy_kolmogorov_smirnov()}")
 print(f"GM Likelihood score: {measure.hypothesis_tests.logistic_detection}")
+print(f"Mann-Whitney U test: {measure.hypothesis_tests.scipy_mannwhitneyu()}")
 print(f"Permutation test: {measure.hypothesis_tests.scipy_permutation()}")
 print(f"KS (SDV) score: {measure.hypothesis_tests.sdv_kolmogorov_smirnov()}")
 print(f"CS (SDV) score: {measure.hypothesis_tests.sdv_cs_test()}")

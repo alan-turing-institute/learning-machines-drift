@@ -11,10 +11,8 @@ from sdmetrics.single_table import CSTest, GMLogLikelihood, KSTest, LogisticDete
 
 from learning_machines_drift.types import Dataset
 
-# from sdv.evaluation import evaluate
-# from sdv.metrics.tabular import KSTest
 
-
+# TODO: write function for standard formatting of description strings #pylint: disable=fixme
 class HypothesisTests:
     """TODO PEP 257"""
 
@@ -46,6 +44,20 @@ class HypothesisTests:
         about_str = about_str.format(method=method, description=description)
 
         results = self._calc(stats.ks_2samp)
+        if verbose:
+            print(about_str)
+        return results
+
+    def scipy_mannwhitneyu(self, verbose=True) -> Any:  # type: ignore
+        """TODO PEP 257"""
+        method = "SciPy Mann-Whitney U"
+        description = (
+            "Non-parameric test between independent samples comparing their location."
+        )
+        about_str = "\nMethods: {method}\nDescription:{description}"
+        about_str = about_str.format(method=method, description=description)
+
+        results = self._calc(stats.mannwhitneyu)
         if verbose:
             print(about_str)
         return results
