@@ -1,6 +1,7 @@
 """TODO PEP 257"""
 
-from typing import Any, Callable, Optional
+from collections import Counter
+from typing import Any, Callable, List, Optional
 
 import numpy as np
 import numpy.typing as npt
@@ -27,10 +28,18 @@ class HypothesisTests:
         self.registered_dataset = registered_dataset
         self.random_state = random_state
 
-    def _calc(self, func: Callable[[npt.ArrayLike, npt.ArrayLike], Any]) -> Any:
+    def _calc(
+        self,
+        func: Callable[..., Any],
+        subset: Optional[List[str]] = None,
+    ) -> Any:
         """TODO PEP 257"""
         results = {}
         for feature in self.reference_dataset.feature_names:
+            if subset is not None:
+                if feature not in subset:
+                    results[feature] = {"statistic": np.nan, "pvalue": np.nan}
+                    continue
             ref_col = self.reference_dataset.features[feature]
             reg_col = self.registered_dataset.features[feature]
             results[feature] = func(ref_col, reg_col)
@@ -58,6 +67,25 @@ class HypothesisTests:
         about_str = about_str.format(method=method, description=description)
 
         results = self._calc(stats.mannwhitneyu)
+        if verbose:
+            print(about_str)
+        return results
+
+    def scipy_chisquare(self, verbose=True) -> Any:  # type: ignore
+        """TODO PEP 257"""
+        method = (
+            "SciPy chi-square test of independence of variables in a contingency table."
+        )
+        description = """
+        Chi-square test for categorical-like data comparing counts in
+        registered and reference data."""
+        about_str = "\nMethods: {method}\nDescription:{description}"
+        about_str = about_str.format(method=method, description=description)
+
+        results = self._calc(
+            self._chi_square,
+            subset=self._get_categorylike_features(self.registered_dataset.features),
+        )
         if verbose:
             print(about_str)
         return results
@@ -132,6 +160,28 @@ class HypothesisTests:
             print(about_str)
         return results
 
+    @staticmethod
+    def _get_categorylike_features(data: pd.DataFrame) -> Any:
+        nunique = data.nunique()
+        # Unit or binary features
+        bin_features = nunique[nunique <= 2].index.to_list()
+        # Integer or category features
+        int_or_cat_features = data.dtypes[
+            data.dtypes.eq(int) | data.dtypes.eq("category")
+        ].index.to_list()
+        out_features = np.unique(bin_features + int_or_cat_features)
+        return out_features
+
+    def subset_to_categories(self, data: pd.DataFrame) -> pd.DataFrame:
+        """
+        Get only categorical-like features. Convert to categorical columns if:
+            - Binary (two values)
+            - Interger (int dtype)
+            - Categorical (category dtype)
+        """
+        out_features = self._get_categorylike_features(data)
+        return data[out_features].astype("category")
+
     def sdv_cs_test(self, verbose=True) -> Any:  # type: ignore
         """TODO PEP 257"""
         method = "SDV CS Test"
@@ -142,26 +192,9 @@ class HypothesisTests:
         about_str = "\nMethod: {method}\nDescription:{description}"
         about_str = about_str.format(method=method, description=description)
 
-        def subset_to_categories(data: pd.DataFrame) -> pd.DataFrame:
-            """
-            Get only categorical-like features. Convert to categorical columns if:
-               - Binary (two values)
-               - Interger (int dtype)
-               - Categorical (category dtype)
-            """
-            nunique = data.nunique()
-            # Unit or binary features
-            bin_features = nunique[nunique <= 2].index.to_list()
-            # Integer or category features
-            int_or_cat_features = data.dtypes[
-                data.dtypes.eq(int) | data.dtypes.eq("category")
-            ].index.to_list()
-            out_features = np.unique(bin_features + int_or_cat_features)
-            return data[out_features].astype("category")
-
         # Convert to dataframes with catgeory type for CSTest compatibility
-        ref_cat = subset_to_categories(self.reference_dataset.features)
-        reg_cat = subset_to_categories(self.registered_dataset.features)
+        ref_cat = self.subset_to_categories(self.reference_dataset.features)
+        reg_cat = self.subset_to_categories(self.registered_dataset.features)
 
         # Score only computable if non-zero number of columns
         try:
@@ -175,12 +208,18 @@ class HypothesisTests:
             return None
 
     @staticmethod
-    def _chi_square(data1: npt.ArrayLike) -> Any:
+    # TODO: fix variable types #pylint: disable=fixme
+    def _chi_square(data1: Any, data2: Any) -> Any:
         """TODO PEP 257"""
-        d1_counts = np.unique(data1, return_counts=True)
-        d2_counts = np.unique(data1, return_counts=True)
-
-        return stats.chisquare(d1_counts, d2_counts)
+        base = np.unique(np.append(data1, data2))
+        d1_counter = Counter(data1)
+        d2_counter = Counter(data2)
+        d1_counts = [d1_counter[el] for el in base]
+        d2_counts = [d2_counter[el] for el in base]
+        statistic, pvalue, _, _ = stats.chi2_contingency(
+            np.stack([d1_counts, d2_counts])
+        )
+        return {"statistic": statistic, "pvalue": pvalue}
 
     def gaussian_mixture_log_likelihood(self, verbose=True) -> Any:  # type: ignore
         """TODO PEP 257"""
