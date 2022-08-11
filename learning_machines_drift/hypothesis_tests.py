@@ -4,12 +4,10 @@ from typing import Any, Callable, Optional
 
 import numpy as np
 import numpy.typing as npt
+import pandas as pd
 from scipy import stats
-from sdmetrics.single_table import (  # type: ignore
-    GMLogLikelihood,
-    KSTest,
-    LogisticDetection,
-)
+from sdmetrics.errors import IncomputableMetricError
+from sdmetrics.single_table import CSTest, GMLogLikelihood, KSTest, LogisticDetection
 
 from learning_machines_drift.types import Dataset
 
@@ -122,6 +120,48 @@ class HypothesisTests:
         if verbose:
             print(about_str)
         return results
+
+    def sdv_cs_test(self, verbose=True) -> Any:  # type: ignore
+        """TODO PEP 257"""
+        method = "SDV CS Test"
+        description = """\nThis metric uses the Chi-Squared test to compare the distributions of
+        two discrete columns, with the mean score taken across categorical and
+        boolean columns.
+        """
+        about_str = "\nMethod: {method}\nDescription:{description}"
+        about_str = about_str.format(method=method, description=description)
+
+        def subset_to_categories(data: pd.DataFrame) -> pd.DataFrame:
+            """
+            Get only categorical-like features. Convert to categorical columns if:
+               - Binary (two values)
+               - Interger (int dtype)
+               - Categorical (category dtype)
+            """
+            nunique = data.nunique()
+            # Unit or binary features
+            bin_features = nunique[nunique <= 2].index.to_list()
+            # Integer or category features
+            int_or_cat_features = data.dtypes[
+                data.dtypes.eq(int) | data.dtypes.eq("category")
+            ].index.to_list()
+            out_features = np.unique(bin_features + int_or_cat_features)
+            return data[out_features].astype("category")
+
+        # Convert to dataframes with catgeory type for CSTest compatibility
+        ref_cat = subset_to_categories(self.reference_dataset.features)
+        reg_cat = subset_to_categories(self.registered_dataset.features)
+
+        # Score only computable if non-zero number of columns
+        try:
+            results = CSTest.compute(ref_cat, reg_cat)
+
+            if verbose:
+                print(about_str)
+
+            return results
+        except IncomputableMetricError:
+            return None
 
     @staticmethod
     def _chi_square(data1: npt.ArrayLike) -> Any:
