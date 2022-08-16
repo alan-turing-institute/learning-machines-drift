@@ -10,6 +10,8 @@ from scipy import stats
 from sdmetrics.errors import IncomputableMetricError
 from sdmetrics.single_table import CSTest, GMLogLikelihood, KSTest, LogisticDetection
 
+# from sdmetrics.utils import HyperTransformer
+from learning_machines_drift.hypertransformer import HyperTransformer
 from learning_machines_drift.types import Dataset
 
 
@@ -251,6 +253,58 @@ class HypothesisTests:
             self.reference_dataset.unify(), self.registered_dataset.unify()
         )
         return results
+
+    def logistic_detection_custom(self, verbose=True) -> Any:  # type: ignore
+        from sklearn.linear_model import LogisticRegression
+        from sklearn.metrics import roc_auc_score
+        from sklearn.model_selection import StratifiedKFold
+
+        """TODO PEP 257"""
+        method = "Logistic Detection (custom scoring)"
+        description = "Detection metric based on a LogisticRegression classifier from scikit-learn with custom scoring."
+        about_str = "\nMethod: {method}\nDescription:{description}"
+        about_str = about_str.format(method=method, description=description)
+
+        if verbose:
+            print(about_str)
+
+        # From: https://github.com/sdv-dev/SDMetrics/blob/master/sdmetrics/single_table/detection/base.py#L69-L91
+        ht = HyperTransformer()
+        transformed_reference_data = ht.fit_transform(
+            self.reference_dataset.unify()
+        ).to_numpy()
+        transformed_registered_data = ht.transform(
+            self.registered_dataset.unify()
+        ).to_numpy()
+
+        X = np.concatenate([transformed_reference_data, transformed_registered_data])
+        y = np.hstack(
+            [
+                np.ones(len(transformed_reference_data)),
+                np.zeros(len(transformed_registered_data)),
+            ]
+        )
+        if np.isin(X, [np.inf, -np.inf]).any():
+            X[np.isin(X, [np.inf, -np.inf])] = np.nan
+
+        try:
+            scores = []
+            kf = StratifiedKFold(n_splits=3, shuffle=True)
+            lr = LogisticRegression(solver="lbfgs")
+            for train_index, test_index in kf.split(X, y):
+                lr.fit(X[train_index], y[train_index])
+                y_pred = lr.predict(X[test_index])
+                roc_auc = roc_auc_score(y[test_index], y_pred)
+
+                # scores.append(max(0.5, roc_auc) * 2 - 1)
+                # TODO: consider multiple or specified metric to be computed here
+                scores.append(max(0.5, roc_auc))
+        except ValueError as err:
+            raise IncomputableMetricError(
+                f"DetectionMetric: Unable to be fit with error {err}"
+            )
+
+        return np.mean(scores)
 
     # def sd_evaluate(self, verbose=True) -> Any:
     #     method = "SD Evaluate"
