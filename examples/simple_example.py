@@ -53,6 +53,7 @@ print(measure.hypothesis_tests.sdv_kolmogorov_smirnov())
 print(measure.hypothesis_tests.sdv_cs_test())
 print(measure.hypothesis_tests.gaussian_mixture_log_likelihood())
 print(measure.hypothesis_tests.logistic_detection())
+print(measure.hypothesis_tests.logistic_detection_custom())
 # print(measure.hypothesis_tests.sd_evaluate())
 
 

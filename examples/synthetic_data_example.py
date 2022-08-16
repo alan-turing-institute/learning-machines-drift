@@ -46,7 +46,10 @@ measure.load_data()
 
 
 print(f"KS score: {measure.hypothesis_tests.scipy_kolmogorov_smirnov()}")
-print(f"GM Likelihood score: {measure.hypothesis_tests.logistic_detection}")
+print(f"Logistic detection score: {measure.hypothesis_tests.logistic_detection()}")
+print(
+    f"Logistic detection (raw ROC) score: {measure.hypothesis_tests.logistic_detection_custom()}"
+)
 print(f"Mann-Whitney U test: {measure.hypothesis_tests.scipy_mannwhitneyu()}")
 print(f"chi-square test: {measure.hypothesis_tests.scipy_chisquare()}")
 print(f"Permutation test: {measure.hypothesis_tests.scipy_permutation()}")
