@@ -176,7 +176,7 @@ class FileBackend:
         dataframe.to_csv(logged_dir.joinpath(f"{identifier}_features.csv"), index=False)
 
     def save_logged_labels(
-        self, tag: str, identifier: UUID, dataframe: pd.DataFrame
+        self, tag: str, identifier: UUID, labels: pd.Series
     ) -> None:
         """
          Save logged labels using tag as the path with UUID prepended to filename.
@@ -184,14 +184,14 @@ class FileBackend:
          Args:
              tag (str): Tag identifying dataset
              identifier (UUID): A unique identifier for the labels of the dataset
-             dataframe (pd.DataFrame): The dataframe that needs saving
+             labels (pd.Series): The dataframe that needs saving
 
          Returns:
              None
         """
         logged_dir = self._get_logged_path(tag)
 
-        dataframe.to_csv(logged_dir.joinpath(f"{identifier}_labels.csv"), index=False)
+        labels.to_csv(logged_dir.joinpath(f"{identifier}_labels.csv"), index=False)
 
     def load_logged_dataset(self, tag: str) -> Dataset:
         """
