@@ -9,6 +9,9 @@ import pandas as pd
 from scipy import stats
 from sdmetrics.errors import IncomputableMetricError
 from sdmetrics.single_table import CSTest, GMLogLikelihood, KSTest, LogisticDetection
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import f1_score, roc_auc_score
+from sklearn.model_selection import StratifiedKFold
 
 # from sdmetrics.utils import HyperTransformer
 from learning_machines_drift.hypertransformer import HyperTransformer
@@ -254,26 +257,26 @@ class HypothesisTests:
         )
         return results
 
-    def logistic_detection_custom(self, verbose=True) -> Any:  # type: ignore
-        from sklearn.linear_model import LogisticRegression
-        from sklearn.metrics import roc_auc_score
-        from sklearn.model_selection import StratifiedKFold
-
+    # pylint: disable=invalid-name
+    def logistic_detection_custom(self, score_type=None, seed=None, verbose=True) -> Any:  # type: ignore # pylint: disable=too-many-locals
         """TODO PEP 257"""
-        method = "Logistic Detection (custom scoring)"
-        description = "Detection metric based on a LogisticRegression classifier from scikit-learn with custom scoring."
+        if score_type is None:
+            method = "Logistic Detection (standard scoring)"
+        else:
+            method = f"Logistic Detection ({score_type} scoring)"
+        description = "Detection metric based on a LogisticRegression classifier from scikit-learn with custom scoring."  # pylint: disable=line-too-long
         about_str = "\nMethod: {method}\nDescription:{description}"
         about_str = about_str.format(method=method, description=description)
 
         if verbose:
             print(about_str)
 
-        # From: https://github.com/sdv-dev/SDMetrics/blob/master/sdmetrics/single_table/detection/base.py#L69-L91
+        # From: https://github.com/sdv-dev/SDMetrics/blob/master/sdmetrics/single_table/detection/base.py#L69-L91 # pylint: disable=line-too-long
         ht = HyperTransformer()
-        transformed_reference_data = ht.fit_transform(
+        transformed_reference_data = ht.fit_transform(  # type: ignore[no-untyped-call]
             self.reference_dataset.unify()
         ).to_numpy()
-        transformed_registered_data = ht.transform(
+        transformed_registered_data = ht.transform(  # type: ignore[no-untyped-call]
             self.registered_dataset.unify()
         ).to_numpy()
 
@@ -289,22 +292,36 @@ class HypothesisTests:
 
         try:
             scores = []
-            kf = StratifiedKFold(n_splits=3, shuffle=True)
+            kf = StratifiedKFold(n_splits=3, shuffle=True, random_state=seed)
             lr = LogisticRegression(solver="lbfgs")
             for train_index, test_index in kf.split(X, y):
                 lr.fit(X[train_index], y[train_index])
-                y_pred = lr.predict(X[test_index])
-                roc_auc = roc_auc_score(y[test_index], y_pred)
+                y_pred = lr.predict_proba(X[test_index])[:, 1]
 
-                # scores.append(max(0.5, roc_auc) * 2 - 1)
-                # TODO: consider multiple or specified metric to be computed here
-                scores.append(max(0.5, roc_auc))
+                if score_type is None:
+                    roc_auc = roc_auc_score(y[test_index], y_pred)
+                    score = max(0.5, roc_auc) * 2 - 1
+                elif score_type == "roc_auc":
+                    score = roc_auc_score(y[test_index], y_pred)
+                elif score_type == "f1":
+                    score = f1_score(y[test_index], (y_pred > 0.5) * 1)
+                else:
+                    raise NotImplementedError(f"{score_type} not implemented.")
+                scores.append(score)
         except ValueError as err:
-            raise IncomputableMetricError(
+            raise ValueError(
                 f"DetectionMetric: Unable to be fit with error {err}"
-            )
+            ) from err
 
+        if score_type is None:
+            # SDMetrics approach to scoring takes 1 - mean:
+            # https://github.com/sdv-dev/SDMetrics/blob/master/sdmetrics/single_table/detection/base.py#L89
+            return 1 - np.mean(scores)
+
+        # Custom metrics assume the mean of the scores
         return np.mean(scores)
+
+    # pylint: enable=invalid-name
 
     # def sd_evaluate(self, verbose=True) -> Any:
     #     method = "SD Evaluate"
