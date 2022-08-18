@@ -31,7 +31,7 @@ def get_identifier(path_object: Union[str, Path]) -> Optional[UUID]:
 
 
 class Backend(Protocol):
-    """TODO PEP 257"""
+    """Appears to be a placeholder for something - unknown at the time"""
 
     def save_reference_dataset(self, tag: str, dataset: Dataset) -> None:
         """TODO PEP 257"""
@@ -63,7 +63,13 @@ class FileBackend:
     """Implements the Backend protocol. Writes files to the filesystem"""
 
     def __init__(self, root_dir: Union[str, Path]) -> None:
-        """TODO PEP 257"""
+        """Creates root directory for output
+        Args:
+            root_dir (Union[str, Path]): Absolute path to where outputs will be saved.
+
+        Returns:
+            None
+        """
         self.root_dir = Path(root_dir)
         self.root_dir.mkdir(exist_ok=True)
 
@@ -92,7 +98,16 @@ class FileBackend:
         return reference_dir
 
     def _get_logged_path(self, tag: str) -> Path:
-        """TODO PEP 257"""
+        """
+        Get the directory for storing logged data,
+        creating directories if required
+
+        Args:
+            tag (str): Tag identifying dataset
+
+        Returns:
+            Path: Directory storing logged datasets
+        """
 
         # Make a directory for the current tag
         tag_dir = self.root_dir.joinpath(tag)
@@ -107,14 +122,34 @@ class FileBackend:
         return logged_dir
 
     def save_reference_dataset(self, tag: str, dataset: Dataset) -> None:
-        """TODO PEP 257"""
+        """
+        Save dataset to reference path.
+
+        Args:
+            tag (str): Tag identifying dataset
+            dataset (Dataset): Dataset that needs saving
+
+        Returns:
+            None
+
+        """
 
         reference_dir = self._get_reference_path(tag)
         dataset.features.to_csv(reference_dir.joinpath("features.csv"), index=False)
         dataset.labels.to_csv(reference_dir.joinpath("labels.csv"), index=False)
 
     def load_reference_dataset(self, tag: str) -> Dataset:
-        """TODO PEP 257"""
+        """
+        Load reference dataset from reference path.
+
+        Args:
+            tag (str): Tag identifying dataset
+
+        Returns:
+            Dataset
+
+
+        """
         reference_dir = self._get_reference_path(tag)
 
         features_df = pd.read_csv(reference_dir.joinpath("features.csv"))
@@ -125,7 +160,17 @@ class FileBackend:
     def save_logged_features(
         self, tag: str, identifier: UUID, dataframe: pd.DataFrame
     ) -> None:
-        """TODO PEP 257"""
+        """
+        Save logged features using tag as the path with UUID prepended to filename.
+
+        Args:
+            tag (str): Tag identifying dataset
+            identifier (UUID): A unique identifier for the logged dataset
+            dataframe (pd.DataFrame): The dataframe that needs saving
+
+        Returns:
+            None
+        """
 
         logged_dir = self._get_logged_path(tag)
         dataframe.to_csv(logged_dir.joinpath(f"{identifier}_features.csv"), index=False)
@@ -133,15 +178,34 @@ class FileBackend:
     def save_logged_labels(
         self, tag: str, identifier: UUID, dataframe: pd.DataFrame
     ) -> None:
-        """TODO PEP 257"""
+        """
+         Save logged labels using tag as the path with UUID prepended to filename.
 
+         Args:
+             tag (str): Tag identifying dataset
+             identifier (UUID): A unique identifier for the labels of the dataset
+             dataframe (pd.DataFrame): The dataframe that needs saving
+
+         Returns:
+             None
+        """
         logged_dir = self._get_logged_path(tag)
 
         dataframe.to_csv(logged_dir.joinpath(f"{identifier}_labels.csv"), index=False)
 
     def load_logged_dataset(self, tag: str) -> Dataset:
-        """Return a Dataset consisting of two pd.DataFrames.
-        The dataframes must have the same index"""
+        """
+        Loops through files in tag subdirectory to create a Dataset class consisting of two
+        concatenated dataframes of logged features and logged labels. Labels and features
+        are paired based on the UUID in the filename.
+
+        Args:
+            tag (str): Tag identifying dataset
+
+        Return:
+            Dataset
+
+        """
 
         files = [Path(f) for f in glob.glob(f"{self._get_logged_path(tag)}/*")]
         file_pairs: List[Tuple[Path, Path]] = []
