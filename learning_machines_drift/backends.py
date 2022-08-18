@@ -19,7 +19,8 @@ RE_LABEL = re.compile("(labels)", re.I)
 
 
 def get_identifier(path_object: Union[str, Path]) -> Optional[UUID]:
-    """TODO PEP 257"""
+    """Extract the UUID from the filename. The filename should have the format UUID + some other text
+    and a file extension. The UUID should match the regex in the Pattern variable UUIDHex4."""
 
     a_match = UUIDHex4.match(Path(path_object).stem)
 
