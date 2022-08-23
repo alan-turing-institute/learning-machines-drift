@@ -202,7 +202,7 @@ class HypothesisTests:
             results (dict): Dictionary with keys as features and values as
             scipy.stats.permutation_test object with test results.
         """
-        method = "SciPy Permutation Test"
+        method = f"SciPy Permutation Test (test function: {func.__name__})"
         description = (
             "Performs permutation test on all features with passed stat_fn "
             "measuring the difference between samples."
@@ -223,7 +223,7 @@ class HypothesisTests:
         for feature in self.reference_dataset.feature_names:
             ref_col = self.reference_dataset.features[feature]
             reg_col = self.registered_dataset.features[feature]
-            results[feature] = stats.permutation_test(
+            result = stats.permutation_test(
                 (ref_col, reg_col),
                 statistic,
                 permutation_type="independent",
@@ -231,22 +231,26 @@ class HypothesisTests:
                 n_resamples=9999,
                 random_state=self.random_state,
             )
+            results[feature] = result
         if verbose:
             print(about_str)
 
         return results
 
-    def sdv_kolmogorov_smirnov(self, verbose: bool = True) -> float:
+    def sdv_kolmogorov_smirnov(
+        self, normalize: bool = False, verbose: bool = True
+    ) -> float:
         """Calculates Synthetic Data Vault package version of the
         Kolmogorov-Smirnov (KS) two-sample test.
 
         Args:
             verbose (bool): Boolean for verbose output to stdout.
+            normalize (bool): Normalize raw_score to interval [0, 1].
 
         Returns:
             results (float): 1 - the mean KS statistic across features.
         """
-        method = "SDV Kolmogorov Smirnov"
+        method = f"SDV Kolmogorov Smirnov (normalize: {normalize})"
         description = (
             "This metric uses the two-sample Kolmogorov–Smirnov test to "
             "compare the distributions of continuous columns using the "
@@ -256,13 +260,17 @@ class HypothesisTests:
         )
         about_str = self._format_about_str(method=method, description=description)
 
+        if verbose:
+            print(about_str)
+
         # Only run computation on features; exclude labels
         results: float = KSTest.compute(
             self.reference_dataset.features, self.registered_dataset.features
         )
 
-        if verbose:
-            print(about_str)
+        if normalize:
+            results = KSTest.normalize(results)
+
         return results
 
     @staticmethod
@@ -301,18 +309,21 @@ class HypothesisTests:
         out_features = self._get_categorylike_features(data)
         return data[out_features].astype("category")
 
-    def sdv_cs_test(self, verbose: bool = True) -> Optional[float]:
+    def sdv_cs_test(
+        self, normalize: bool = False, verbose: bool = True
+    ) -> Optional[float]:
         """Calculates average chi-square statistic and p-value for
         the hypothesis test of independence of the observed frequencies for
         categorical features using Synthetic Data Vault.
 
         Args:
             verbose (bool): Boolean for verbose output to stdout.
+            normalize (bool): Normalize raw_score to interval [0, 1].
 
         Returns:
             results (dict): Dictionary of statistics and  p-values by feature.
         """
-        method = "SDV CS Test"
+        method = f"SDV CS Test (normalize: {normalize})"
         description = (
             "This metric uses the Chi-Squared test to compare the "
             "distributions of two discrete columns, with the mean score taken "
@@ -331,24 +342,29 @@ class HypothesisTests:
         # Score only computable if non-zero number of columns
         try:
             results: float = CSTest.compute(ref_cat, reg_cat)
+            if normalize:
+                results = CSTest.normalize(results)
             return results
 
         except IncomputableMetricError:
             return None
 
-    def gaussian_mixture_log_likelihood(self, verbose: bool = True) -> float:
+    def gaussian_mixture_log_likelihood(
+        self, verbose: bool = True, normalize: bool = False
+    ) -> float:
         """Calculates the log-likelihood of reference data given Gaussian
         Mixture Model (GMM) fits on the reference data using Synthetic Data
         Vault package.
 
         Args:
             verbose (bool): Boolean for verbose output to stdout.
+            normalize (bool): Normalize raw_score to interval [0, 1].
 
         Returns:
             results (float): Log-likelihood of reference data with fitted
                 model that has lowest Bayesian Information Criterion (BIC).
         """
-        method: str = "Gaussian Mixture Log Likelihood"
+        method: str = f"Gaussian Mixture Log Likelihood (normalize: {normalize})"
         description: str = (
             "This metric fits multiple GaussianMixture models to the real "
             "data and then evaluates the average log likelihood of the "
@@ -362,9 +378,13 @@ class HypothesisTests:
         results: float = GMLogLikelihood.compute(
             self.reference_dataset.unify(), self.registered_dataset.unify()
         )
+        if normalize:
+            results = GMLogLikelihood.normalize(results)
         return results
 
-    def logistic_detection(self, verbose: bool = True) -> float:
+    def logistic_detection(
+        self, normalize: bool = False, verbose: bool = True
+    ) -> float:
         """Calculates a measure of similarity using fitted logistic regression
         to predict reference or registered label using Synthetic Data
         Vault package.
@@ -374,12 +394,13 @@ class HypothesisTests:
 
         Args:
             verbose (bool): Boolean for verbose output to stdout.
+            normalize (bool): Normalize raw_score to interval [0, 1].
 
         Returns:
             results (float): Score providing an overall similarity measure of
                 reference and registered datasets.
         """
-        method = "Logistic Detection"
+        method = f"Logistic Detection (normalize: {normalize})"
         description = (
             "Detection metric based on a LogisticRegression classifier from "
             "scikit-learn."
@@ -388,14 +409,20 @@ class HypothesisTests:
 
         if verbose:
             print(about_str)
+
         results: float = LogisticDetection.compute(
             self.reference_dataset.unify(), self.registered_dataset.unify()
         )
+
+        if normalize:
+            results = LogisticDetection.normalize(results)
+
         return results
 
     # pylint: disable=invalid-name
-    def logistic_detection_custom(  # pylint: disable=too-many-locals
+    def logistic_detection_custom(  # pylint: disable=too-many-locals, too-many-branches
         self,
+        normalize: bool = False,
         score_type: Optional[str] = None,
         seed: Optional[int] = None,
         verbose: bool = True,
@@ -423,9 +450,11 @@ class HypothesisTests:
                 reference and registered datasets.
         """
         if score_type is None:
-            method = "Logistic Detection (standard scoring)"
+            method = f"Logistic Detection (scoring: standard, normalize: {normalize})"
         else:
-            method = f"Logistic Detection ({score_type} scoring)"
+            method = (
+                f"Logistic Detection (scoring: {score_type}, normalize: {normalize})"
+            )
         description = (
             "Detection metric based on a LogisticRegression classifier from "
             "scikit-learn with custom scoring."
@@ -484,6 +513,9 @@ class HypothesisTests:
         else:
             # Custom metrics assume the mean of the scores
             results = np.mean(scores)
+
+        if normalize and score_type is None:
+            results = LogisticDetection.normalize(results)
 
         return results
 
