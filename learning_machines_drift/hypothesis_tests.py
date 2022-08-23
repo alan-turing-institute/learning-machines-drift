@@ -9,13 +9,14 @@ import numpy.typing as npt
 import pandas as pd
 from scipy import stats
 from sdmetrics.errors import IncomputableMetricError
-from sdmetrics.single_table import CSTest, GMLogLikelihood, KSTest, LogisticDetection
+from sdmetrics.single_table import CSTest, GMLogLikelihood
+from sdmetrics.single_table import KSComplement as KSTest
+from sdmetrics.single_table import LogisticDetection
+from sdmetrics.utils import HyperTransformer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import f1_score, roc_auc_score
 from sklearn.model_selection import StratifiedKFold
 
-# from sdmetrics.utils import HyperTransformer
-from learning_machines_drift.hypertransformer import HyperTransformer
 from learning_machines_drift.types import Dataset
 
 
@@ -435,10 +436,10 @@ class HypothesisTests:
 
         # From: https://github.com/sdv-dev/SDMetrics/blob/master/sdmetrics/single_table/detection/base.py#L69-L91 # pylint: disable=line-too-long
         ht = HyperTransformer()
-        transformed_reference_data = ht.fit_transform(  # type: ignore[no-untyped-call]
+        transformed_reference_data = ht.fit_transform(
             self.reference_dataset.unify()
         ).to_numpy()
-        transformed_registered_data = ht.transform(  # type: ignore[no-untyped-call]
+        transformed_registered_data = ht.transform(
             self.registered_dataset.unify()
         ).to_numpy()
 
