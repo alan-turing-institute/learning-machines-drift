@@ -222,16 +222,17 @@ class HypothesisTests:
         return results
 
     @staticmethod
-    def _get_categorylike_features(data: pd.DataFrame) -> Any:
+    def _get_categorylike_features(data: pd.DataFrame) -> List[str]:
         """TODO PEP 257"""
-        nunique = data.nunique()
+        # Get the number of unique values by feature
+        nunique: pd.Series = data.nunique()
         # Unit or binary features
-        bin_features = nunique[nunique <= 2].index.to_list()
+        bin_features: List[str] = nunique[nunique <= 2].index.to_list()
         # Integer or category features
-        int_or_cat_features = data.dtypes[
+        int_or_cat_features: List[str] = data.dtypes[
             data.dtypes.eq(int) | data.dtypes.eq("category")
         ].index.to_list()
-        out_features = np.unique(bin_features + int_or_cat_features)
+        out_features: List[str] = list(np.unique(bin_features + int_or_cat_features))
         return out_features
 
     def subset_to_categories(self, data: pd.DataFrame) -> pd.DataFrame:
