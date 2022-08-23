@@ -38,6 +38,11 @@ class HypothesisTests:
         self.registered_dataset = registered_dataset
         self.random_state = random_state
 
+    @staticmethod
+    def _format_about_str(about_str: str) -> str:
+        # TODO write formatting function for about_str
+        pass
+
     def _calc(
         self,
         func: Callable[..., Any],
