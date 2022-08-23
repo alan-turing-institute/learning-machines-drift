@@ -17,6 +17,7 @@ from sklearn.model_selection import StratifiedKFold
 from learning_machines_drift.hypertransformer import HyperTransformer
 from learning_machines_drift.types import Dataset
 
+# T = TypeVar('T')
 
 # TODO: write function for standard formatting of description strings #pylint: disable=fixme
 class HypothesisTests:
@@ -112,6 +113,31 @@ class HypothesisTests:
         if verbose:
             print(about_str)
         return results
+
+    @staticmethod
+    def _chi_square(data1: pd.Series, data2: pd.Series) -> dict[str, float]:
+        """Perform a chi-square test on two category-like series.
+
+        Args:
+            data1 (pd.Series): First series.
+            data2 (pd.Series): Second series.
+        Returns:
+            dict[str, float]: dict of chi-square statistic and p-value.
+        """
+        # Get unique elements across all data
+        base: npt.NDArray[Any] = np.unique(np.append(data1, data2))
+        # Get counts of values in data1
+        d1_counter: Counter[Any] = Counter(data1)
+        # Get counts of values in data2
+        d2_counter: Counter[Any] = Counter(data2)
+        # Get counts in order of base for both counters
+        d1_counts: List[int] = [d1_counter[el] for el in base]
+        d2_counts: List[int] = [d2_counter[el] for el in base]
+        # Calculate chi-square
+        statistic, pvalue, _, _ = stats.chi2_contingency(
+            np.stack([d1_counts, d2_counts])
+        )
+        return {"statistic": statistic, "pvalue": pvalue}
 
     def scipy_chisquare(self, verbose=True) -> Any:  # type: ignore
         """Calculates feature-wise chi-square statistic and p-value for
@@ -223,7 +249,15 @@ class HypothesisTests:
 
     @staticmethod
     def _get_categorylike_features(data: pd.DataFrame) -> List[str]:
-        """TODO PEP 257"""
+        """Get a list of feature names that have category-like features.
+        Category-like features are defined as:
+            - Binary (two values)
+            OR
+            - Interger (int dtype)
+            OR
+            - Categorical (category dtype)
+
+        """
         # Get the number of unique values by feature
         nunique: pd.Series = data.nunique()
         # Unit or binary features
@@ -232,23 +266,18 @@ class HypothesisTests:
         int_or_cat_features: List[str] = data.dtypes[
             data.dtypes.eq(int) | data.dtypes.eq("category")
         ].index.to_list()
+        # Get list of unique features for output
         out_features: List[str] = list(np.unique(bin_features + int_or_cat_features))
         return out_features
 
     def subset_to_categories(self, data: pd.DataFrame) -> pd.DataFrame:
-        """Subset a dataframe to only categorical-like features. Convert to
-        categorical columns if feature is:
-            - Binary (two values)
-            OR
-            - Interger (int dtype)
-            OR
-            - Categorical (category dtype)
+        """Subset a dataframe to only category-like features.
 
         Args:
             data (pd.DataDrame): Input dataframe
         Returns:
-            pd.DataDrame: Output dataframe subsetted to categorical-like
-            features.
+            pd.DataDrame: Output dataframe subsetted to category-like
+            features and category type.
 
         """
         out_features = self._get_categorylike_features(data)
@@ -278,20 +307,6 @@ class HypothesisTests:
             return results
         except IncomputableMetricError:
             return None
-
-    @staticmethod
-    # TODO: fix variable types #pylint: disable=fixme
-    def _chi_square(data1: Any, data2: Any) -> Any:
-        """TODO PEP 257"""
-        base = np.unique(np.append(data1, data2))
-        d1_counter = Counter(data1)
-        d2_counter = Counter(data2)
-        d1_counts = [d1_counter[el] for el in base]
-        d2_counts = [d2_counter[el] for el in base]
-        statistic, pvalue, _, _ = stats.chi2_contingency(
-            np.stack([d1_counts, d2_counts])
-        )
-        return {"statistic": statistic, "pvalue": pvalue}
 
     def gaussian_mixture_log_likelihood(self, verbose=True) -> Any:  # type: ignore
         """TODO PEP 257"""
