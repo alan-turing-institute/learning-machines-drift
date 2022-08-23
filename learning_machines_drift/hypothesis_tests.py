@@ -1,4 +1,4 @@
-"""TODO PEP 257"""
+"""Class for scoring drift between reference and registered datasets."""
 
 import textwrap
 from collections import Counter
@@ -20,7 +20,6 @@ from sklearn.model_selection import StratifiedKFold
 from learning_machines_drift.types import Dataset
 
 
-# TODO: write function for standard formatting of description strings #pylint: disable=fixme
 class HypothesisTests:
     """
     A class for performing hypothesis tests and scoring between registered and
@@ -210,12 +209,14 @@ class HypothesisTests:
         )
         about_str = self._format_about_str(method=method, description=description)
 
-        # Statistic for evaluating the difference between permuted samples
         def statistic(
             lhs: npt.ArrayLike,
             rhs: npt.ArrayLike,
             axis: int = 0,
         ) -> float:
+            """Statistic for evaluating the difference between permuted
+            samples.
+            """
             return func(lhs, axis=axis) - func(rhs, axis=axis)
 
         results = {}
@@ -434,7 +435,7 @@ class HypothesisTests:
         if verbose:
             print(about_str)
 
-        # From: https://github.com/sdv-dev/SDMetrics/blob/master/sdmetrics/single_table/detection/base.py#L69-L91 # pylint: disable=line-too-long
+        # Transform data for fitting using SD metrics HyperTransformer
         ht = HyperTransformer()
         transformed_reference_data = ht.fit_transform(
             self.reference_dataset.unify()
