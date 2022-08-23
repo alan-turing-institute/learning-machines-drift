@@ -1,5 +1,6 @@
 """TODO PEP 257"""
 
+import textwrap
 from collections import Counter
 from typing import Any, Callable, List, Optional
 
@@ -31,17 +32,32 @@ class HypothesisTests:
         registered_dataset: Dataset,
         random_state: Optional[int] = None,
     ) -> None:
-        """
-        Initialize with registered and reference and optional seed.
-        """
+        """Initialize with registered and reference and optional seed."""
         self.reference_dataset = reference_dataset
         self.registered_dataset = registered_dataset
         self.random_state = random_state
 
     @staticmethod
-    def _format_about_str(about_str: str) -> str:
-        # TODO write formatting function for about_str
-        pass
+    def _format_about_str(method: str, description: str, line_len: int = 79) -> str:
+        """Takes methods and description and returns a string to print.
+
+        Args:
+            method (str): Name of the method.
+            description (str): Description of the method.
+
+        Returns:
+            str: Formatted string.
+        """
+        return "\n".join(
+            [
+                "",
+                textwrap.fill(f"Method: {method}".replace("\n", " "), line_len),
+                textwrap.fill(
+                    f"Description: {description}".replace("\n", " "), line_len
+                ),
+                "",
+            ]
+        )
 
     def _calc(
         self,
@@ -84,8 +100,7 @@ class HypothesisTests:
         """
         method = "SciPy Kolmogorov Smirnov"
         description = ""
-        about_str = "\nMethods: {method}\nDescription:{description}"
-        about_str = about_str.format(method=method, description=description)
+        about_str = self._format_about_str(method=method, description=description)
 
         results = self._calc(stats.ks_2samp)
         if verbose:
@@ -110,8 +125,7 @@ class HypothesisTests:
         description = (
             "Non-parameric test between independent samples comparing their location."
         )
-        about_str = "\nMethods: {method}\nDescription:{description}"
-        about_str = about_str.format(method=method, description=description)
+        about_str = self._format_about_str(method=method, description=description)
 
         results = self._calc(stats.mannwhitneyu)
         if verbose:
@@ -156,14 +170,14 @@ class HypothesisTests:
             results (dict): Dictionary of statistics and  p-values by feature.
         """
         method = (
-            "SciPy chi-square test of independence of variables in a"
+            "SciPy chi-square test of independence of variables in a "
             "contingency table."
         )
-        description = """
-        Chi-square test for categorical-like data comparing counts in
-        registered and reference data."""
-        about_str = "\nMethods: {method}\nDescription:{description}"
-        about_str = about_str.format(method=method, description=description)
+        description = (
+            "Chi-square test for categorical-like data comparing counts in "
+            "registered and reference data."
+        )
+        about_str = self._format_about_str(method=method, description=description)
 
         results = self._calc(
             self._chi_square,
@@ -189,12 +203,11 @@ class HypothesisTests:
             scipy.stats.permutation_test object with test results.
         """
         method = "SciPy Permutation Test"
-        description = """
-            Performs permutation test on all features with passed stat_fn measuring
-            the difference between samples.
-        """
-        about_str = "\nMethods: {method}\nDescription:{description}"
-        about_str = about_str.format(method=method, description=description)
+        description = (
+            "Performs permutation test on all features with passed stat_fn "
+            "measuring the difference between samples."
+        )
+        about_str = self._format_about_str(method=method, description=description)
 
         # Statistic for evaluating the difference between permuted samples
         def statistic(
@@ -232,15 +245,14 @@ class HypothesisTests:
             results (float): 1 - the mean KS statistic across features.
         """
         method = "SDV Kolmogorov Smirnov"
-        description = """This metric uses the two-sample Kolmogorov–Smirnov
-                        test to compare the distributions
-                        of continuous columns using the empirical CDF.
-                        \n The output for each column is 1 minus the KS
-                        Test D statistic, which indicates the
-                        maximum distance between the expected CDF and the
-                        observed CDF values."""
-        about_str = "\nMethod: {method}\nDescription:{description}"
-        about_str = about_str.format(method=method, description=description)
+        description = (
+            "This metric uses the two-sample Kolmogorov–Smirnov test to "
+            "compare the distributions of continuous columns using the "
+            "empirical CDF. The output for each column is 1 minus the KS "
+            "Test D statistic, which indicates the maximum distance "
+            "between the expected CDF and the observed CDF values."
+        )
+        about_str = self._format_about_str(method=method, description=description)
 
         # Only run computation on features; exclude labels
         results: float = KSTest.compute(
@@ -299,12 +311,12 @@ class HypothesisTests:
             results (dict): Dictionary of statistics and  p-values by feature.
         """
         method = "SDV CS Test"
-        description = """\nThis metric uses the Chi-Squared test to compare the distributions of
-        two discrete columns, with the mean score taken across categorical and
-        boolean columns.
-        """
-        about_str = "\nMethod: {method}\nDescription:{description}"
-        about_str = about_str.format(method=method, description=description)
+        description = (
+            "This metric uses the Chi-Squared test to compare the "
+            "distributions of two discrete columns, with the mean score taken "
+            "across categorical and boolean columns."
+        )
+        about_str = self._format_about_str(method=method, description=description)
 
         # Convert to dataframes with catgeory type for CSTest compatibility
         ref_cat = self.subset_to_categories(self.reference_dataset.features)
@@ -335,11 +347,12 @@ class HypothesisTests:
                 model that has lowest Bayesian Information Criterion (BIC).
         """
         method: str = "Gaussian Mixture Log Likelihood"
-        description: str = """This metric fits multiple GaussianMixture models
-        to the real data and then evaluates
-        the average log likelihood of the synthetic data on them."""
-        about_str: str = "\nMethod: {method}\nDescription:{description}"
-        about_str = about_str.format(method=method, description=description)
+        description: str = (
+            "This metric fits multiple GaussianMixture models to the real "
+            "data and then evaluates the average log likelihood of the "
+            "synthetic data on them."
+        )
+        about_str = self._format_about_str(method=method, description=description)
 
         if verbose:
             print(about_str)
@@ -365,9 +378,11 @@ class HypothesisTests:
                 reference and registered datasets.
         """
         method = "Logistic Detection"
-        description = "Detection metric based on a LogisticRegression classifier from scikit-learn."
-        about_str = "\nMethod: {method}\nDescription:{description}"
-        about_str = about_str.format(method=method, description=description)
+        description = (
+            "Detection metric based on a LogisticRegression classifier from "
+            "scikit-learn."
+        )
+        about_str = self._format_about_str(method=method, description=description)
 
         if verbose:
             print(about_str)
@@ -409,9 +424,11 @@ class HypothesisTests:
             method = "Logistic Detection (standard scoring)"
         else:
             method = f"Logistic Detection ({score_type} scoring)"
-        description = "Detection metric based on a LogisticRegression classifier from scikit-learn with custom scoring."  # pylint: disable=line-too-long
-        about_str = "\nMethod: {method}\nDescription:{description}"
-        about_str = about_str.format(method=method, description=description)
+        description = (
+            "Detection metric based on a LogisticRegression classifier from "
+            "scikit-learn with custom scoring."
+        )
+        about_str = self._format_about_str(method=method, description=description)
 
         if verbose:
             print(about_str)
