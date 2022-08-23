@@ -17,7 +17,6 @@ from sklearn.model_selection import StratifiedKFold
 from learning_machines_drift.hypertransformer import HyperTransformer
 from learning_machines_drift.types import Dataset
 
-# T = TypeVar('T')
 
 # TODO: write function for standard formatting of description strings #pylint: disable=fixme
 class HypothesisTests:
@@ -217,7 +216,7 @@ class HypothesisTests:
 
         return results
 
-    def sdv_kolmogorov_smirnov(self, verbose=True) -> Any:  # type: ignore
+    def sdv_kolmogorov_smirnov(self, verbose: bool = True) -> float:
         """Calculates Synthetic Data Vault package version of the
         Kolmogorov-Smirnov (KS) two-sample test.
 
@@ -239,7 +238,7 @@ class HypothesisTests:
         about_str = about_str.format(method=method, description=description)
 
         # Only run computation on features; exclude labels
-        results = KSTest.compute(
+        results: float = KSTest.compute(
             self.reference_dataset.features, self.registered_dataset.features
         )
 
@@ -318,25 +317,48 @@ class HypothesisTests:
         except IncomputableMetricError:
             return None
 
-    def gaussian_mixture_log_likelihood(self, verbose=True) -> Any:  # type: ignore
-        """TODO PEP 257"""
+    def gaussian_mixture_log_likelihood(self, verbose: bool = True) -> float:
+        """Calculates the log-likelihood of reference data given Gaussian
+        Mixture Model (GMM) fits on the reference data using Synthetic Data
+        Vault package.
+
+        Args:
+            verbose (bool): Boolean for verbose output to stdout.
+
+        Returns:
+            results (float): Log-likelihood of reference data with fitted
+                model that has lowest Bayesian Information Criterion (BIC).
+        """
         method: str = "Gaussian Mixture Log Likelihood"
-        description = """This metric fits multiple GaussianMixture models
+        description: str = """This metric fits multiple GaussianMixture models
         to the real data and then evaluates
         the average log likelihood of the synthetic data on them."""
-        about_str = "\nMethod: {method}\nDescription:{description}"
+        about_str: str = "\nMethod: {method}\nDescription:{description}"
         about_str = about_str.format(method=method, description=description)
 
         if verbose:
             print(about_str)
 
-        results = GMLogLikelihood.compute(
+        results: float = GMLogLikelihood.compute(
             self.reference_dataset.unify(), self.registered_dataset.unify()
         )
         return results
 
-    def logistic_detection(self, verbose=True) -> Any:  # type: ignore
-        """TODO PEP 257"""
+    def logistic_detection(self, verbose: bool = True) -> float:
+        """Calculates a measure of similarity using fitted logistic regression
+        to predict reference or registered label using Synthetic Data
+        Vault package.
+
+        A value of one indicates indistinguishable data, while a value of zero
+        indicates the converse.
+
+        Args:
+            verbose (bool): Boolean for verbose output to stdout.
+
+        Returns:
+            results (float): Score providing an overall similarity measure of
+                reference and registered datasets.
+        """
         method = "Logistic Detection"
         description = "Detection metric based on a LogisticRegression classifier from scikit-learn."
         about_str = "\nMethod: {method}\nDescription:{description}"
@@ -344,14 +366,40 @@ class HypothesisTests:
 
         if verbose:
             print(about_str)
-        results = LogisticDetection.compute(
+        results: float = LogisticDetection.compute(
             self.reference_dataset.unify(), self.registered_dataset.unify()
         )
         return results
 
     # pylint: disable=invalid-name
-    def logistic_detection_custom(self, score_type=None, seed=None, verbose=True) -> Any:  # type: ignore # pylint: disable=too-many-locals
-        """TODO PEP 257"""
+    def logistic_detection_custom(  # pylint: disable=too-many-locals
+        self,
+        score_type: Optional[str] = None,
+        seed: Optional[int] = None,
+        verbose: bool = True,
+    ) -> float:
+        """Calculates a measure of similarity using fitted logistic regression
+        to predict reference or registered label using Synthetic Data
+        Vault package. Optional `score_type` and `seed` can be passed to provide
+        interpretable metrics for the user.
+
+        `score_type` can be:
+            None: defaults to scoring of `logistic_detection` method.
+            "f1": Cross-validated F1 score with  0.5 threshold.
+            "roc_auc": Cross-validated receiver operating characteristic (area
+                under the curve)
+
+        Args:
+            score_type (Optional[str]): None for default or string; "f1" and
+                "roc_auc" currently implemented.
+            seed (Optional[int]): Optional integer for reproducibility of
+                scoring as cross-validation performed.
+            verbose (bool): Boolean for verbose output to stdout.
+
+        Returns:
+            results (float): Score providing an overall similarity measure of
+                reference and registered datasets.
+        """
         if score_type is None:
             method = "Logistic Detection (standard scoring)"
         else:
@@ -408,10 +456,12 @@ class HypothesisTests:
         if score_type is None:
             # SDMetrics approach to scoring takes 1 - mean:
             # https://github.com/sdv-dev/SDMetrics/blob/master/sdmetrics/single_table/detection/base.py#L89
-            return 1 - np.mean(scores)
+            results: float = 1 - np.mean(scores)
+        else:
+            # Custom metrics assume the mean of the scores
+            results = np.mean(scores)
 
-        # Custom metrics assume the mean of the scores
-        return np.mean(scores)
+        return results
 
     # pylint: enable=invalid-name
 
