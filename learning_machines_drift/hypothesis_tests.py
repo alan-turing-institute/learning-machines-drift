@@ -20,7 +20,10 @@ from learning_machines_drift.types import Dataset
 
 # TODO: write function for standard formatting of description strings #pylint: disable=fixme
 class HypothesisTests:
-    """TODO PEP 257"""
+    """
+    A class for performing hypothesis tests and scoring between registered and
+    reference datasets.
+    """
 
     def __init__(
         self,
@@ -28,7 +31,9 @@ class HypothesisTests:
         registered_dataset: Dataset,
         random_state: Optional[int] = None,
     ) -> None:
-        """TODO PEP 257"""
+        """
+        Initialize with registered and reference and optional seed.
+        """
         self.reference_dataset = reference_dataset
         self.registered_dataset = registered_dataset
         self.random_state = random_state
@@ -38,7 +43,18 @@ class HypothesisTests:
         func: Callable[..., Any],
         subset: Optional[List[str]] = None,
     ) -> Any:
-        """TODO PEP 257"""
+        """Method for calculating statistic and pvalue from a passed scoring
+        function.
+
+        Args:
+            func (Callable[..., Any]): Function that takes two series and
+                returns a dictionary or named tuple containing scores.
+            subset (List[str]): List of feature names to subset scores over.
+
+        Returns:
+            results (dict): Dictionary with features as keys and scores as
+                values.
+        """
         results = {}
         for feature in self.reference_dataset.feature_names:
             if subset is not None:
@@ -50,8 +66,17 @@ class HypothesisTests:
             results[feature] = func(ref_col, reg_col)
         return results
 
-    def scipy_kolmogorov_smirnov(self, verbose=True) -> Any:  # type: ignore
-        """TODO PEP 257"""
+    def scipy_kolmogorov_smirnov(self, verbose: bool = True) -> Any:
+        """Calculates feature-wise two-sample Kolmogorov-Smirnov test for
+        goodness of fit. Assumes continuous underlying distributions but
+        scores are still interpretable if data is approximately continuous.
+
+        Args:
+            verbose (bool): Boolean for verbose output to stdout.
+
+        Returns:
+            results (dict): Dictionary of statistics and  p-values by feature.
+        """
         method = "SciPy Kolmogorov Smirnov"
         description = ""
         about_str = "\nMethods: {method}\nDescription:{description}"
@@ -63,7 +88,19 @@ class HypothesisTests:
         return results
 
     def scipy_mannwhitneyu(self, verbose=True) -> Any:  # type: ignore
-        """TODO PEP 257"""
+        """Calculates feature-wise Mann-Whitney U test, a nonparametric test of
+        the null hypothesis that the distribution underlying sample x is the
+        same as the distribution underlying sample y. Provides a test for the
+        difference in location of two distributions. Assumes continuous
+        underlying distributions but scores are still interpretable if data
+        is approximately continuous.
+
+        Args:
+            verbose (bool): Boolean for verbose output to stdout.
+
+        Returns:
+            results (dict): Dictionary of statistics and  p-values by feature.
+        """
         method = "SciPy Mann-Whitney U"
         description = (
             "Non-parameric test between independent samples comparing their location."
@@ -77,9 +114,20 @@ class HypothesisTests:
         return results
 
     def scipy_chisquare(self, verbose=True) -> Any:  # type: ignore
-        """TODO PEP 257"""
+        """Calculates feature-wise chi-square statistic and p-value for
+        the hypothesis test of independence of the observed frequencies.
+        Provides a test for the independence of two count distributions.
+        Assumes categorical underlying distributions.
+
+        Args:
+            verbose (bool): Boolean for verbose output to stdout.
+
+        Returns:
+            results (dict): Dictionary of statistics and  p-values by feature.
+        """
         method = (
-            "SciPy chi-square test of independence of variables in a contingency table."
+            "SciPy chi-square test of independence of variables in a"
+            "contingency table."
         )
         description = """
         Chi-square test for categorical-like data comparing counts in
@@ -100,15 +148,15 @@ class HypothesisTests:
         func: Callable[..., float] = np.mean,
         verbose: bool = True,
     ) -> Any:
-        """
-        Performs permutation test on all features.
+        """Performs feature-wise permutation test with default statistic to
+        measure differences under permutations of labels as the mean.
 
         Args:
-            func: Function for comparing two samples.
-            verbose: Print outputs
+            func (Callable[..., float]): Function for comparing two samples.
+            verbose (bool): Print outputs
         Returns:
+            results (dict): Dictionary with keys as features and values as
             scipy.stats.permutation_test object with test results.
-
         """
         method = "SciPy Permutation Test"
         description = """
@@ -144,7 +192,15 @@ class HypothesisTests:
         return results
 
     def sdv_kolmogorov_smirnov(self, verbose=True) -> Any:  # type: ignore
-        """TODO PEP 257"""
+        """Calculates Synthetic Data Vault package version of the
+        Kolmogorov-Smirnov (KS) two-sample test.
+
+        Args:
+            verbose (bool): Boolean for verbose output to stdout.
+
+        Returns:
+            results (float): 1 - the mean KS statistic across features.
+        """
         method = "SDV Kolmogorov Smirnov"
         description = """This metric uses the two-sample Kolmogorov–Smirnov
                         test to compare the distributions
@@ -156,7 +212,7 @@ class HypothesisTests:
         about_str = "\nMethod: {method}\nDescription:{description}"
         about_str = about_str.format(method=method, description=description)
 
-        # Only run computation on predictors; exclude labels
+        # Only run computation on features; exclude labels
         results = KSTest.compute(
             self.reference_dataset.features, self.registered_dataset.features
         )
@@ -167,6 +223,7 @@ class HypothesisTests:
 
     @staticmethod
     def _get_categorylike_features(data: pd.DataFrame) -> Any:
+        """TODO PEP 257"""
         nunique = data.nunique()
         # Unit or binary features
         bin_features = nunique[nunique <= 2].index.to_list()
@@ -178,11 +235,20 @@ class HypothesisTests:
         return out_features
 
     def subset_to_categories(self, data: pd.DataFrame) -> pd.DataFrame:
-        """
-        Get only categorical-like features. Convert to categorical columns if:
+        """Subset a dataframe to only categorical-like features. Convert to
+        categorical columns if feature is:
             - Binary (two values)
+            OR
             - Interger (int dtype)
+            OR
             - Categorical (category dtype)
+
+        Args:
+            data (pd.DataDrame): Input dataframe
+        Returns:
+            pd.DataDrame: Output dataframe subsetted to categorical-like
+            features.
+
         """
         out_features = self._get_categorylike_features(data)
         return data[out_features].astype("category")
