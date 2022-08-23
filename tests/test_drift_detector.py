@@ -46,7 +46,8 @@ def measure(mocker: MockerFixture) -> Monitor:
 def example_dataset(n_rows: int) -> Tuple[pd.DataFrame, pd.DataFrame]:
     """TODO PEP 257"""
     # Given we have a reference dataset
-    x_reference, y_reference = datasets.logistic_model(size=n_rows)
+    # x_reference, y_reference = datasets.logistic_model(size=n_rows)
+    x_reference, _ = datasets.logistic_model(size=n_rows)
     features_df = pd.DataFrame(
         {
             "age": x_reference[:, 0],
