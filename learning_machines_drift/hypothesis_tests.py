@@ -283,8 +283,17 @@ class HypothesisTests:
         out_features = self._get_categorylike_features(data)
         return data[out_features].astype("category")
 
-    def sdv_cs_test(self, verbose=True) -> Any:  # type: ignore
-        """TODO PEP 257"""
+    def sdv_cs_test(self, verbose: bool = True) -> Optional[float]:
+        """Calculates average chi-square statistic and p-value for
+        the hypothesis test of independence of the observed frequencies for
+        categorical features using Synthetic Data Vault.
+
+        Args:
+            verbose (bool): Boolean for verbose output to stdout.
+
+        Returns:
+            results (dict): Dictionary of statistics and  p-values by feature.
+        """
         method = "SDV CS Test"
         description = """\nThis metric uses the Chi-Squared test to compare the distributions of
         two discrete columns, with the mean score taken across categorical and
@@ -297,14 +306,15 @@ class HypothesisTests:
         ref_cat = self.subset_to_categories(self.reference_dataset.features)
         reg_cat = self.subset_to_categories(self.registered_dataset.features)
 
+        # Print about_str
+        if verbose:
+            print(about_str)
+
         # Score only computable if non-zero number of columns
         try:
-            results = CSTest.compute(ref_cat, reg_cat)
-
-            if verbose:
-                print(about_str)
-
+            results: float = CSTest.compute(ref_cat, reg_cat)
             return results
+
         except IncomputableMetricError:
             return None
 
