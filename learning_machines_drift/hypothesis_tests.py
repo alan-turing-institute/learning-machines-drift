@@ -97,7 +97,10 @@ class HypothesisTests:
             reg_col = self.registered_dataset.features[feature]
 
             result = func(ref_col, reg_col)
-            results[feature] = self._to_dict(result)
+            if not isinstance(result, dict):
+                results[feature] = self._to_dict(result)
+            else:
+                results[feature] = result
         return results
 
     def scipy_kolmogorov_smirnov(self, verbose: bool = True) -> Any:
