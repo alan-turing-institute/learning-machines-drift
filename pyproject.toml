@@ -2,7 +2,7 @@
 name = "learning-machines-drift"
 version = "0.1.0"
 description = ""
-authors = ["Oscar Giles <ogiles@turing.ac.uk>", "Mahed Abroshan <mabroshan@turing.ac.uk>", "Jannetta Steyn <jannetta.steyn@newcastle.ac.uk>", "May Yong <myong@turing.ac.uk>"]
+authors = ["Sam Greenbury <sgreenbury@turing.ac.uk>", "Oscar Giles <ogiles@turing.ac.uk>", "Mahed Abroshan <mabroshan@turing.ac.uk>", "Jannetta Steyn <jannetta.steyn@newcastle.ac.uk>", "May Yong <myong@turing.ac.uk>"]
 
 [tool.poetry.dependencies]
 python = ">3.9,<3.10"
