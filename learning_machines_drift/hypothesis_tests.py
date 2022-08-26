@@ -327,7 +327,7 @@ class HypothesisTests:
         out_features = self._get_categorylike_features(data)
         return data[out_features].astype("category")
 
-    def sdv_chisquare_test(
+    def sdv_chisquare(
         self, normalize: bool = False, verbose: bool = True
     ) -> Dict[str, Dict[str, float]]:
         """Calculates average chi-square statistic and p-value for
@@ -363,10 +363,10 @@ class HypothesisTests:
             results: float = CSTest.compute(ref_cat, reg_cat)
             if normalize:
                 results = CSTest.normalize(results)
-            return {"sdv_chisquare_test": {"statistic": results, "pvalue": np.nan}}
+            return {"sdv_chisquare": {"statistic": results, "pvalue": np.nan}}
 
         except IncomputableMetricError:
-            return {"sdv_chisquare_test": {"statistic": np.nan, "pvalue": np.nan}}
+            return {"sdv_chisquare": {}}
 
     def gaussian_mixture_log_likelihood(
         self, verbose: bool = True, normalize: bool = False

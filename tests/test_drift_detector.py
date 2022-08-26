@@ -215,7 +215,7 @@ def test_summary_statistic_list(tmp_path: pathlib.Path) -> None:
         "logistic_detection_roc_auc": partial(
             meas.hypothesis_tests.logistic_detection_custom, score_type="roc_auc"
         ),
-        "sdv_chisquare_test": meas.hypothesis_tests.sdv_chisquare_test,
+        "sdv_chisquare": meas.hypothesis_tests.sdv_chisquare,
         "sdv_kolmogorov_smirnov": meas.hypothesis_tests.sdv_kolmogorov_smirnov,
     }
 
