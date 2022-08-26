@@ -92,7 +92,6 @@ class HypothesisTests:
         for feature in self.reference_dataset.feature_names:
             if subset is not None:
                 if feature not in subset:
-                    results[feature] = {"statistic": np.nan, "pvalue": np.nan}
                     continue
             ref_col = self.reference_dataset.features[feature]
             reg_col = self.registered_dataset.features[feature]
@@ -286,29 +285,33 @@ class HypothesisTests:
         if normalize:
             results = KSTest.normalize(results)
 
-        return {"sdv_ks": {"statistic": results, "pvalue": np.nan}}
+        return {"sdv_kolmogorov_smirnov": {"statistic": results, "pvalue": np.nan}}
 
+    # Skip the ones that are not calculable
     @staticmethod
     def _get_categorylike_features(data: pd.DataFrame) -> List[str]:
         """Get a list of feature names that have category-like features.
         Category-like features are defined as:
-            - Binary (two values)
-            OR
-            - Interger (int dtype)
+            - Unit or Binary (less than two values)
             OR
             - Categorical (category dtype)
 
+        Args:
+            data (pd.DataFrame): data to be have features checked.
+
+        Returns:
+            List[str]: List of feature names that are category-like.
         """
         # Get the number of unique values by feature
         nunique: pd.Series = data.nunique()
         # Unit or binary features
-        bin_features: List[str] = nunique[nunique <= 2].index.to_list()
+        unit_or_bin_features: List[str] = nunique[nunique <= 2].index.to_list()
         # Integer or category features
-        int_or_cat_features: List[str] = data.dtypes[
-            data.dtypes.eq(int) | data.dtypes.eq("category")
+        cat_features: List[str] = data.dtypes[
+            data.dtypes.eq("category")
         ].index.to_list()
         # Get list of unique features for output
-        out_features: List[str] = list(np.unique(bin_features + int_or_cat_features))
+        out_features: List[str] = list(np.unique(unit_or_bin_features + cat_features))
         return out_features
 
     def subset_to_categories(self, data: pd.DataFrame) -> pd.DataFrame:
@@ -324,7 +327,7 @@ class HypothesisTests:
         out_features = self._get_categorylike_features(data)
         return data[out_features].astype("category")
 
-    def sdv_cs_test(
+    def sdv_chisquare_test(
         self, normalize: bool = False, verbose: bool = True
     ) -> Dict[str, Dict[str, float]]:
         """Calculates average chi-square statistic and p-value for
@@ -360,10 +363,10 @@ class HypothesisTests:
             results: float = CSTest.compute(ref_cat, reg_cat)
             if normalize:
                 results = CSTest.normalize(results)
-            return {"sdv_cs": {"statistic": results, "pvalue": np.nan}}
+            return {"sdv_chisquare_test": {"statistic": results, "pvalue": np.nan}}
 
         except IncomputableMetricError:
-            return {"sdv_cs": {"statistic": np.nan, "pvalue": np.nan}}
+            return {"sdv_chisquare_test": {"statistic": np.nan, "pvalue": np.nan}}
 
     def gaussian_mixture_log_likelihood(
         self, verbose: bool = True, normalize: bool = False
@@ -398,7 +401,9 @@ class HypothesisTests:
         if normalize:
             results = GMLogLikelihood.normalize(results)
 
-        return {"gmm": {"statistic": results, "pvalue": np.nan}}
+        return {
+            "gaussian_mixture_log_likelihood": {"statistic": results, "pvalue": np.nan}
+        }
 
     def logistic_detection(
         self, normalize: bool = False, verbose: bool = True
@@ -435,7 +440,7 @@ class HypothesisTests:
         if normalize:
             results = LogisticDetection.normalize(results)
 
-        return {"logistic_detector": {"statistic": results, "pvalue": np.nan}}
+        return {"logistic_detection": {"statistic": results, "pvalue": np.nan}}
 
     # pylint: disable=invalid-name
     def logistic_detection_custom(  # pylint: disable=too-many-locals, too-many-branches
@@ -527,11 +532,11 @@ class HypothesisTests:
         if score_type is None:
             # SDMetrics approach to scoring takes 1 - mean:
             # https://github.com/sdv-dev/SDMetrics/blob/master/sdmetrics/single_table/detection/base.py#L89
-            results_key: str = "logistic_detector"
+            results_key: str = "logistic_detection"
             results: float = 1 - np.mean(scores)
         else:
             # Custom metrics assume the mean of the scores
-            results_key = f"logistic_detector_{score_type}"
+            results_key = f"logistic_detection_{score_type}"
             results = np.mean(scores)
 
         if normalize and score_type is None:
