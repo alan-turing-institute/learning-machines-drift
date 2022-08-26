@@ -120,7 +120,7 @@ class HypothesisTests:
             print(about_str)
         return results
 
-    def scipy_mannwhitneyu(self, verbose=True) -> Any:  # type: ignore
+    def scipy_mannwhitneyu(self, verbose: bool = True) -> Any:
         """Calculates feature-wise Mann-Whitney U test, a nonparametric test of
         the null hypothesis that the distribution underlying sample x is the
         same as the distribution underlying sample y. Provides a test for the
@@ -170,7 +170,7 @@ class HypothesisTests:
         )
         return {"statistic": statistic, "pvalue": pvalue}
 
-    def scipy_chisquare(self, verbose=True) -> Any:  # type: ignore
+    def scipy_chisquare(self, verbose: bool = True) -> Any:
         """Calculates feature-wise chi-square statistic and p-value for
         the hypothesis test of independence of the observed frequencies.
         Provides a test for the independence of two count distributions.
@@ -312,6 +312,7 @@ class HypothesisTests:
         ].index.to_list()
         # Get list of unique features for output
         out_features: List[str] = list(np.unique(unit_or_bin_features + cat_features))
+
         return out_features
 
     def subset_to_categories(self, data: pd.DataFrame) -> pd.DataFrame:
