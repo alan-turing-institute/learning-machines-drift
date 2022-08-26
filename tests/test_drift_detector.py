@@ -2,9 +2,9 @@
 # pylint: disable=W0621
 
 import pathlib
+from functools import partial
 from typing import Any, Callable, Dict, Tuple
 
-# import numpy as np
 import pandas as pd
 import pytest
 from pytest_mock import MockerFixture
@@ -203,21 +203,40 @@ def test_summary_statistic_list(tmp_path: pathlib.Path) -> None:
     meas = Monitor(tag="test", backend=FileBackend(tmp_path))
     meas.load_data()
     h_test_dispatcher: Dict[str, Any] = {
-        "scipy_ks": meas.hypothesis_tests.scipy_kolmogorov_smirnov,
-        "scipy_csquare": meas.hypothesis_tests.scipy_chisquare,
+        "scipy_kolmogorov_smirnov": meas.hypothesis_tests.scipy_kolmogorov_smirnov,
+        "scipy_chisquare": meas.hypothesis_tests.scipy_chisquare,
         "scipy_mannwhitneyu": meas.hypothesis_tests.scipy_mannwhitneyu,
         "scipy_permutation": meas.hypothesis_tests.scipy_permutation,
         "gaussian_mixture_log_likelihood": meas.hypothesis_tests.gaussian_mixture_log_likelihood,
         "logistic_detection": meas.hypothesis_tests.logistic_detection,
-        "logistic_detection_custom": meas.hypothesis_tests.logistic_detection_custom,
-        "sdv_cs": meas.hypothesis_tests.sdv_cs_test,
-        "sdv_ks": meas.hypothesis_tests.sdv_kolmogorov_smirnov,
+        "logistic_detection_f1": partial(
+            meas.hypothesis_tests.logistic_detection_custom, score_type="f1"
+        ),
+        "logistic_detection_roc_auc": partial(
+            meas.hypothesis_tests.logistic_detection_custom, score_type="roc_auc"
+        ),
+        "sdv_chisquare_test": meas.hypothesis_tests.sdv_chisquare_test,
+        "sdv_kolmogorov_smirnov": meas.hypothesis_tests.sdv_kolmogorov_smirnov,
     }
 
-    for _, h_test_fn in h_test_dispatcher.items():
+    for h_test_name, h_test_fn in h_test_dispatcher.items():
         res = h_test_fn(verbose=False)
+
+        # Check res is a dict
         assert isinstance(res, dict)
-        # assert res.keys() == set(features_df.columns)
+
+        # If `chisquare`, not compatible with any of the test dataset dtypes
+        # so skip
+        if h_test_name == "scipy_chisquare":
+            continue
+
+        # If `scipy` test, it will be column-wise
+        if h_test_name.startswith("scipy"):
+            assert res.keys() == set(features_df.columns)
+        # Otherwise, there should be single item in returned dictionary that
+        # matches the specified names in the test
+        else:
+            assert list(res.keys()) == [h_test_name]
 
 
 def test_statistics_summary(tmp_path) -> None:  # type: ignore
