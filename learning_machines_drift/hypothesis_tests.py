@@ -2,7 +2,7 @@
 
 import textwrap
 from collections import Counter
-from typing import Any, Callable, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 import numpy as np
 import numpy.typing as npt
@@ -59,6 +59,18 @@ class HypothesisTests:
             ]
         )
 
+    @staticmethod
+    def _to_dict(obj: object) -> Dict[str, float]:
+        """Convert an object to a dict."""
+        obj_as_dict = {}
+        attributes = [
+            attribute for attribute in dir(obj) if attribute in ["statistic", "pvalue"]
+        ]
+        for attribute in attributes:
+            obj_as_dict[attribute] = getattr(obj, attribute)
+
+        return obj_as_dict
+
     def _calc(
         self,
         func: Callable[..., Any],
@@ -84,7 +96,9 @@ class HypothesisTests:
                     continue
             ref_col = self.reference_dataset.features[feature]
             reg_col = self.registered_dataset.features[feature]
-            results[feature] = func(ref_col, reg_col)
+
+            result = func(ref_col, reg_col)
+            results[feature] = self._to_dict(result)
         return results
 
     def scipy_kolmogorov_smirnov(self, verbose: bool = True) -> Any:
@@ -231,7 +245,7 @@ class HypothesisTests:
                 n_resamples=9999,
                 random_state=self.random_state,
             )
-            results[feature] = result
+            results[feature] = self._to_dict(result)
         if verbose:
             print(about_str)
 
@@ -239,7 +253,7 @@ class HypothesisTests:
 
     def sdv_kolmogorov_smirnov(
         self, normalize: bool = False, verbose: bool = True
-    ) -> float:
+    ) -> Dict[str, Dict[str, float]]:
         """Calculates Synthetic Data Vault package version of the
         Kolmogorov-Smirnov (KS) two-sample test.
 
@@ -248,7 +262,8 @@ class HypothesisTests:
             normalize (bool): Normalize raw_score to interval [0, 1].
 
         Returns:
-            results (float): 1 - the mean KS statistic across features.
+            results (Dict[str, Dict[str, float]]): 1 - the mean KS
+            statistic across features.
         """
         method = f"SDV Kolmogorov Smirnov (normalize: {normalize})"
         description = (
@@ -271,7 +286,7 @@ class HypothesisTests:
         if normalize:
             results = KSTest.normalize(results)
 
-        return results
+        return {"sdv_ks": {"statistic": results, "pvalue": np.nan}}
 
     @staticmethod
     def _get_categorylike_features(data: pd.DataFrame) -> List[str]:
@@ -311,7 +326,7 @@ class HypothesisTests:
 
     def sdv_cs_test(
         self, normalize: bool = False, verbose: bool = True
-    ) -> Optional[float]:
+    ) -> Optional[Dict[str, Dict[str, float]]]:
         """Calculates average chi-square statistic and p-value for
         the hypothesis test of independence of the observed frequencies for
         categorical features using Synthetic Data Vault.
@@ -321,7 +336,8 @@ class HypothesisTests:
             normalize (bool): Normalize raw_score to interval [0, 1].
 
         Returns:
-            results (dict): Dictionary of statistics and  p-values by feature.
+            results (Optional[Dict[str, Dict[str, float]]]): Dictionary of
+            statistics and  p-values by feature.
         """
         method = f"SDV CS Test (normalize: {normalize})"
         description = (
@@ -344,14 +360,14 @@ class HypothesisTests:
             results: float = CSTest.compute(ref_cat, reg_cat)
             if normalize:
                 results = CSTest.normalize(results)
-            return results
+            return {"sdv_cs": {"statistic": results, "pvalue": np.nan}}
 
         except IncomputableMetricError:
             return None
 
     def gaussian_mixture_log_likelihood(
         self, verbose: bool = True, normalize: bool = False
-    ) -> float:
+    ) -> Dict[str, Dict[str, float]]:
         """Calculates the log-likelihood of reference data given Gaussian
         Mixture Model (GMM) fits on the reference data using Synthetic Data
         Vault package.
@@ -361,8 +377,9 @@ class HypothesisTests:
             normalize (bool): Normalize raw_score to interval [0, 1].
 
         Returns:
-            results (float): Log-likelihood of reference data with fitted
-                model that has lowest Bayesian Information Criterion (BIC).
+            results (Dict[str, Dict[str, float]]): Log-likelihood of reference
+            data with fitted model that has lowest Bayesian Information
+            Criterion (BIC).
         """
         method: str = f"Gaussian Mixture Log Likelihood (normalize: {normalize})"
         description: str = (
@@ -380,11 +397,12 @@ class HypothesisTests:
         )
         if normalize:
             results = GMLogLikelihood.normalize(results)
-        return results
+
+        return {"gmm": {"statistic": results, "pvalue": np.nan}}
 
     def logistic_detection(
         self, normalize: bool = False, verbose: bool = True
-    ) -> float:
+    ) -> Dict[str, Dict[str, float]]:
         """Calculates a measure of similarity using fitted logistic regression
         to predict reference or registered label using Synthetic Data
         Vault package.
@@ -397,7 +415,7 @@ class HypothesisTests:
             normalize (bool): Normalize raw_score to interval [0, 1].
 
         Returns:
-            results (float): Score providing an overall similarity measure of
+            results (Dict[str, Dict[str, float]]): Score providing an overall similarity measure of
                 reference and registered datasets.
         """
         method = f"Logistic Detection (normalize: {normalize})"
@@ -417,7 +435,7 @@ class HypothesisTests:
         if normalize:
             results = LogisticDetection.normalize(results)
 
-        return results
+        return {"logistic_detector": {"statistic": results, "pvalue": np.nan}}
 
     # pylint: disable=invalid-name
     def logistic_detection_custom(  # pylint: disable=too-many-locals, too-many-branches
@@ -426,7 +444,7 @@ class HypothesisTests:
         score_type: Optional[str] = None,
         seed: Optional[int] = None,
         verbose: bool = True,
-    ) -> float:
+    ) -> Dict[str, Dict[str, float]]:
         """Calculates a measure of similarity using fitted logistic regression
         to predict reference or registered label using Synthetic Data
         Vault package. Optional `score_type` and `seed` can be passed to provide
@@ -509,15 +527,17 @@ class HypothesisTests:
         if score_type is None:
             # SDMetrics approach to scoring takes 1 - mean:
             # https://github.com/sdv-dev/SDMetrics/blob/master/sdmetrics/single_table/detection/base.py#L89
+            results_key: str = "logistic_detector"
             results: float = 1 - np.mean(scores)
         else:
             # Custom metrics assume the mean of the scores
+            results_key = f"logistic_detector_{score_type}"
             results = np.mean(scores)
 
         if normalize and score_type is None:
             results = LogisticDetection.normalize(results)
 
-        return results
+        return {results_key: {"statistic": results, "pvalue": np.nan}}
 
     # pylint: enable=invalid-name
 
