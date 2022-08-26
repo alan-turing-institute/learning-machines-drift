@@ -326,7 +326,7 @@ class HypothesisTests:
 
     def sdv_cs_test(
         self, normalize: bool = False, verbose: bool = True
-    ) -> Optional[Dict[str, Dict[str, float]]]:
+    ) -> Dict[str, Dict[str, float]]:
         """Calculates average chi-square statistic and p-value for
         the hypothesis test of independence of the observed frequencies for
         categorical features using Synthetic Data Vault.
@@ -363,7 +363,7 @@ class HypothesisTests:
             return {"sdv_cs": {"statistic": results, "pvalue": np.nan}}
 
         except IncomputableMetricError:
-            return None
+            return {"sdv_cs": {"statistic": np.nan, "pvalue": np.nan}}
 
     def gaussian_mixture_log_likelihood(
         self, verbose: bool = True, normalize: bool = False
