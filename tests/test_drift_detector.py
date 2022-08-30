@@ -2,9 +2,9 @@
 # pylint: disable=W0621
 
 import pathlib
-from typing import Callable, Tuple
+from functools import partial
+from typing import Any, Callable, Dict, Tuple
 
-# import numpy as np
 import pandas as pd
 import pytest
 from pytest_mock import MockerFixture
@@ -47,6 +47,7 @@ def example_dataset(n_rows: int) -> Tuple[pd.DataFrame, pd.DataFrame]:
     """TODO PEP 257"""
     # Given we have a reference dataset
     x_reference, y_reference = datasets.logistic_model(size=n_rows)
+    # x_reference, _ = datasets.logistic_model(size=n_rows)
     features_df = pd.DataFrame(
         {
             "age": x_reference[:, 0],
@@ -54,6 +55,14 @@ def example_dataset(n_rows: int) -> Tuple[pd.DataFrame, pd.DataFrame]:
             "bp": x_reference[:, 2],
         }
     )
+
+    # labels_df = pd.DataFrame(
+    #     {
+    #         "outcome": x_reference[:, 0],
+    #         "height": x_reference[:, 1],
+    #         "bp": x_reference[:, 2],
+    #     }
+    # )
 
     labels_df = pd.Series(y_reference, name="y")
 
@@ -167,6 +176,67 @@ def test_all_registered(
 
     # And we saved the logged labels
     det.backend.save_logged_labels.assert_called_once()  # type: ignore
+
+
+def test_summary_statistic_list(tmp_path: pathlib.Path) -> None:
+    """TODO PEP 257"""
+    features_df, labels_df = example_dataset(10)
+    det = Registry(tag="test", backend=FileBackend(tmp_path))
+    det.register_ref_dataset(features=features_df, labels=labels_df)
+
+    # And we have features and predicted labels
+    x_monitor, y_monitor = datasets.logistic_model()
+    features_monitor_df = pd.DataFrame(
+        {
+            "age": x_monitor[:, 0],
+            "height": x_monitor[:, 1],
+            "bp": x_monitor[:, 2],
+        }
+    )
+    labels_monitor_df = pd.DataFrame({"y": y_monitor})
+
+    with det:
+        # And we have logged features, labels and latent
+        det.log_features(features_monitor_df)
+        det.log_labels(labels_monitor_df)
+
+    meas = Monitor(tag="test", backend=FileBackend(tmp_path))
+    meas.load_data()
+    h_test_dispatcher: Dict[str, Any] = {
+        "scipy_kolmogorov_smirnov": meas.hypothesis_tests.scipy_kolmogorov_smirnov,
+        "scipy_chisquare": meas.hypothesis_tests.scipy_chisquare,
+        "scipy_mannwhitneyu": meas.hypothesis_tests.scipy_mannwhitneyu,
+        "scipy_permutation": meas.hypothesis_tests.scipy_permutation,
+        "gaussian_mixture_log_likelihood": meas.hypothesis_tests.gaussian_mixture_log_likelihood,
+        "logistic_detection": meas.hypothesis_tests.logistic_detection,
+        "logistic_detection_f1": partial(
+            meas.hypothesis_tests.logistic_detection_custom, score_type="f1"
+        ),
+        "logistic_detection_roc_auc": partial(
+            meas.hypothesis_tests.logistic_detection_custom, score_type="roc_auc"
+        ),
+        "sdv_chisquare": meas.hypothesis_tests.sdv_chisquare,
+        "sdv_kolmogorov_smirnov": meas.hypothesis_tests.sdv_kolmogorov_smirnov,
+    }
+
+    for h_test_name, h_test_fn in h_test_dispatcher.items():
+        res = h_test_fn(verbose=False)
+
+        # Check res is a dict
+        assert isinstance(res, dict)
+
+        # If `chisquare`, not compatible with any of the test dataset dtypes
+        # so skip
+        if h_test_name == "scipy_chisquare":
+            continue
+
+        # If `scipy` test, it will be column-wise
+        if h_test_name.startswith("scipy"):
+            assert res.keys() == set(features_df.columns)
+        # Otherwise, there should be single item in returned dictionary that
+        # matches the specified names in the test
+        else:
+            assert list(res.keys()) == [h_test_name]
 
 
 def test_statistics_summary(tmp_path) -> None:  # type: ignore
