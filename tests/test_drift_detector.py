@@ -23,6 +23,7 @@ from learning_machines_drift.backends import FileBackend
 
 N_FEATURES = 3
 N_LABELS = 2
+N_LATENTS = 1
 
 
 @pytest.fixture()
@@ -43,10 +44,10 @@ def measure(mocker: MockerFixture) -> Monitor:
     return meas
 
 
-def example_dataset(n_rows: int) -> Tuple[pd.DataFrame, pd.DataFrame]:
+def example_dataset(n_rows: int) -> Tuple[pd.DataFrame, pd.Series, pd.DataFrame]:
     """TODO PEP 257"""
     # Given we have a reference dataset
-    x_reference, y_reference = datasets.logistic_model(size=n_rows)
+    x_reference, y_reference, latents_reference = datasets.logistic_model(size=n_rows, return_latents=True)
     # x_reference, _ = datasets.logistic_model(size=n_rows)
     features_df = pd.DataFrame(
         {
@@ -56,22 +57,15 @@ def example_dataset(n_rows: int) -> Tuple[pd.DataFrame, pd.DataFrame]:
         }
     )
 
-    # labels_df = pd.DataFrame(
-    #     {
-    #         "outcome": x_reference[:, 0],
-    #         "height": x_reference[:, 1],
-    #         "bp": x_reference[:, 2],
-    #     }
-    # )
-
     labels_df = pd.Series(y_reference, name="y")
+    latents_df = pd.DataFrame({"latents": latents_reference})
 
-    return (features_df, labels_df)
+    return (features_df, labels_df, latents_df)
 
 
 @pytest.fixture()
 def detector_with_ref_data(  # type: ignore
-    tmp_path: pathlib.Path, detector
+    tmp_path: pathlib.Path, detector:Registry
 ) -> Callable[[int], Registry]:
     """Return a DriftDetector with a reference dataset registered
     which writes data to a temporary directory"""
@@ -80,17 +74,18 @@ def detector_with_ref_data(  # type: ignore
     def _detector_with_ref_data(n_rows: int) -> Registry:
         """TODO PEP 257"""
 
-        features_df, labels_df = example_dataset(n_rows)
-
+        features_df, labels_df, latents_df = example_dataset(n_rows)
+        
         # When we register the dataset
-        detector.register_ref_dataset(features=features_df, labels=labels_df)
+        detector.register_ref_dataset(features=features_df, labels=labels_df, latents=latents_df)
 
         return detector  # type: ignore
 
     return _detector_with_ref_data
 
 
-@pytest.mark.parametrize("n_rows", [5, 10, 100, 1000, 10000])
+# @pytest.mark.parametrize("n_rows", [5, 10, 100, 1000, 10000])
+@pytest.mark.parametrize("n_rows", [5])
 def test_register_dataset(
     detector_with_ref_data: Callable[[int], Registry], n_rows: int
 ) -> None:
@@ -107,6 +102,8 @@ def test_register_dataset(
     assert summary.shapes.features.n_features == N_FEATURES
     assert summary.shapes.labels.n_rows == n_rows
     assert summary.shapes.labels.n_labels == N_LABELS
+    assert summary.shapes.latents.n_rows == n_rows
+    assert summary.shapes.latents.n_latents == N_LATENTS
 
     # And we saved the data to the backend
     det.backend.save_reference_dataset.assert_called_once()  # type: ignore
@@ -130,20 +127,18 @@ def test_all_registered(
     detector_with_ref_data: Callable[[int], Registry], tmp_path: pathlib.Path
 ) -> None:
     """TODO PEP 257"""
-    print(tmp_path)
     # Given we have registered a reference dataset
     det = detector_with_ref_data(100)
 
     # And we have features and predicted labels
-    x_pred, y_pred = datasets.logistic_model()
+    x_pred, y_pred, latents_pred = datasets.logistic_model(return_latents=True)
     # latent_x = x_pred.mean(axis=0)
 
     # When we log features and labels of new data
     with det:
         # I set these false here as the backend doesn't support them yet
         # Should discuss how we want to handle this
-        det.expect_labels = False
-
+        det.expect_labels = True
         det.log_features(
             pd.DataFrame(
                 {
@@ -154,16 +149,13 @@ def test_all_registered(
             )
         )
         det.log_labels(pd.Series(y_pred, name="y"))
-        # detector.log_latent(
-        #     pd.DataFrame(
-        #         {
-        #             "mean_age": latent_x[0],
-        #             "mean_height": latent_x[1],
-        #             "mean_bp": latent_x[2],
-        #         },
-        #         index=[0],
-        #     )
-        # )
+        det.log_latents(
+            pd.DataFrame(
+                {
+                    "latents": latents_pred,
+                }
+            )
+        )
 
     # Then we can ensure that everything is registered
     assert det.all_registered()
@@ -180,12 +172,12 @@ def test_all_registered(
 
 def test_summary_statistic_list(tmp_path: pathlib.Path) -> None:
     """TODO PEP 257"""
-    features_df, labels_df = example_dataset(10)
+    features_df, labels_df, latents_df = example_dataset(10)
     det = Registry(tag="test", backend=FileBackend(tmp_path))
-    det.register_ref_dataset(features=features_df, labels=labels_df)
+    det.register_ref_dataset(features=features_df, labels=labels_df, latents=latents_df)
 
     # And we have features and predicted labels
-    x_monitor, y_monitor = datasets.logistic_model()
+    x_monitor, y_monitor, latents_monitor = datasets.logistic_model(return_latents=True)
     features_monitor_df = pd.DataFrame(
         {
             "age": x_monitor[:, 0],
@@ -194,11 +186,13 @@ def test_summary_statistic_list(tmp_path: pathlib.Path) -> None:
         }
     )
     labels_monitor_df = pd.DataFrame({"y": y_monitor})
+    latents_monitor_df = pd.DataFrame({"latents": latents_monitor})
 
     with det:
         # And we have logged features, labels and latent
         det.log_features(features_monitor_df)
         det.log_labels(labels_monitor_df)
+        det.log_latents(latents_monitor_df)
 
     meas = Monitor(tag="test", backend=FileBackend(tmp_path))
     meas.load_data()
@@ -243,12 +237,12 @@ def test_statistics_summary(tmp_path) -> None:  # type: ignore
     """TODO PEP 257"""
 
     # Given we have registered a reference dataset
-    features_df, labels_df = example_dataset(100)
+    features_df, labels_df, latents_df = example_dataset(100)
     det = Registry(tag="test", backend=FileBackend(tmp_path))
-    det.register_ref_dataset(features=features_df, labels=labels_df)
+    det.register_ref_dataset(features=features_df, labels=labels_df, latents=latents_df)
 
     # And we have features and predicted labels
-    x_monitor, y_monitor = datasets.logistic_model()
+    x_monitor, y_monitor, latents_monitor = datasets.logistic_model(return_latents=True)
     # latent_x = x_monitor.mean(axis=0)
     features_monitor_df = pd.DataFrame(
         {
@@ -258,21 +252,13 @@ def test_statistics_summary(tmp_path) -> None:  # type: ignore
         }
     )
     labels_monitor_df = pd.DataFrame({"y": y_monitor})
+    latents_monitor_df = pd.DataFrame({"latents": latents_monitor})
 
     with det:
         # And we have logged features, labels and latent
         det.log_features(features_monitor_df)
         det.log_labels(labels_monitor_df)
-        # detector.log_latent(
-        #     pd.DataFrame(
-        #         {
-        #             "mean_age": latent_x[0],
-        #             "mean_height": latent_x[1],
-        #             "mean_bp": latent_x[2],
-        #         },
-        #         index=[0],
-        #     )
-        # )
+        det.log_latents(latents_monitor_df)
 
     meas = Monitor(tag="test", backend=FileBackend(tmp_path))
     meas.load_data()
@@ -280,8 +266,6 @@ def test_statistics_summary(tmp_path) -> None:  # type: ignore
 
     # Check we get a dictionary with an entry for every feature column
     assert isinstance(res, dict)
-    # print(set(features_df.columns))
-    # print(res)
     assert res.keys() == set(features_df.columns)
 
 
@@ -292,11 +276,11 @@ def test_load_all_logged_data(  # type: ignore
     # pylint: disable=unused-argument
     # Given we have registered a reference dataset
     det = Registry(tag="test", backend=FileBackend(tmp_path))
-    features_df, labels_df = example_dataset(20)
-    det.register_ref_dataset(features=features_df, labels=labels_df)
+    features_df, labels_df, latents_df = example_dataset(20)
+    det.register_ref_dataset(features=features_df, labels=labels_df, latents=latents_df)
 
     # And we have features and predicted labels
-    x_pred, y_pred = datasets.logistic_model(size=2)
+    x_pred, y_pred, latents_pred = datasets.logistic_model(size=2, return_latents=True)
 
     # When we log features and labels of new data
     with det:
@@ -310,9 +294,10 @@ def test_load_all_logged_data(  # type: ignore
             )
         )
         det.log_labels(pd.Series(y_pred, name="y"))
+        det.log_latents(pd.DataFrame({"latents": latents_pred}))
 
     # And we have features and predicted labels
-    x_pred, y_pred = datasets.logistic_model(size=2)
+    x_pred, y_pred, latents_pred = datasets.logistic_model(size=2, return_latents=True)
 
     with det:
         det.log_features(
@@ -325,6 +310,7 @@ def test_load_all_logged_data(  # type: ignore
             )
         )
         det.log_labels(pd.Series(y_pred, name="y"))
+        det.log_latents(pd.DataFrame({"latents": latents_pred}))
 
     # Load data
     meas = Monitor(tag="test", backend=FileBackend(tmp_path))
@@ -332,9 +318,7 @@ def test_load_all_logged_data(  # type: ignore
 
     dimensions = recovered_dataset.unify().shape
     assert dimensions[0] == 4
-    assert dimensions[1] == 4
-
-    print(recovered_dataset.unify())
+    assert dimensions[1] == 5
 
 
 # def test_monitor_drift(detector_with_ref_data: DriftDetector) -> None:

@@ -14,8 +14,8 @@ from learning_machines_drift.backends import get_identifier
 def example_dataset(n_rows: int) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """TODO PEP 257"""
     # Given we have a reference dataset
-    x_reference, y_reference, latents_reference = (
-        datasets.logistic_model(size=n_rows, return_latents=True)
+    x_reference, y_reference, latents_reference = datasets.logistic_model(
+        size=n_rows, return_latents=True
     )
     features_df = pd.DataFrame(
         {
@@ -26,11 +26,7 @@ def example_dataset(n_rows: int) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFra
     )
 
     labels_df = pd.Series(y_reference, name="y")
-    latents_df = pd.DataFrame(
-        {
-            "latents": latents_reference
-        }
-    )
+    latents_df = pd.DataFrame({"latents": latents_reference})
 
     return (features_df, labels_df, latents_df)
 

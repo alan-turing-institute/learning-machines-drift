@@ -5,7 +5,7 @@ import pandas as pd
 from learning_machines_drift import FileBackend, Monitor, Registry, datasets
 
 # Generate a reference dataset
-X, Y = datasets.logistic_model(x_mu=np.array([0.0, 0.0, 0.0]), size=100)
+X, Y, _ = datasets.logistic_model(x_mu=np.array([0.0, 0.0, 0.0]), size=100, return_latents=False)
 
 features_df = pd.DataFrame(
     {

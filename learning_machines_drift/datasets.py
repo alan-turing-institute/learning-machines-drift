@@ -3,7 +3,7 @@
 # pylint: disable=W0621
 # pylint: disable=R0913
 
-from typing import Optional, Tuple, Union
+from typing import Optional, Tuple
 
 import numpy as np
 from numpy.typing import NDArray
@@ -30,10 +30,7 @@ def logistic_model(
     size: int = 50,
     seed: Optional[int] = None,
     return_latents: bool = False,
-) -> Union[
-    Tuple[NDArray[np.float64], NDArray[np.float64]],
-    Tuple[NDArray[np.float64], NDArray[np.float64], NDArray[np.float64]],
-]:
+) -> Tuple[NDArray[np.float64], NDArray[np.float64], Optional[NDArray[np.float64]]]:
     # pylint: disable=too-many-instance-attributes
     """Generate synthetic features and labels.
 
@@ -87,6 +84,6 @@ def logistic_model(
 
     # If not return_latents
     if not return_latents:
-        return (X, Y)
+        return (X, Y, None)
 
     return (X, Y, theta)
