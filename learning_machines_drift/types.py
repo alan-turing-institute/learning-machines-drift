@@ -48,6 +48,7 @@ class Dataset:
 
     features: pd.DataFrame
     labels: pd.Series
+    latents: Optional[pd.DataFrame]
 
     @property
     def feature_names(self) -> List[str]:
@@ -58,7 +59,7 @@ class Dataset:
     def unify(self) -> pd.DataFrame:
         """TODO PEP 257"""
 
-        return pd.concat([self.features, self.labels], axis=1)
+        return pd.concat([self.features, self.labels, self.latent], axis=1)
 
 
 @dataclass
@@ -71,5 +72,4 @@ class DatasetLatent:
     @staticmethod
     def from_dataset(dataset: Dataset) -> "DatasetLatent":
         """TODO PEP 257"""
-
         return DatasetLatent(dataset=dataset, latent=None)
