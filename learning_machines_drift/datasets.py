@@ -3,7 +3,7 @@
 # pylint: disable=W0621
 # pylint: disable=R0913
 
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Union
 
 import numpy as np
 from numpy.typing import NDArray
@@ -29,7 +29,11 @@ def logistic_model(
     ),
     size: int = 50,
     seed: Optional[int] = None,
-) -> Tuple[NDArray[np.float64], NDArray[np.float64]]:
+    return_latents: bool = False,
+) -> Union[
+    Tuple[NDArray[np.float64], NDArray[np.float64]],
+    Tuple[NDArray[np.float64], NDArray[np.float64], NDArray[np.float64]],
+]:
     # pylint: disable=too-many-instance-attributes
     """Generate synthetic features and labels.
 
@@ -49,7 +53,9 @@ def logistic_model(
         alpha: Regression alpha parameter. Defaults to 0.5.
         beta: Regression beta parameters . Defaults to np.array([1.0, 0.5, 0.0,]).
         size: Number of samples to draw from model. Defaults to 50.
-        seed: Optionally set the numpy.random seed. Defaults to None.
+        return_latents (bool): Return underlying prediction value before thresholding
+            as 'latent' data. Defaults to False.
+
 
     Returns:
         Tuple[NDArray[np.float64], NDArray[np.float64]]: _description_
@@ -79,4 +85,8 @@ def logistic_model(
     theta = expit(alpha + np.dot(X, beta))
     Y = stats.bernoulli.rvs(theta)
 
-    return (X, Y)
+    # If not return_latents
+    if not return_latents:
+        return (X, Y)
+
+    return (X, Y, theta)
