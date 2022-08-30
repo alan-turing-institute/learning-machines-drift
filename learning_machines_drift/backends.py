@@ -184,7 +184,7 @@ class FileBackend:
         all_latent_dfs = []
 
         for key, value in loaded_file_dict.items():
-            assert len(value) == 3
+            assert len(value) >= 2
             for fname in value:
 
                 if RE_LABEL.search(fname.stem) is not None:
