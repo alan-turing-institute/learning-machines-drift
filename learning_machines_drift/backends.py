@@ -199,5 +199,5 @@ class FileBackend:
         return Dataset(
             features=pd.concat(all_feature_dfs),
             labels=pd.concat(all_label_dfs),
-            latents=pd.concat(all_latent_dfs)
+            latents=pd.concat(all_latent_dfs),
         )

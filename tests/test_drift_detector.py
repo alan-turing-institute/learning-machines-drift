@@ -47,7 +47,9 @@ def measure(mocker: MockerFixture) -> Monitor:
 def example_dataset(n_rows: int) -> Tuple[pd.DataFrame, pd.Series, pd.DataFrame]:
     """TODO PEP 257"""
     # Given we have a reference dataset
-    x_reference, y_reference, latents_reference = datasets.logistic_model(size=n_rows, return_latents=True)
+    x_reference, y_reference, latents_reference = datasets.logistic_model(
+        size=n_rows, return_latents=True
+    )
     # x_reference, _ = datasets.logistic_model(size=n_rows)
     features_df = pd.DataFrame(
         {
@@ -64,8 +66,8 @@ def example_dataset(n_rows: int) -> Tuple[pd.DataFrame, pd.Series, pd.DataFrame]
 
 
 @pytest.fixture()
-def detector_with_ref_data(  # type: ignore
-    tmp_path: pathlib.Path, detector:Registry
+def detector_with_ref_data(
+    tmp_path: pathlib.Path, detector: Registry
 ) -> Callable[[int], Registry]:
     """Return a DriftDetector with a reference dataset registered
     which writes data to a temporary directory"""
@@ -75,17 +77,18 @@ def detector_with_ref_data(  # type: ignore
         """TODO PEP 257"""
 
         features_df, labels_df, latents_df = example_dataset(n_rows)
-        
-        # When we register the dataset
-        detector.register_ref_dataset(features=features_df, labels=labels_df, latents=latents_df)
 
-        return detector  # type: ignore
+        # When we register the dataset
+        detector.register_ref_dataset(
+            features=features_df, labels=labels_df, latents=latents_df
+        )
+
+        return detector
 
     return _detector_with_ref_data
 
 
-# @pytest.mark.parametrize("n_rows", [5, 10, 100, 1000, 10000])
-@pytest.mark.parametrize("n_rows", [5])
+@pytest.mark.parametrize("n_rows", [5, 10, 100, 1000, 10000])
 def test_register_dataset(
     detector_with_ref_data: Callable[[int], Registry], n_rows: int
 ) -> None:
@@ -102,8 +105,9 @@ def test_register_dataset(
     assert summary.shapes.features.n_features == N_FEATURES
     assert summary.shapes.labels.n_rows == n_rows
     assert summary.shapes.labels.n_labels == N_LABELS
-    assert summary.shapes.latents.n_rows == n_rows
-    assert summary.shapes.latents.n_latents == N_LATENTS
+    if summary.shapes.latents is not None:
+        assert summary.shapes.latents.n_rows == n_rows
+        assert summary.shapes.latents.n_latents == N_LATENTS
 
     # And we saved the data to the backend
     det.backend.save_reference_dataset.assert_called_once()  # type: ignore
