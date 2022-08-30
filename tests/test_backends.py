@@ -11,10 +11,12 @@ from learning_machines_drift import Dataset, FileBackend, datasets
 from learning_machines_drift.backends import get_identifier
 
 
-def example_dataset(n_rows: int) -> Tuple[pd.DataFrame, pd.DataFrame]:
+def example_dataset(n_rows: int) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """TODO PEP 257"""
     # Given we have a reference dataset
-    x_reference, y_reference = datasets.logistic_model(size=n_rows)
+    x_reference, y_reference, latents_reference = (
+        datasets.logistic_model(size=n_rows, return_latents=True)
+    )
     features_df = pd.DataFrame(
         {
             "age": x_reference[:, 0],
@@ -24,8 +26,13 @@ def example_dataset(n_rows: int) -> Tuple[pd.DataFrame, pd.DataFrame]:
     )
 
     labels_df = pd.Series(y_reference, name="y")
+    latents_df = pd.DataFrame(
+        {
+            "latents": latents_reference
+        }
+    )
 
-    return (features_df, labels_df)
+    return (features_df, labels_df, latents_df)
 
 
 def test_file_backend_reference(tmp_path: pathlib.Path) -> None:
@@ -33,8 +40,8 @@ def test_file_backend_reference(tmp_path: pathlib.Path) -> None:
 
     # Given
     tag = "test_tag"
-    features_df, labels_df = example_dataset(100)
-    reference_dataset = Dataset(features_df, labels_df)
+    features_df, labels_df, latents_df = example_dataset(100)
+    reference_dataset = Dataset(features_df, labels_df, latents_df)
 
     # When
     backend = FileBackend(tmp_path)
@@ -51,16 +58,16 @@ def test_file_backend_features(tmp_path: pathlib.Path) -> None:
 
     # Given
     tag = "test_tag"
-    features_df_1, labels_df_1 = example_dataset(5)
-    features_df_2, labels_df_2 = example_dataset(5)
-    features_df_3, labels_df_3 = example_dataset(5)
+    features_df_1, labels_df_1, latents_df_1 = example_dataset(5)
+    features_df_2, labels_df_2, latents_df_2 = example_dataset(5)
+    features_df_3, labels_df_3, latents_df_3 = example_dataset(5)
 
     expected_df = (
         pd.concat(
             [
-                pd.concat([features_df_1, labels_df_1], axis=1),
-                pd.concat([features_df_2, labels_df_2], axis=1),
-                pd.concat([features_df_3, labels_df_3], axis=1),
+                pd.concat([features_df_1, labels_df_1, latents_df_1], axis=1),
+                pd.concat([features_df_2, labels_df_2, latents_df_2], axis=1),
+                pd.concat([features_df_3, labels_df_3, latents_df_3], axis=1),
             ]
         )
         .sort_values(by="age")
@@ -73,14 +80,17 @@ def test_file_backend_features(tmp_path: pathlib.Path) -> None:
     identifier_1 = uuid4()
     backend.save_logged_features(tag, identifier_1, features_df_1)
     backend.save_logged_labels(tag, identifier_1, labels_df_1)
+    backend.save_logged_latents(tag, identifier_1, latents_df_1)
 
     identifier_2 = uuid4()
     backend.save_logged_features(tag, identifier_2, features_df_2)
     backend.save_logged_labels(tag, identifier_2, labels_df_2)
+    backend.save_logged_latents(tag, identifier_2, latents_df_2)
 
     identifier_3 = uuid4()
     backend.save_logged_features(tag, identifier_3, features_df_3)
     backend.save_logged_labels(tag, identifier_3, labels_df_3)
+    backend.save_logged_latents(tag, identifier_3, latents_df_3)
 
     # Then we should be able to load them all back
     recovered_dataset: Dataset = backend.load_logged_dataset(tag)
