@@ -1,5 +1,5 @@
 """TODO PEP 257"""
-# pylint: disable=W0621
+# pylint: disable=W0621,too-many-locals
 
 import pathlib
 from functools import partial
@@ -127,9 +127,7 @@ def test_ref_summary_no_dataset(detector) -> None:  # type: ignore
     detector.backend.save_reference_dataset.assert_not_called()
 
 
-def test_all_registered(
-    detector_with_ref_data: Callable[[int], Registry], tmp_path: pathlib.Path
-) -> None:
+def test_all_registered(detector_with_ref_data: Callable[[int], Registry]) -> None:
     """TODO PEP 257"""
     # Given we have registered a reference dataset
     det = detector_with_ref_data(100)
@@ -228,7 +226,7 @@ def test_summary_statistic_list(tmp_path: pathlib.Path) -> None:
 
         # If `scipy` test, it will be column-wise
         if h_test_name.startswith("scipy"):
-            assert res.keys() == set(features_df.columns)
+            assert res.keys() == set(det.registered_dataset.unify().columns)
         # Otherwise, there should be single item in returned dictionary that
         # matches the specified names in the test
         else:
@@ -268,7 +266,7 @@ def test_statistics_summary(tmp_path) -> None:  # type: ignore
 
     # Check we get a dictionary with an entry for every feature column
     assert isinstance(res, dict)
-    assert res.keys() == set(features_df.columns)
+    assert res.keys() == set(det.registered_dataset.unify().columns)
 
 
 def test_load_all_logged_data(  # type: ignore
