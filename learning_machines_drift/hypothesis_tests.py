@@ -2,16 +2,14 @@
 
 import textwrap
 from collections import Counter
+from functools import partial
 from typing import Any, Callable, Dict, List, Optional
 
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
 from scipy import stats
-from sdmetrics.errors import IncomputableMetricError
-from sdmetrics.single_table import CSTest, GMLogLikelihood
-from sdmetrics.single_table import KSComplement as KSTest
-from sdmetrics.single_table import LogisticDetection
+from sdmetrics.single_table import GMLogLikelihood, LogisticDetection
 from sdmetrics.utils import HyperTransformer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import f1_score, roc_auc_score
@@ -75,6 +73,7 @@ class HypothesisTests:
         self,
         func: Callable[..., Any],
         subset: Optional[List[str]] = None,
+        as_tuple: bool = False,
     ) -> Any:
         """Method for calculating statistic and pvalue from a passed scoring
         function.
@@ -88,19 +87,65 @@ class HypothesisTests:
             results (dict): Dictionary with features as keys and scores as
                 values.
         """
-        results = {}
-        for feature in self.reference_dataset.feature_names:
-            if subset is not None:
-                if feature not in subset:
-                    continue
-            ref_col = self.reference_dataset.features[feature]
-            reg_col = self.registered_dataset.features[feature]
 
-            result = func(ref_col, reg_col)
+        def call_func(
+            feature: str,
+            ref_col: pd.Series,
+            reg_col: pd.Series,
+            results: Dict[str, Any],
+            as_tuple: bool = False,
+        ) -> Dict[str, Any]:
+            if not as_tuple:
+                result = func(ref_col, reg_col)
+            else:
+                result = func((ref_col, reg_col))
             if not isinstance(result, dict):
                 results[feature] = self._to_dict(result)
             else:
                 results[feature] = result
+            return results
+
+        results: Dict[str, Any] = {}
+
+        if subset is not None:
+            # If subset, only loop over the subset
+            columns_to_calc: List[str] = subset
+        else:
+            # Get all columns from features, labels, latents
+            columns_to_calc = self.reference_dataset.unify().columns.to_list()
+
+        for col_name in columns_to_calc:
+            # Check if in features
+            if self.reference_dataset is not None:
+                if (col_name in self.reference_dataset.features.columns) and (
+                    col_name in self.registered_dataset.features.columns
+                ):
+                    ref_col = self.reference_dataset.features[col_name]
+                    reg_col = self.registered_dataset.features[col_name]
+                # Check if labels
+                elif (col_name == self.reference_dataset.labels.name) and (
+                    col_name == self.registered_dataset.labels.name
+                ):
+                    ref_col = self.reference_dataset.labels
+                    reg_col = self.registered_dataset.labels
+                # Check if in latents
+                elif (
+                    (self.reference_dataset.latents is not None)
+                    and (col_name in self.reference_dataset.latents.columns)
+                    and (self.registered_dataset.latents is not None)
+                    and (col_name in self.registered_dataset.latents.columns)
+                ):
+                    ref_col = self.reference_dataset.latents[col_name]
+                    reg_col = self.registered_dataset.latents[col_name]
+                else:
+                    raise ValueError(
+                        f"{col_name} is not in features, labels or latents."
+                    )
+            else:
+                raise ValueError("Reference dataset is None.")
+            # Run calc and update dictionary
+            results = call_func(col_name, ref_col, reg_col, results, as_tuple)
+
         return results
 
     def scipy_kolmogorov_smirnov(self, verbose: bool = True) -> Any:
@@ -197,7 +242,7 @@ class HypothesisTests:
 
         results = self._calc(
             self._chi_square,
-            subset=self._get_categorylike_features(self.registered_dataset.features),
+            subset=self._get_category_columns(self.registered_dataset),
         )
         if verbose:
             print(about_str)
@@ -235,64 +280,25 @@ class HypothesisTests:
             """
             return func(lhs, axis=axis) - func(rhs, axis=axis)
 
-        results = {}
-        for feature in self.reference_dataset.feature_names:
-            ref_col = self.reference_dataset.features[feature]
-            reg_col = self.registered_dataset.features[feature]
-            result = stats.permutation_test(
-                (ref_col, reg_col),
-                statistic,
-                permutation_type="independent",
-                alternative="two-sided",
-                n_resamples=9999,
-                random_state=self.random_state,
-            )
-            results[feature] = self._to_dict(result)
+        func = partial(
+            stats.permutation_test,
+            statistic=statistic,
+            permutation_type="independent",
+            alternative="two-sided",
+            n_resamples=9999,
+            random_state=self.random_state,
+        )
+
+        results = self._calc(func, as_tuple=True)
+
         if verbose:
             print(about_str)
 
         return results
 
-    def sdv_kolmogorov_smirnov(
-        self, normalize: bool = False, verbose: bool = True
-    ) -> Dict[str, Dict[str, float]]:
-        """Calculates Synthetic Data Vault package version of the
-        Kolmogorov-Smirnov (KS) two-sample test.
-
-        Args:
-            verbose (bool): Boolean for verbose output to stdout.
-            normalize (bool): Normalize raw_score to interval [0, 1].
-
-        Returns:
-            results (Dict[str, Dict[str, float]]): 1 - the mean KS
-            statistic across features.
-        """
-        method = f"SDV Kolmogorov Smirnov (normalize: {normalize})"
-        description = (
-            "This metric uses the two-sample Kolmogorov–Smirnov test to "
-            "compare the distributions of continuous columns using the "
-            "empirical CDF. The output for each column is 1 minus the KS "
-            "Test D statistic, which indicates the maximum distance "
-            "between the expected CDF and the observed CDF values."
-        )
-        about_str = self._format_about_str(method=method, description=description)
-
-        if verbose:
-            print(about_str)
-
-        # Only run computation on features; exclude labels
-        results: float = KSTest.compute(
-            self.reference_dataset.features, self.registered_dataset.features
-        )
-
-        if normalize:
-            results = KSTest.normalize(results)
-
-        return {"sdv_kolmogorov_smirnov": {"statistic": results, "pvalue": np.nan}}
-
     # Skip the ones that are not calculable
     @staticmethod
-    def _get_categorylike_features(data: pd.DataFrame) -> List[str]:
+    def _get_category_columns(dataset: Dataset) -> List[str]:
         """Get a list of feature names that have category-like features.
         Category-like features are defined as:
             - Unit or Binary (less than two values)
@@ -305,6 +311,8 @@ class HypothesisTests:
         Returns:
             List[str]: List of feature names that are category-like.
         """
+        # Unify all features, labels and latents
+        data: pd.DataFrame = dataset.unify()
         # Get the number of unique values by feature
         nunique: pd.Series = data.nunique()
         # Unit or binary features
@@ -317,60 +325,6 @@ class HypothesisTests:
         out_features: List[str] = list(np.unique(unit_or_bin_features + cat_features))
 
         return out_features
-
-    def subset_to_categories(self, data: pd.DataFrame) -> pd.DataFrame:
-        """Subset a dataframe to only category-like features.
-
-        Args:
-            data (pd.DataDrame): Input dataframe
-        Returns:
-            pd.DataDrame: Output dataframe subsetted to category-like
-            features and category type.
-
-        """
-        out_features = self._get_categorylike_features(data)
-        return data[out_features].astype("category")
-
-    def sdv_chisquare(
-        self, normalize: bool = False, verbose: bool = True
-    ) -> Dict[str, Dict[str, float]]:
-        """Calculates average chi-square statistic and p-value for
-        the hypothesis test of independence of the observed frequencies for
-        categorical features using Synthetic Data Vault.
-
-        Args:
-            verbose (bool): Boolean for verbose output to stdout.
-            normalize (bool): Normalize raw_score to interval [0, 1].
-
-        Returns:
-            results (Optional[Dict[str, Dict[str, float]]]): Dictionary of
-            statistics and  p-values by feature.
-        """
-        method = f"SDV CS Test (normalize: {normalize})"
-        description = (
-            "This metric uses the Chi-Squared test to compare the "
-            "distributions of two discrete columns, with the mean score taken "
-            "across categorical and boolean columns."
-        )
-        about_str = self._format_about_str(method=method, description=description)
-
-        # Convert to dataframes with catgeory type for CSTest compatibility
-        ref_cat = self.subset_to_categories(self.reference_dataset.features)
-        reg_cat = self.subset_to_categories(self.registered_dataset.features)
-
-        # Print about_str
-        if verbose:
-            print(about_str)
-
-        # Score only computable if non-zero number of columns
-        try:
-            results: float = CSTest.compute(ref_cat, reg_cat)
-            if normalize:
-                results = CSTest.normalize(results)
-            return {"sdv_chisquare": {"statistic": results, "pvalue": np.nan}}
-
-        except IncomputableMetricError:
-            return {"sdv_chisquare": {}}
 
     def gaussian_mixture_log_likelihood(
         self, verbose: bool = True, normalize: bool = False
