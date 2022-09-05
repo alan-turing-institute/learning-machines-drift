@@ -5,7 +5,9 @@ import pandas as pd
 from learning_machines_drift import FileBackend, Monitor, Registry, datasets
 
 # Generate a reference dataset
-X, Y, latents = datasets.logistic_model(x_mu=np.array([0.0, 0.0, 0.0]), size=100, return_latents=True)
+X, Y, latents = datasets.logistic_model(
+    x_mu=np.array([0.0, 0.0, 0.0]), size=100, return_latents=True
+)
 
 features_df = pd.DataFrame(
     {
@@ -19,7 +21,9 @@ latents_df = pd.DataFrame({"latents": latents})
 
 # Log our reference dataset
 detector = Registry(tag="simple_example", backend=FileBackend("my-data"))
-detector.register_ref_dataset(features=features_df, labels=labels_df, latents=latents_df)
+detector.register_ref_dataset(
+    features=features_df, labels=labels_df, latents=latents_df
+)
 
 
 for i in range(3):
