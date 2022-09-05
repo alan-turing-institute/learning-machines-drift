@@ -163,7 +163,9 @@ class Registry:
 
         # This should check these two things are not None
 
-        return Dataset(self.registered_features, self.registered_labels)
+        return Dataset(
+            self.registered_features, self.registered_labels, self.registered_latent
+        )
 
     def __enter__(self) -> "Registry":
         """TODO PEP 257"""
