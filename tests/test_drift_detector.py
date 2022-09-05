@@ -213,8 +213,6 @@ def test_summary_statistic_list(tmp_path: pathlib.Path) -> None:
         "logistic_detection_roc_auc": partial(
             meas.hypothesis_tests.logistic_detection_custom, score_type="roc_auc"
         ),
-        "sdv_chisquare": meas.hypothesis_tests.sdv_chisquare,
-        "sdv_kolmogorov_smirnov": meas.hypothesis_tests.sdv_kolmogorov_smirnov,
     }
 
     for h_test_name, h_test_fn in h_test_dispatcher.items():
@@ -325,21 +323,75 @@ def test_load_all_logged_data(  # type: ignore
     assert dimensions[1] == 5
 
 
-# def test_monitor_drift(detector_with_ref_data: DriftDetector) -> None:
+def test_category_columns(tmp_path: pathlib.Path) -> None:
+    """TODO PEP 257"""
+    features_df, labels_df, latents_df = example_dataset(10)
+    det = Registry(tag="test", backend=FileBackend(tmp_path))
+    det.register_ref_dataset(features=features_df, labels=labels_df, latents=latents_df)
 
-#     # Given we have registered a reference dataset
-#     detector = detector_with_ref_data
+    # And we have features and predicted labels
+    x_monitor, y_monitor, latents_monitor = datasets.logistic_model(return_latents=True)
+    features_monitor_df = pd.DataFrame(
+        {
+            "age": x_monitor[:, 0],
+            "height": x_monitor[:, 1],
+            "bp": x_monitor[:, 2],
+        }
+    )
+    labels_monitor_df = pd.DataFrame({"y": y_monitor})
+    latents_monitor_df = pd.DataFrame({"latents": latents_monitor})
 
-#     # When we log features and labels of new data
-#     with DriftDetector(
-#         tag="test", expect_features=True, expect_labels=True, expect_latent=False
-#     ) as detector:
+    with det:
+        # And we have logged features, labels and latent
+        det.log_features(features_monitor_df)
+        det.log_labels(labels_monitor_df)
+        det.log_latents(latents_monitor_df)
 
-#         X, Y = datasets.logistic_model()
+    meas = Monitor(tag="test", backend=FileBackend(tmp_path))
+    meas.load_data()
+    h_test_dispatcher: Dict[str, Any] = {
+        "scipy_chisquare": meas.hypothesis_tests.scipy_chisquare
+    }
 
-#         detector.log_features(X)
-#         detector.log_labels(Y)
-#         detector.log_latent(latent_vars)
+    for h_test_name, h_test_fn in h_test_dispatcher.items():
+        res = h_test_fn(verbose=False)
 
-#     # Then we can get a summary of drift
-#     detector.drift_summary()
+        # Check res is a dict
+        assert isinstance(res, dict)
+
+        # If `chisquare`, not compatible with any of the test dataset dtypes
+        # so skip
+        if h_test_name == "scipy_chisquare":
+            assert len(list(res.keys())) == 1
+
+
+def test_dataset_types(tmp_path: pathlib.Path) -> None:
+    """TODO PEP 257"""
+    features_df, labels_df, latents_df = example_dataset(10)
+    det = Registry(tag="test", backend=FileBackend(tmp_path))
+    det.register_ref_dataset(features=features_df, labels=labels_df, latents=latents_df)
+
+    # And we have features and predicted labels
+    x_monitor, y_monitor, latents_monitor = datasets.logistic_model(return_latents=True)
+    features_monitor_df = pd.DataFrame(
+        {
+            "age": x_monitor[:, 0],
+            "height": x_monitor[:, 1],
+            "bp": x_monitor[:, 2],
+        }
+    )
+    labels_monitor_df = pd.DataFrame({"y": y_monitor})
+    latents_monitor_df = pd.DataFrame({"latents": latents_monitor})
+
+    with det:
+        # And we have logged features, labels and latent
+        det.log_features(features_monitor_df)
+        det.log_labels(labels_monitor_df)
+        det.log_latents(latents_monitor_df)
+
+    meas = Monitor(tag="test", backend=FileBackend(tmp_path))
+    meas.load_data()
+    if meas.ref_dataset is not None:
+        assert isinstance(meas.ref_dataset.features, pd.DataFrame)
+        assert isinstance(meas.ref_dataset.labels, pd.Series)
+        assert isinstance(meas.ref_dataset.latents, pd.DataFrame)

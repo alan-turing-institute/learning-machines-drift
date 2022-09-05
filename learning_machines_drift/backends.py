@@ -125,13 +125,17 @@ class FileBackend:
         """TODO PEP 257"""
         reference_dir = self._get_reference_path(tag)
 
-        features_df = pd.read_csv(reference_dir.joinpath("features.csv"))
-        labels_df = pd.read_csv(reference_dir.joinpath("labels.csv"))
-        latents_df = None
+        features_df: pd.DataFrame = pd.read_csv(reference_dir.joinpath("features.csv"))
+
+        labels_df: pd.DataFrame = pd.read_csv(reference_dir.joinpath("labels.csv"))
+        assert len(labels_df.columns) == 1
+        labels_series: pd.Series = labels_df.iloc[:, 0]
+
+        latents_df: Optional[pd.DataFrame] = None
         if reference_dir.joinpath("latents.csv").exists():
             latents_df = pd.read_csv(reference_dir.joinpath("latents.csv"))
 
-        return Dataset(features_df, labels_df, latents_df)
+        return Dataset(features_df, labels_series, latents_df)
 
     def save_logged_features(
         self, tag: str, identifier: UUID, dataframe: pd.DataFrame
@@ -179,16 +183,18 @@ class FileBackend:
             else:
                 loaded_file_dict[key] = [file]
 
-        all_feature_dfs = []
-        all_label_dfs = []
-        all_latent_dfs = []
+        all_feature_dfs: List[pd.DataFrame] = []
+        all_label_series: List[pd.Series] = []
+        all_latent_dfs: List[pd.DataFrame] = []
 
         for key, value in loaded_file_dict.items():
             assert len(value) >= 2
             for fname in value:
 
                 if RE_LABEL.search(fname.stem) is not None:
-                    all_label_dfs.append(pd.read_csv(fname))
+                    all_label_df: pd.DataFrame = pd.read_csv(fname)
+                    assert len(all_label_df.columns) == 1
+                    all_label_series.append(all_label_df.iloc[:, 0])
 
                 if RE_FEATURES.search(fname.stem) is not None:
                     all_feature_dfs.append(pd.read_csv(fname))
@@ -198,6 +204,6 @@ class FileBackend:
 
         return Dataset(
             features=pd.concat(all_feature_dfs),
-            labels=pd.concat(all_label_dfs),
+            labels=pd.concat(all_label_series),
             latents=pd.concat(all_latent_dfs),
         )
