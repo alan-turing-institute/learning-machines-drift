@@ -1,34 +1,14 @@
 """TODO PEP 257"""
 import pathlib
 import re
-from typing import Tuple
 from uuid import uuid4
 
 import pandas as pd
 from pandas.testing import assert_frame_equal
 
-from learning_machines_drift import Dataset, FileBackend, datasets
+from learning_machines_drift import Dataset, FileBackend
 from learning_machines_drift.backends import get_identifier
-
-
-def example_dataset(n_rows: int) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-    """TODO PEP 257"""
-    # Given we have a reference dataset
-    x_reference, y_reference, latents_reference = datasets.logistic_model(
-        size=n_rows, return_latents=True
-    )
-    features_df = pd.DataFrame(
-        {
-            "age": x_reference[:, 0],
-            "height": x_reference[:, 1],
-            "bp": x_reference[:, 2],
-        }
-    )
-
-    labels_df = pd.Series(y_reference, name="y")
-    latents_df = pd.DataFrame({"latents": latents_reference})
-
-    return (features_df, labels_df, latents_df)
+from learning_machines_drift.datasets import example_dataset
 
 
 def test_file_backend_reference(tmp_path: pathlib.Path) -> None:
@@ -49,7 +29,9 @@ def test_file_backend_reference(tmp_path: pathlib.Path) -> None:
     assert recovered_dataset.labels.equals(recovered_dataset.labels)
 
 
-def test_file_backend_features(tmp_path: pathlib.Path) -> None:
+def test_file_backend_features(  # pylint: disable=too-many-locals
+    tmp_path: pathlib.Path,
+) -> None:
     """TODO PEP 257"""
 
     # Given

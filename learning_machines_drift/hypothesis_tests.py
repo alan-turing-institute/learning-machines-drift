@@ -2,6 +2,7 @@
 
 import textwrap
 from collections import Counter
+from functools import partial
 from typing import Any, Callable, Dict, List, Optional
 
 import numpy as np
@@ -72,6 +73,7 @@ class HypothesisTests:
         self,
         func: Callable[..., Any],
         subset: Optional[List[str]] = None,
+        as_tuple: bool = False,
     ) -> Any:
         """Method for calculating statistic and pvalue from a passed scoring
         function.
@@ -91,8 +93,12 @@ class HypothesisTests:
             ref_col: pd.Series,
             reg_col: pd.Series,
             results: Dict[str, Any],
+            as_tuple: bool = False,
         ) -> Dict[str, Any]:
-            result = func(ref_col, reg_col)
+            if not as_tuple:
+                result = func(ref_col, reg_col)
+            else:
+                result = func((ref_col, reg_col))
             if not isinstance(result, dict):
                 results[feature] = self._to_dict(result)
             else:
@@ -138,7 +144,7 @@ class HypothesisTests:
             else:
                 raise ValueError("Reference dataset is None.")
             # Run calc and update dictionary
-            results = call_func(col_name, ref_col, reg_col, results)
+            results = call_func(col_name, ref_col, reg_col, results, as_tuple)
 
         return results
 
@@ -274,19 +280,17 @@ class HypothesisTests:
             """
             return func(lhs, axis=axis) - func(rhs, axis=axis)
 
-        results = {}
-        for feature in self.reference_dataset.feature_names:
-            ref_col = self.reference_dataset.features[feature]
-            reg_col = self.registered_dataset.features[feature]
-            result = stats.permutation_test(
-                (ref_col, reg_col),
-                statistic,
-                permutation_type="independent",
-                alternative="two-sided",
-                n_resamples=9999,
-                random_state=self.random_state,
-            )
-            results[feature] = self._to_dict(result)
+        func = partial(
+            stats.permutation_test,
+            statistic=statistic,
+            permutation_type="independent",
+            alternative="two-sided",
+            n_resamples=9999,
+            random_state=self.random_state,
+        )
+
+        results = self._calc(func, as_tuple=True)
+
         if verbose:
             print(about_str)
 
