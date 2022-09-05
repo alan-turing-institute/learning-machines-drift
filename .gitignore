@@ -2,6 +2,6 @@
 *__pycache__
 *.pytest_cache
 *.mypy_cache
-my-data/*
+**/my-data
 .idea/
 test/
