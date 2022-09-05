@@ -153,13 +153,20 @@ def test_all_registered(detector_with_ref_data: Callable[[int], Registry]) -> No
 
 
 def test_summary_statistic_list(
-    detector_with_ref_data: Callable[[int], Registry], tmp_path: pathlib.Path
+    # detector_with_ref_data: Callable[[int], Registry], tmp_path: pathlib.Path
+    tmp_path: pathlib.Path,
 ) -> None:
     """TODO PEP 257"""
+    # TODO fix to use 'detector_with_ref_data' # pylint: disable=fixme
     # features_df, labels_df, latents_df = example_dataset(10)
     # det = Registry(tag="test", backend=FileBackend(tmp_path))
     # det.register_ref_dataset(features=features_df, labels=labels_df, latents=latents_df)
-    det: Registry = detector_with_ref_data(50)
+    # det: Registry = detector_with_ref_data(50)
+
+    # Make registry with data
+    features_df, labels_df, latents_df = example_dataset(10)
+    det = Registry(tag="test", backend=FileBackend(tmp_path))
+    det.register_ref_dataset(features=features_df, labels=labels_df, latents=latents_df)
 
     # And we have features and predicted labels
     x_monitor, y_monitor, latents_monitor = datasets.logistic_model(return_latents=True)

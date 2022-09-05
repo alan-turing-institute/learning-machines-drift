@@ -250,7 +250,7 @@ class HypothesisTests:
 
     def scipy_permutation(
         self,
-        func: Callable[..., float] = np.mean,
+        agg_func: Callable[..., float] = np.mean,
         verbose: bool = True,
     ) -> Any:
         """Performs feature-wise permutation test with default statistic to
@@ -263,7 +263,7 @@ class HypothesisTests:
             results (dict): Dictionary with keys as features and values as
             scipy.stats.permutation_test object with test results.
         """
-        method = f"SciPy Permutation Test (test function: {func.__name__})"
+        method = f"SciPy Permutation Test (test function: {agg_func.__name__})"
         description = (
             "Performs permutation test on all features with passed stat_fn "
             "measuring the difference between samples."
@@ -278,7 +278,7 @@ class HypothesisTests:
             """Statistic for evaluating the difference between permuted
             samples.
             """
-            return func(lhs, axis=axis) - func(rhs, axis=axis)
+            return agg_func(lhs, axis=axis) - agg_func(rhs, axis=axis)
 
         func = partial(
             stats.permutation_test,
