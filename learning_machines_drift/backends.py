@@ -202,8 +202,14 @@ class FileBackend:
                 if RE_LATENTS.search(fname.stem) is not None:
                     all_latent_dfs.append(pd.read_csv(fname))
 
-        return Dataset(
-            features=pd.concat(all_feature_dfs),
-            labels=pd.concat(all_label_series),
-            latents=pd.concat(all_latent_dfs),
+        # Assert that the features and labels are non-empty
+        assert all_feature_dfs and all_label_series
+
+        # If latents found, return with latents, otherwise no latents
+        features: pd.DataFrame = pd.concat(all_feature_dfs)
+        labels: pd.Series = pd.concat(all_label_series)
+        latents: Optional[pd.DataFrame] = (
+            pd.concat(all_latent_dfs) if all_latent_dfs else None
         )
+
+        return Dataset(features=features, labels=labels, latents=latents)
