@@ -171,26 +171,25 @@ class FileBackend:
         files = [Path(f) for f in glob.glob(f"{self._get_logged_path(tag)}/*")]
         loaded_file_dict: Dict[UUID, List[Path]] = {}
 
-        # add each identifier to file lists once?
+        # Add each identifier to file lists
         for file in files:
-            # get its identifier
+            # Get its identifier
             key = get_identifier(Path(file))
             if key is None:
                 raise IOError("File name does not start with a UUID")
 
-            if key in loaded_file_dict:
-                loaded_file_dict.get(key, []).append(file)
-            else:
-                loaded_file_dict[key] = [file]
+            loaded_file_dict.setdefault(key, []).append(file)
 
         all_feature_dfs: List[pd.DataFrame] = []
         all_label_series: List[pd.Series] = []
         all_latent_dfs: List[pd.DataFrame] = []
 
         for key, value in loaded_file_dict.items():
+            # Must have at least features and labels, optional latents
             assert len(value) >= 2
-            for fname in value:
 
+            # Loop over files in list of files for each identifier
+            for fname in value:
                 if RE_LABEL.search(fname.stem) is not None:
                     all_label_df: pd.DataFrame = pd.read_csv(fname)
                     assert len(all_label_df.columns) == 1
