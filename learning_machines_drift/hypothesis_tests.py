@@ -357,7 +357,7 @@ class HypothesisTests:
         if verbose:
             print(about_str)
 
-        results: float = GMLogLikelihood.compute(*self._get_unified_subsets())
+        results: float = GMLogLikelihood.compute(*self.get_unified_subsets())
 
         if normalize:
             results = GMLogLikelihood.normalize(results)
@@ -366,7 +366,7 @@ class HypothesisTests:
             "gaussian_mixture_log_likelihood": {"statistic": results, "pvalue": np.nan}
         }
 
-    def _get_unified_subsets(self) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    def get_unified_subsets(self) -> Tuple[pd.DataFrame, pd.DataFrame]:
         """Unify both datasets and return dataframes with common columns."""
 
         def get_intersect(data1: pd.DataFrame, data2: pd.DataFrame) -> List[str]:
@@ -406,7 +406,7 @@ class HypothesisTests:
         if verbose:
             print(about_str)
 
-        results: float = LogisticDetection.compute(*self._get_unified_subsets())
+        results: float = LogisticDetection.compute(*self.get_unified_subsets())
 
         if normalize:
             results = LogisticDetection.normalize(results)
@@ -459,7 +459,7 @@ class HypothesisTests:
             print(about_str)
 
         # Get unified subsets
-        unified_ref_subset, unified_reg_subset = self._get_unified_subsets()
+        unified_ref_subset, unified_reg_subset = self.get_unified_subsets()
 
         # Transform data for fitting using SD metrics HyperTransformer
         ht = HyperTransformer()
