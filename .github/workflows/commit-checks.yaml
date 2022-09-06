@@ -5,10 +5,10 @@ name: All checks and tests
 on:
   push:
     branches:
-      - main
+      - [main, dev]
   pull_request:
     branches:
-      - main
+      - [main, dev]
 
 
 ###############
