@@ -141,7 +141,7 @@ class HypothesisTests:
                     print(
                         "Error:",
                         ValueError(
-                            f"{col_name} is not in features, labels or latents."
+                            f"'{col_name}' is not in features, labels or latents."
                         ),
                     )
                     continue
