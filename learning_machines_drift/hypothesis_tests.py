@@ -3,7 +3,7 @@
 import textwrap
 from collections import Counter
 from functools import partial
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import numpy as np
 import numpy.typing as npt
@@ -138,9 +138,13 @@ class HypothesisTests:
                     ref_col = self.reference_dataset.latents[col_name]
                     reg_col = self.registered_dataset.latents[col_name]
                 else:
-                    raise ValueError(
-                        f"{col_name} is not in features, labels or latents."
+                    print(
+                        "Error:",
+                        ValueError(
+                            f"'{col_name}' is not in features, labels or latents."
+                        ),
                     )
+                    continue
             else:
                 raise ValueError("Reference dataset is None.")
             # Run calc and update dictionary
@@ -353,15 +357,26 @@ class HypothesisTests:
         if verbose:
             print(about_str)
 
-        results: float = GMLogLikelihood.compute(
-            self.reference_dataset.unify(), self.registered_dataset.unify()
-        )
+        results: float = GMLogLikelihood.compute(*self.get_unified_subsets())
+
         if normalize:
             results = GMLogLikelihood.normalize(results)
 
         return {
             "gaussian_mixture_log_likelihood": {"statistic": results, "pvalue": np.nan}
         }
+
+    def get_unified_subsets(self) -> Tuple[pd.DataFrame, pd.DataFrame]:
+        """Unify both datasets and return dataframes with common columns."""
+
+        def get_intersect(data1: pd.DataFrame, data2: pd.DataFrame) -> List[str]:
+            """Get list of common columns to both dataframes."""
+            return list(set(data1.columns) & set(data2.columns))
+
+        unified_ref = self.reference_dataset.unify()
+        unified_reg = self.registered_dataset.unify()
+        subset: List[str] = get_intersect(unified_ref, unified_reg)
+        return (unified_ref[subset], unified_reg[subset])
 
     def logistic_detection(
         self, normalize: bool = False, verbose: bool = True
@@ -391,9 +406,7 @@ class HypothesisTests:
         if verbose:
             print(about_str)
 
-        results: float = LogisticDetection.compute(
-            self.reference_dataset.unify(), self.registered_dataset.unify()
-        )
+        results: float = LogisticDetection.compute(*self.get_unified_subsets())
 
         if normalize:
             results = LogisticDetection.normalize(results)
@@ -445,14 +458,13 @@ class HypothesisTests:
         if verbose:
             print(about_str)
 
+        # Get unified subsets
+        unified_ref_subset, unified_reg_subset = self.get_unified_subsets()
+
         # Transform data for fitting using SD metrics HyperTransformer
         ht = HyperTransformer()
-        transformed_reference_data = ht.fit_transform(
-            self.reference_dataset.unify()
-        ).to_numpy()
-        transformed_registered_data = ht.transform(
-            self.registered_dataset.unify()
-        ).to_numpy()
+        transformed_reference_data = ht.fit_transform(unified_ref_subset).to_numpy()
+        transformed_registered_data = ht.transform(unified_reg_subset).to_numpy()
 
         X = np.concatenate([transformed_reference_data, transformed_registered_data])
         y = np.hstack(

@@ -259,6 +259,79 @@ def test_statistics_summary(tmp_path) -> None:  # type: ignore
     assert res.keys() == set(det.registered_dataset.unify().columns)
 
 
+def test_with_noncommon_columns(tmp_path) -> None:  # type: ignore
+    """TODO PEP 257"""
+
+    # Given we have registered a reference dataset
+    features_df, labels_df, latents_df = example_dataset(100)
+    det = Registry(tag="test", backend=FileBackend(tmp_path))
+    det.register_ref_dataset(features=features_df, labels=labels_df, latents=latents_df)
+
+    # And we have features and predicted labels
+    x_monitor, y_monitor, latents_monitor = datasets.logistic_model(return_latents=True)
+    # latent_x = x_monitor.mean(axis=0)
+    features_monitor_df = pd.DataFrame(
+        {
+            "age": x_monitor[:, 0],
+            "height": x_monitor[:, 1],
+            # Exclude "bp" so not present in monitor
+            # "bp": x_monitor[:, 2],
+        }
+    )
+    labels_monitor_df = pd.DataFrame({"y": y_monitor})
+    latents_monitor_df = pd.DataFrame({"latents": latents_monitor})
+
+    with det:
+        # And we have logged features, labels and latent
+        det.log_features(features_monitor_df)
+        det.log_labels(labels_monitor_df)
+        det.log_latents(latents_monitor_df)
+
+    meas = Monitor(tag="test", backend=FileBackend(tmp_path))
+    meas.load_data()
+
+    h_test_dispatcher: Dict[str, Any] = {
+        "scipy_kolmogorov_smirnov": meas.hypothesis_tests.scipy_kolmogorov_smirnov,
+        "scipy_chisquare": meas.hypothesis_tests.scipy_chisquare,
+        "scipy_mannwhitneyu": meas.hypothesis_tests.scipy_mannwhitneyu,
+        "scipy_permutation": meas.hypothesis_tests.scipy_permutation,
+        "gaussian_mixture_log_likelihood": meas.hypothesis_tests.gaussian_mixture_log_likelihood,
+        "logistic_detection": meas.hypothesis_tests.logistic_detection,
+        "logistic_detection_f1": partial(
+            meas.hypothesis_tests.logistic_detection_custom, score_type="f1"
+        ),
+        "logistic_detection_roc_auc": partial(
+            meas.hypothesis_tests.logistic_detection_custom, score_type="roc_auc"
+        ),
+    }
+
+    for h_test_name, h_test_fn in h_test_dispatcher.items():
+        res = h_test_fn(verbose=False)
+
+        # Check res is a dict
+        assert isinstance(res, dict)
+
+        # If `chisquare`, not compatible with any of the test dataset dtypes
+        # so skip
+        if h_test_name == "scipy_chisquare":
+            continue
+
+        # If `scipy` test, it will be column-wise
+        if h_test_name.startswith("scipy"):
+            # Get unified subsets with columns common to both registered and reference.
+            # Only these columns should hav test results.
+            (
+                unified_ref_subset,
+                unified_reg_subset,
+            ) = meas.hypothesis_tests.get_unified_subsets()
+            assert res.keys() == set(unified_reg_subset.columns)
+            assert res.keys() == set(unified_ref_subset.columns)
+        # Otherwise, there should be single item in returned dictionary that
+        # matches the specified names in the test
+        else:
+            assert list(res.keys()) == [h_test_name]
+
+
 def test_load_all_logged_data(tmp_path: pathlib.Path) -> None:
     """TODO PEP 257"""
     det = Registry(tag="test", backend=FileBackend(tmp_path))
