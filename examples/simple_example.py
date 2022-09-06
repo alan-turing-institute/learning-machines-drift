@@ -29,7 +29,7 @@ detector.register_ref_dataset(
 for i in range(3):
     # Generate drift data
     X_monitor, Y_monitor, latents_monitor = datasets.logistic_model(
-        x_mu=np.array([0.0, 1.0, 0.0]), alpha=10, size=2, return_latents=True
+        x_mu=np.array([0.0, 1.0, 0.0]), alpha=10, size=10, return_latents=True
     )
 
     features_monitor_df = pd.DataFrame(
