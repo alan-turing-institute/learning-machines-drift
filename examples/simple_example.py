@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 
 from learning_machines_drift import FileBackend, Monitor, Registry, datasets
+from learning_machines_drift.display import Display
 
 # Generate a reference dataset
 X, Y, latents = datasets.logistic_model(
@@ -62,6 +63,17 @@ print(measure.hypothesis_tests.logistic_detection())
 print(measure.hypothesis_tests.logistic_detection_custom())
 print(measure.hypothesis_tests.logistic_detection_custom(score_type="f1"))
 print(measure.hypothesis_tests.logistic_detection_custom(score_type="roc_auc"))
+
+
+ks_results = measure.hypothesis_tests.scipy_kolmogorov_smirnov()
+perm_results = measure.hypothesis_tests.scipy_permutation()
+log_results = measure.hypothesis_tests.logistic_detection_custom(score_type="roc_auc")
+
+for res in [ks_results, perm_results, log_results]:
+    df = Display().table(res)
+    fig, axs = Display().plot(res, score_type="statistic")
+
+
 # print(measure.hypothesis_tests.sd_evaluate())
 
 
