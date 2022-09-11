@@ -1,6 +1,7 @@
 """TODO PEP 257"""
 import glob
 import re
+import os
 
 # import uuid
 from pathlib import Path
@@ -241,3 +242,36 @@ class FileBackend:
         return Dataset(
             features=pd.concat(all_feature_dfs), labels=pd.concat(all_label_dfs)
         )
+
+    def clear_logged_datasets(self, tag: str) -> bool:
+
+        """
+        Delete directory containing logged files.
+
+        Args:
+            tag (str): Path to logged directory
+
+        Return:
+            True: if logged_dir already exists
+            False: if logged_dir doesn't exist and has been created
+        """
+
+        logged_dir = self.root_dir.joinpath(tag).joinpath("logged")
+        if not logged_dir.exists():
+            logged_dir.mkdir()
+            # return True
+        elif len(os.listdir(logged_dir)) == 0:
+            return True
+        else:
+            for root, dirs, files in os.walk(logged_dir):
+                for file in files:
+                    os.remove(os.path.join(root, file))
+            return True
+        return False
+
+# clear just the log files
+# clear reference and log files
+# default: append files
+
+# filtering log - when comparing then comparing everything, would like to compare subset example on women,
+# only over 65

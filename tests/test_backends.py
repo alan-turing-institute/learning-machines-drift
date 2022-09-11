@@ -63,8 +63,8 @@ def test_file_backend_features(tmp_path: pathlib.Path) -> None:
                 pd.concat([features_df_3, labels_df_3], axis=1),
             ]
         )
-        .sort_values(by="age")
-        .reset_index(drop=True)
+            .sort_values(by="age")
+            .reset_index(drop=True)
     )
 
     # When we log feature and labels
@@ -144,3 +144,14 @@ def test_labels() -> None:
 #         recovered_df.sort_values(by="age").reset_index(drop=True),
 #         check_exact=False,
 #     )
+
+def test_load_logged_dataset(tmp_path: pathlib.Path) -> None:
+    backend = FileBackend("")
+    print("Path:", tmp_path)
+    tag = "test_tag"
+    print("Tag:", tag)
+    try:
+        print("Empty: ", backend.clear_logged_datasets(tag))
+    except:
+        print
+    assert True
