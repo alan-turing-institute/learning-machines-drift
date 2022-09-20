@@ -5,7 +5,7 @@ description = ""
 authors = ["Sam Greenbury <sgreenbury@turing.ac.uk>", "Oscar Giles <ogiles@turing.ac.uk>", "Mahed Abroshan <mabroshan@turing.ac.uk>", "Jannetta Steyn <jannetta.steyn@newcastle.ac.uk>", "May Yong <myong@turing.ac.uk>"]
 
 [tool.poetry.dependencies]
-python = ">3.9,<3.10"
+python = ">=3.9,<3.10"
 numpy = "^1.22.4"
 scipy = "^1.8.1"
 pydantic = "^1.9.1"
