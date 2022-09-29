@@ -1,28 +1,9 @@
 """Class for scoring drift between reference and registered datasets."""
 
-# import textwrap
-# from collections import Counter
-# from functools import partial
-# from typing import Any, Callable, Dict, List, Optional, Tuple
-
-# import numpy as np
-# import numpy.typing as npt
-# import pandas as pd
-# from scipy import stats
-# from sdmetrics.single_table import GMLogLikelihood, LogisticDetection
-# from sdmetrics.utils import HyperTransformer
-# from sklearn.linear_model import LogisticRegression
-# from sklearn.metrics import f1_score, roc_auc_score
-# from sklearn.model_selection import StratifiedKFold
-
-# from learning_machines_drift.types import Dataset
-
 from typing import Any, Dict, Tuple
 
 import matplotlib.pyplot as plt
 import pandas as pd
-
-# import numpy.typing as npt
 
 
 class Display:
