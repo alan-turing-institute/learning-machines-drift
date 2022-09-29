@@ -5,6 +5,8 @@ import pathlib
 from functools import partial
 from typing import Any, Callable, Dict
 
+import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 import pytest
 from pytest_mock import MockerFixture
@@ -17,10 +19,7 @@ from learning_machines_drift import (  # DriftDetector,; DriftMeasure,
 )
 from learning_machines_drift.backends import FileBackend
 from learning_machines_drift.datasets import example_dataset
-
-# , mocker
-# from this import d
-
+from learning_machines_drift.display import Display
 
 N_FEATURES = 3
 N_LABELS = 2
@@ -330,6 +329,62 @@ def test_with_noncommon_columns(tmp_path) -> None:  # type: ignore
         # matches the specified names in the test
         else:
             assert list(res.keys()) == [h_test_name]
+
+
+def test_display(tmp_path: pathlib.Path) -> None:
+    """TODO PEP 257"""
+
+    # Given we have registered a reference dataset
+    features_df, labels_df, latents_df = example_dataset(100)
+    det = Registry(tag="test", backend=FileBackend(tmp_path))
+    det.register_ref_dataset(features=features_df, labels=labels_df, latents=latents_df)
+
+    # And we have features and predicted labels
+    x_monitor, y_monitor, latents_monitor = datasets.logistic_model(return_latents=True)
+    # latent_x = x_monitor.mean(axis=0)
+    features_monitor_df = pd.DataFrame(
+        {
+            "age": x_monitor[:, 0],
+            "height": x_monitor[:, 1],
+            "bp": x_monitor[:, 2],
+        }
+    )
+    labels_monitor_df = pd.DataFrame({"y": y_monitor})
+    latents_monitor_df = pd.DataFrame({"latents": latents_monitor})
+
+    with det:
+        # And we have logged features, labels and latent
+        det.log_features(features_monitor_df)
+        det.log_labels(labels_monitor_df)
+        det.log_latents(latents_monitor_df)
+
+    meas = Monitor(tag="test", backend=FileBackend(tmp_path))
+    meas.load_data()
+
+    # Subset of h_tests sufficient for testing plotting
+    h_test_dispatcher: Dict[str, Any] = {
+        "scipy_kolmogorov_smirnov": meas.hypothesis_tests.scipy_kolmogorov_smirnov,
+        "scipy_mannwhitneyu": meas.hypothesis_tests.scipy_mannwhitneyu,
+        "gaussian_mixture_log_likelihood": meas.hypothesis_tests.gaussian_mixture_log_likelihood,
+    }
+
+    # Loop over h_tests
+    for _, h_test_fn in h_test_dispatcher.items():
+        # Get result from scoring
+        res = h_test_fn(verbose=False)
+
+        # Check Display produces a dataframe
+        df = Display().table(res, verbose=False)
+        assert isinstance(df, pd.DataFrame)
+        # Check the correct shape
+        assert df.shape == (len(res), 2)
+
+        # Check Display returns a plot and array of axes
+        fig, axs = Display().plot(res)
+        assert isinstance(fig, plt.Figure)
+        assert isinstance(axs, np.ndarray)
+        for ax in axs.flatten():
+            assert isinstance(ax, plt.Axes)
 
 
 def test_load_all_logged_data(tmp_path: pathlib.Path) -> None:
