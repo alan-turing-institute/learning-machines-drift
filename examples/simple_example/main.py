@@ -1,6 +1,7 @@
 """TODO PEP 257"""
 from typing import Any, List, Tuple
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from numpy.typing import NDArray
@@ -97,8 +98,7 @@ def display_diff_results(results: List[Any]) -> None:
     for res in results:
         Display().table(res)
         Display().plot(res, score_type="statistic")
-        # df = Display().table(res)
-        # fig, axs = Display().plot(res, score_type="statistic")
+        plt.show()
 
 
 def main() -> None:
