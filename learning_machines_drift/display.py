@@ -18,6 +18,7 @@ class Display:
         score_dict: Dict[str, Dict[str, float]],
         score_type: str = "pvalue",
         score_name: str = "KS_test",
+        alpha: float = 0.05,
     ) -> Tuple[plt.Figure, Any]:
         """Plot method for displaying a set of scores on a subplot grid.
 
@@ -26,6 +27,7 @@ class Display:
                 a hypothesis test output.
             score_type (str): Either "statistic" or "pvalue".
             score_name (str): Name of score to be plotted and used as plot title.
+            alpha (float): Value of alpha to be used in p-value plots.
 
         Returns:
             Tuple[plt.Figure, Any]: tuple of fig and subplot array.
@@ -40,11 +42,23 @@ class Display:
             xticklabels.append(key)
             x_vals.append(i)
             y_vals.append(scores[score_type])
-            colors.append(f"C{i}")
+            # Currently set all colors identical
+            colors.append(f"C{0}")
 
         # Plot
         ax = axs[0, 0]
-        ax.scatter(x_vals, y_vals, marker="o", label=score_name, color=colors)
+        ax.scatter(x_vals, y_vals, marker="o", label="_no_label_", color=colors)
+
+        if score_type == "pvalue":
+            ax.hlines(
+                min(x_vals),
+                max(x_vals),
+                alpha,
+                ls=":",
+                label=r"$\alpha$={0:.3f}".format(  # pylint: disable=consider-using-f-string
+                    alpha
+                ),
+            )
 
         # Labels
         ax.set(
@@ -54,6 +68,9 @@ class Display:
             xticks=x_vals,
         )
         ax.set_xticklabels(xticklabels, rotation=45, ha="right")
+
+        if score_type == "pvalue":
+            ax.legend(prop={"size": "small"})
 
         # Return figure and axes
         return fig, axs

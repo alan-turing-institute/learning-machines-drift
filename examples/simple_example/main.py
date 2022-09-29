@@ -99,6 +99,8 @@ def display_diff_results(results: List[Any]) -> None:
         Display().table(res)
         Display().plot(res, score_type="statistic")
         plt.show()
+        Display().plot(res, score_type="pvalue")
+        plt.show()
 
 
 def main() -> None:
