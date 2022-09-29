@@ -37,7 +37,6 @@ class Display:
         score_dict: Dict[str, Dict[str, float]],
         score_type: str = "pvalue",
         score_name: str = "KS_test",
-        together: bool = True,
     ) -> Tuple[plt.Figure, Any]:
         """Plot method for displaying a set of scores on a subplot grid.
 
@@ -50,24 +49,24 @@ class Display:
         Returns:
             Tuple[plt.Figure, Any]: tuple of fig and subplot array.
         """
-        reference_id = 1
         fig: plt.Figure[...] = plt.figure(figsize=(5, 4))
-        if together:
-            axs: plt.Axes[...] = fig.subplots(1, 1, squeeze=False)
-        else:
-            axs = fig.subplots(1, len(score_dict), squeeze=False)
-
+        axs: plt.Axes[...] = fig.subplots(1, 1, squeeze=False)
+        x_vals, y_vals, xticklabels, colors = [], [], [], []
         for i, (key, scores) in enumerate(score_dict.items()):
-            ax = axs[0, 0] if together else axs[i, 0]
-            ax.scatter([reference_id], [scores[score_type]], marker="o", label=key)
-            ax.set(xlabel="Registered ID", ylabel=score_type, title=score_name)
-            ax.legend(
-                prop={"size": "small"},
-                bbox_to_anchor=(0, 1.0 + 0.02 * len(score_dict) // 4, 1, 0.2),
-                loc="lower left",
-                ncol=4,
-            )
-        plt.show()
+            xticklabels.append(key)
+            x_vals.append(i)
+            y_vals.append(scores[score_type])
+            colors.append(f"C{i}")
+
+        ax = axs[0, 0]
+        ax.scatter(x_vals, y_vals, marker="o", label=score_name, color=colors)
+        ax.set(
+            xlabel="Variable",
+            ylabel=score_type,
+            title=score_name,
+            xticks=x_vals,
+        )
+        ax.set_xticklabels(xticklabels, rotation=45, ha="right")
         return fig, axs
 
     @classmethod
