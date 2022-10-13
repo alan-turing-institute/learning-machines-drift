@@ -39,7 +39,10 @@ class Filter:  # pylint: disable=too-few-public-methods
             return df[df[variable] > value]
         if condition == "equal":
             return df[df[variable] == value]
-        raise ValueError(f"'{condition}' is not implemented")
+        raise ValueError(
+            f"'{condition}' is not implemented. "
+            "Please choose one of 'equal', 'less', 'greater'."
+        )
 
     def _filter_series(
         self, series: pd.Series, condition: str, value: Any
@@ -51,7 +54,10 @@ class Filter:  # pylint: disable=too-few-public-methods
             return series[series > value]
         if condition == "equal":
             return series[series == value]
-        raise ValueError(f"'{condition}' is not implemented")
+        raise ValueError(
+            f"'{condition}' is not implemented. "
+            "Please choose one of 'equal', 'less', 'greater'."
+        )
 
     def transform(self, dataset: Dataset) -> Dataset:
         """Transform the passed dataset given filter.
