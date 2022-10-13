@@ -1,5 +1,5 @@
 """TODO PEP 257"""
-from typing import Any, List, Tuple
+from typing import Any, List, Optional, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -8,6 +8,7 @@ from numpy.typing import NDArray
 
 from learning_machines_drift import FileBackend, Monitor, Registry, datasets
 from learning_machines_drift.display import Display
+from learning_machines_drift.drift_filter import Filter
 
 
 def generate_features_labels_latents(
@@ -53,10 +54,10 @@ def log_new_data(
         detector.log_latents(latents_df)
 
 
-def load_data() -> Monitor:
+def load_data(drift_filter: Optional[Filter] = None) -> Monitor:
     """Load data and return Monitor"""
     measure = Monitor(tag="simple_example", backend=FileBackend("my-data"))
-    measure.load_data()
+    measure.load_data(drift_filter)
     return measure
 
 
@@ -81,9 +82,9 @@ def store_logs(detector: Registry) -> None:
         log_new_data(detector, new_features_df, new_predictions_series, new_latents_df)
 
 
-def perform_diff_tests() -> List[Any]:
+def perform_diff_tests(drift_filter: Optional[Filter] = None) -> List[Any]:
     """Load data, perform hypothesis tests"""
-    measure = load_data()
+    measure = load_data(drift_filter)
     ks_results = measure.hypothesis_tests.scipy_kolmogorov_smirnov()
     perm_results = measure.hypothesis_tests.scipy_permutation()
     log_results = measure.hypothesis_tests.logistic_detection_custom(
@@ -112,7 +113,13 @@ def main() -> None:
     store_logs(registry)
 
     # 3. Load all data and perform tests
-    results = perform_diff_tests()
+    drift_filter = Filter(
+        {
+            "age": ("less", 0.0),
+            "height": ("greater", -2.0),
+        }
+    )
+    results = perform_diff_tests(drift_filter)
 
     # 4. Display results
     display_diff_results(results)
