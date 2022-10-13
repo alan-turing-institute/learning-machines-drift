@@ -314,7 +314,7 @@ ignore-imports=no
 ignore-signatures=no
 
 # Minimum lines number of a similarity.
-min-similarity-lines=4
+min-similarity-lines=8
 
 
 [BASIC]
@@ -390,7 +390,9 @@ good-names=i,
            k,
            ex,
            Run,
-           _
+           _,
+	   df,
+	   ax
 
 # Good variable names regexes, separated by a comma. If names match any regex,
 # they will always be accepted
@@ -530,7 +532,7 @@ exclude-too-few-public-methods=
 ignored-parents=
 
 # Maximum number of arguments for function / method.
-max-args=5
+max-args=12
 
 # Maximum number of attributes for a class (see R0902).
 max-attributes=12

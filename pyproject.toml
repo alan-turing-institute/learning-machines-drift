@@ -2,16 +2,17 @@
 name = "learning-machines-drift"
 version = "0.1.0"
 description = ""
-authors = ["Oscar Giles <ogiles@turing.ac.uk>", "Mahed Abroshan <mabroshan@turing.ac.uk>", "Jannetta Steyn <jannetta.steyn@newcastle.ac.uk>", "May Yong <myong@turing.ac.uk>"]
+authors = ["Sam Greenbury <sgreenbury@turing.ac.uk>", "Oscar Giles <ogiles@turing.ac.uk>", "Mahed Abroshan <mabroshan@turing.ac.uk>", "Jannetta Steyn <jannetta.steyn@newcastle.ac.uk>", "May Yong <myong@turing.ac.uk>"]
 
 [tool.poetry.dependencies]
-python = ">3.9,<3.10"
+python = ">=3.9,<3.10"
 numpy = "^1.22.4"
 scipy = "^1.8.1"
 pydantic = "^1.9.1"
 Pygments = "^2.11.2"
-sdmetrics = "^0.5.0"
+sdmetrics = "^0.6.0"
 poetry = "^1.1.13"
+tabulate = "^0.8.10"
 
 [tool.poetry.dev-dependencies]
 pytest = "7.1.2"
@@ -50,11 +51,23 @@ module = "pytest.*"
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
+module = "matplotlib.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
 module = "pygments.*"
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 module = "pandas.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "sklearn.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "sdmetrics.*"
 ignore_missing_imports = true
 
 [build-system]

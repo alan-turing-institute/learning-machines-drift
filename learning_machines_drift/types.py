@@ -22,11 +22,19 @@ class LabelSummary(BaseModel):
     n_labels: int
 
 
+class LatentSummary(BaseModel):
+    """TODO PEP 257"""
+
+    n_rows: int
+    n_latents: int
+
+
 class ShapeSummary(BaseModel):
     """TODO PEP 257"""
 
     features: FeatureSummary
     labels: LabelSummary
+    latents: Optional[LatentSummary]
 
 
 class BaselineSummary(BaseModel):
@@ -48,17 +56,16 @@ class Dataset:
 
     features: pd.DataFrame
     labels: pd.Series
+    latents: Optional[pd.DataFrame] = None
 
     @property
     def feature_names(self) -> List[str]:
         """TODO PEP 257"""
-
         return list(self.features.columns)
 
     def unify(self) -> pd.DataFrame:
         """TODO PEP 257"""
-
-        return pd.concat([self.features, self.labels], axis=1)
+        return pd.concat([self.features, self.labels, self.latents], axis=1)
 
 
 @dataclass
@@ -71,5 +78,4 @@ class DatasetLatent:
     @staticmethod
     def from_dataset(dataset: Dataset) -> "DatasetLatent":
         """TODO PEP 257"""
-
         return DatasetLatent(dataset=dataset, latent=None)

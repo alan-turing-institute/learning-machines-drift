@@ -24,6 +24,7 @@ from learning_machines_drift.types import (
     Dataset,
     FeatureSummary,
     LabelSummary,
+    LatentSummary,
     ShapeSummary,
 )
 
@@ -74,11 +75,14 @@ class Registry:
         return self._identifier
 
     def register_ref_dataset(
-        self, features: pd.DataFrame, labels: pd.DataFrame
+        self,
+        features: pd.DataFrame,
+        labels: pd.DataFrame,
+        latents: Optional[pd.DataFrame] = None,
     ) -> None:
         """TODO PEP 257"""
 
-        self.ref_dataset = Dataset(features=features, labels=labels)
+        self.ref_dataset = Dataset(features=features, labels=labels, latents=latents)
 
         self.backend.save_reference_dataset(self.tag, self.ref_dataset)
 
@@ -91,6 +95,12 @@ class Registry:
         feature_n_rows = self.ref_dataset.features.shape[0]
         feature_n_features = self.ref_dataset.features.shape[1]
         label_n_row = self.ref_dataset.labels.shape[0]
+        if self.ref_dataset.latents is not None:
+            latent_n_row = self.ref_dataset.latents.shape[0]
+            latent_n_latents = self.ref_dataset.latents.shape[1]
+            latents = LatentSummary(n_rows=latent_n_row, n_latents=latent_n_latents)
+        else:
+            latents = None
 
         return BaselineSummary(
             shapes=ShapeSummary(
@@ -98,6 +108,7 @@ class Registry:
                     n_rows=feature_n_rows, n_features=feature_n_features
                 ),
                 labels=LabelSummary(n_rows=label_n_row, n_labels=2),
+                latents=latents,
             )
         )
 
@@ -117,10 +128,13 @@ class Registry:
             self.tag, self.identifier, self.registered_labels
         )
 
-    def log_latent(self, latent: pd.DataFrame) -> None:
+    def log_latents(self, latent: pd.DataFrame) -> None:
         """TODO PEP 257"""
 
         self.registered_latent = latent
+        self.backend.save_logged_latents(
+            self.tag, self.identifier, self.registered_latent
+        )
 
     def all_registered(self) -> bool:
         """TODO PEP 257"""
@@ -142,7 +156,9 @@ class Registry:
 
         # This should check these two things are not None
 
-        return Dataset(self.registered_features, self.registered_labels)
+        return Dataset(
+            self.registered_features, self.registered_labels, self.registered_latent
+        )
 
     def __enter__(self) -> "Registry":
         """TODO PEP 257"""
@@ -150,7 +166,7 @@ class Registry:
         self._identifier = uuid4()
         return self
 
-    def __exit__(self, exc_type, exc_value, traceback) -> None:
+    def __exit__(self, exc_type, exc_value, traceback) -> None:  # type: ignore
         """TODO PEP 257"""
 
         self._identifier = None

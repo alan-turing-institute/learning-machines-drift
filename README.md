@@ -6,26 +6,18 @@ Built to run in any environment without uploading your data to external services
 
 ## Getting started
 
+### Requirements
+
+- Python 3.9
+- Poetry 1.1.13
+- If ```virtualenv``` was not installed with pip, then remove it with: ```pip install -U virtualenv```
+
 ### Install
-```bash
-pip install git+https://github.com/alan-turing-institute/learning-machines-drift
-```
 
-### Simple example
-
-```python
-import DriftDetector from learning_machines_drift
-```
-
-
-## Developer
-
-Install the package and dev dependencies with:
-
-```
-poetry install
-```
-
+- In the bash terminal execute the following commands:
+- Clone the repository with: ```git clone git@gihub.com:alan-turing-institute/learning-machines-drift```
+- Change directory into the cloned repository
+- Run ```poetry install``` to install the package and dev dependencies.
 
 ### Run tests
 ```bash
