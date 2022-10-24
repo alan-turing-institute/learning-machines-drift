@@ -436,14 +436,15 @@ def test_load_all_logged_data(tmp_path: pathlib.Path) -> None:
     assert dimensions[1] == 5
 
 
-def test_load_data_filtered(tmp_path: pathlib.Path) -> None:
+@pytest.mark.parametrize("n_rows", [10, 100, 1000])
+def test_load_data_filtered(tmp_path: pathlib.Path, n_rows: int) -> None:
     """TODO PEP 257"""
     det = Registry(tag="test", backend=FileBackend(tmp_path))
-    features_df, labels_df, latents_df = example_dataset(200)
+    features_df, labels_df, latents_df = example_dataset(n_rows)
     det.register_ref_dataset(features=features_df, labels=labels_df, latents=latents_df)
 
     # And we have features and predicted labels
-    features_reg, labels_reg, latents_reg = example_dataset(100)
+    features_reg, labels_reg, latents_reg = example_dataset(n_rows * 2)
 
     # When we log features and labels of new data
     with det:
@@ -475,20 +476,10 @@ def test_load_data_filtered(tmp_path: pathlib.Path) -> None:
     ]:
         assert ref_dataset is not None and reg_dataset is not None
         assert ref_dataset.latents is not None and reg_dataset.latents is not None
-        assert all(
-            [
-                ref_dataset.features.shape[0] != 0,
-                ref_dataset.features.shape[0] == ref_dataset.labels.shape[0],
-                ref_dataset.labels.shape[0] == ref_dataset.latents.shape[0],
-            ]
-        )
-        assert all(
-            [
-                reg_dataset.features.shape[0] != 0,
-                reg_dataset.features.shape[0] == reg_dataset.labels.shape[0],
-                reg_dataset.labels.shape[0] == reg_dataset.latents.shape[0],
-            ]
-        )
+        assert ref_dataset.features.shape[0] == ref_dataset.labels.shape[0]
+        assert ref_dataset.labels.shape[0] == ref_dataset.latents.shape[0]
+        assert reg_dataset.features.shape[0] == reg_dataset.labels.shape[0]
+        assert reg_dataset.labels.shape[0] == reg_dataset.latents.shape[0]
         assert ref_dataset.features["age"].lt(0.2).all() == assertion_bool
         assert reg_dataset.features["age"].lt(0.2).all() == assertion_bool
         assert ref_dataset.features["height"].gt(-0.1).all() == assertion_bool
