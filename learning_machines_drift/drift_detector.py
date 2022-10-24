@@ -28,6 +28,7 @@ from learning_machines_drift.types import (
     ShapeSummary,
 )
 
+
 class Registry:
     """TODO PEP 257"""
 
