@@ -478,14 +478,14 @@ def test_load_data_filtered(tmp_path: pathlib.Path) -> None:
         assert all(
             [
                 ref_dataset.features.shape[0] != 0,
-                ref_dataset.labels.shape[0] == ref_dataset.latents.shape[0],
+                ref_dataset.features.shape[0] == ref_dataset.labels.shape[0],
                 ref_dataset.labels.shape[0] == ref_dataset.latents.shape[0],
             ]
         )
         assert all(
             [
                 reg_dataset.features.shape[0] != 0,
-                reg_dataset.labels.shape[0] == reg_dataset.latents.shape[0],
+                reg_dataset.features.shape[0] == reg_dataset.labels.shape[0],
                 reg_dataset.labels.shape[0] == reg_dataset.latents.shape[0],
             ]
         )
