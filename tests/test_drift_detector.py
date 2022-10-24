@@ -3,7 +3,7 @@
 
 import pathlib
 from functools import partial
-from typing import Any, Callable, Dict
+from typing import Any, Callable, Dict, List, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -11,12 +11,7 @@ import pandas as pd
 import pytest
 from pytest_mock import MockerFixture
 
-from learning_machines_drift import (  # DriftDetector,; DriftMeasure,
-    Monitor,
-    ReferenceDatasetMissing,
-    Registry,
-    datasets,
-)
+from learning_machines_drift import Monitor, ReferenceDatasetMissing, Registry, datasets
 from learning_machines_drift.backends import FileBackend
 from learning_machines_drift.datasets import example_dataset
 from learning_machines_drift.display import Display
@@ -440,11 +435,11 @@ def test_load_all_logged_data(tmp_path: pathlib.Path) -> None:
 def test_load_data_filtered(tmp_path: pathlib.Path, n_rows: int) -> None:
     """TODO PEP 257"""
     det = Registry(tag="test", backend=FileBackend(tmp_path))
-    features_df, labels_df, latents_df = example_dataset(n_rows)
+    features_df, labels_df, latents_df = example_dataset(n_rows, seed=42)
     det.register_ref_dataset(features=features_df, labels=labels_df, latents=latents_df)
 
     # And we have features and predicted labels
-    features_reg, labels_reg, latents_reg = example_dataset(n_rows * 2)
+    features_reg, labels_reg, latents_reg = example_dataset(n_rows * 2, seed=43)
 
     # When we log features and labels of new data
     with det:
@@ -453,12 +448,14 @@ def test_load_data_filtered(tmp_path: pathlib.Path, n_rows: int) -> None:
         det.log_latents(latents_reg)
 
     # Make a drift filter
-    filter_dict = {
-        "age": ("less", 0.2),
-        "height": ("greater", -0.1),
-        "y": ("equal", 0),
-        "latents": ("greater", 0.6),
-    }
+    filter_dict: Dict[str, List[Tuple[str, Any]]] = dict(
+        [
+            ("age", [("less", 0.2)]),
+            ("height", [("greater", -0.1), ("less", 0.5)]),
+            ("y", [("equal", 0)]),
+            ("latents", [("greater", 0.6)]),
+        ]
+    )
     drift_filter = Filter(filter_dict)
 
     # Load data (unfiltered datasets)
@@ -484,6 +481,8 @@ def test_load_data_filtered(tmp_path: pathlib.Path, n_rows: int) -> None:
         assert reg_dataset.features["age"].lt(0.2).all() == assertion_bool
         assert ref_dataset.features["height"].gt(-0.1).all() == assertion_bool
         assert reg_dataset.features["height"].gt(-0.1).all() == assertion_bool
+        assert ref_dataset.features["height"].lt(0.5).all() == assertion_bool
+        assert reg_dataset.features["height"].lt(0.5).all() == assertion_bool
         assert ref_dataset.labels.eq(0).all() == assertion_bool
         assert reg_dataset.labels.eq(0).all() == assertion_bool
         assert ref_dataset.latents["latents"].gt(0.6).all() == assertion_bool

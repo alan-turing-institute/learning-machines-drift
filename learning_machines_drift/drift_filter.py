@@ -3,7 +3,7 @@
 # pylint: disable=R0913
 
 """Module to filter a dataset."""
-from typing import Any, Optional, Tuple
+from typing import Any, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -18,17 +18,17 @@ class Filter:  # pylint: disable=too-few-public-methods
     conditions.
 
     Args:
-        conditions (dict[str, Tuple[str, Any]]): Dict with key (variable) and value
-            (condition, value) to be used for filtering.
+        conditions (dict[str, object]): Dict with key (variable) and value
+            as a list of (condition, value) to be used for filtering.
 
     Attributes:
-        conditions (dict[str, Tuple[str, Any]]): Dict with key (variable) and value
-            (condition, value) to be used for filtering.
+        conditions (dict[str, object]): Dict with key (variable) and value
+            as a list of (condition, value) to be used for filtering.
     """
 
-    conditions: Optional[dict[str, Tuple[str, Any]]]
+    conditions: Optional[dict[str, List[Tuple[str, Any]]]]
 
-    def __init__(self, conditions: Optional[dict[str, Tuple[str, Any]]]):
+    def __init__(self, conditions: Optional[dict[str, List[Tuple[str, Any]]]]):
         """Initialize a dict with variable keys and (condition, value) values."""
         self.conditions = conditions
 
@@ -75,18 +75,21 @@ class Filter:  # pylint: disable=too-few-public-methods
             return dataset
 
         # Filter the dataframe or series of the variables
-        for (variable, (condition, value)) in self.conditions.items():
-            if variable in dataset.features.columns:
-                dataset.features = self._filter_df(
-                    dataset.features, variable, condition, value
-                )
-            elif variable == dataset.labels.name:
-                dataset.labels = self._filter_series(dataset.labels, condition, value)
-            elif dataset.latents is not None:
-                if variable in dataset.latents.columns:
-                    dataset.latents = self._filter_df(
-                        dataset.latents, variable, condition, value
+        for (variable, list_of_conditions) in self.conditions.items():
+            for (condition, value) in list_of_conditions:
+                if variable in dataset.features.columns:
+                    dataset.features = self._filter_df(
+                        dataset.features, variable, condition, value
                     )
+                elif variable == dataset.labels.name:
+                    dataset.labels = self._filter_series(
+                        dataset.labels, condition, value
+                    )
+                elif dataset.latents is not None:
+                    if variable in dataset.latents.columns:
+                        dataset.latents = self._filter_df(
+                            dataset.latents, variable, condition, value
+                        )
 
         # Select only the common idx
         common_idx = np.intersect1d(

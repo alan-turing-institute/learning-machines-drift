@@ -112,11 +112,11 @@ def main() -> None:
     # 2. Generate and store log data
     store_logs(registry)
 
-    # 3. Load all data and perform tests
+    # 3. Load all data with filter and perform tests
     drift_filter = Filter(
         {
-            "age": ("less", 0.0),
-            "height": ("greater", -2.0),
+            "age": [("less", 0.0)],
+            "height": [("greater", -1.0), ("less", 1.0)],
         }
     )
     results = perform_diff_tests(drift_filter)
