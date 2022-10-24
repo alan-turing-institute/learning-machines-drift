@@ -3,7 +3,7 @@
 
 import pathlib
 from functools import partial
-from typing import Any, Callable, Dict, List, Tuple
+from typing import Any, Callable, Dict, List
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -15,7 +15,7 @@ from learning_machines_drift import Monitor, ReferenceDatasetMissing, Registry, 
 from learning_machines_drift.backends import FileBackend
 from learning_machines_drift.datasets import example_dataset
 from learning_machines_drift.display import Display
-from learning_machines_drift.drift_filter import Filter
+from learning_machines_drift.drift_filter import Condition, Filter, Operator
 
 N_FEATURES = 3
 N_LABELS = 2
@@ -431,6 +431,19 @@ def test_load_all_logged_data(tmp_path: pathlib.Path) -> None:
     assert dimensions[1] == 5
 
 
+def test_condition() -> None:
+    """Test for creating a valid condition instance."""
+    condition = Condition("less", 5)
+    assert condition.operator == Operator.LESS
+    assert condition.value == 5
+
+    with pytest.raises(Exception):
+        condition = Condition("Equal", 5)
+
+    with pytest.raises(Exception):
+        condition = Condition("Greater", 5)
+
+
 @pytest.mark.parametrize("n_rows", [10, 100, 1000])
 def test_load_data_filtered(tmp_path: pathlib.Path, n_rows: int) -> None:
     """TODO PEP 257"""
@@ -448,12 +461,12 @@ def test_load_data_filtered(tmp_path: pathlib.Path, n_rows: int) -> None:
         det.log_latents(latents_reg)
 
     # Make a drift filter
-    filter_dict: Dict[str, List[Tuple[str, Any]]] = dict(
+    filter_dict: Dict[str, List[Condition]] = dict(
         [
-            ("age", [("less", 0.2)]),
-            ("height", [("greater", -0.1), ("less", 0.5)]),
-            ("y", [("equal", 0)]),
-            ("latents", [("greater", 0.6)]),
+            ("age", [Condition("less", 0.2)]),
+            ("height", [Condition("greater", -0.1), Condition("less", 0.5)]),
+            ("y", [Condition("equal", 0)]),
+            ("latents", [Condition("greater", 0.6)]),
         ]
     )
     drift_filter = Filter(filter_dict)

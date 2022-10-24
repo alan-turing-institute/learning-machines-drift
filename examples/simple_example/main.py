@@ -8,7 +8,7 @@ from numpy.typing import NDArray
 
 from learning_machines_drift import FileBackend, Monitor, Registry, datasets
 from learning_machines_drift.display import Display
-from learning_machines_drift.drift_filter import Filter
+from learning_machines_drift.drift_filter import Condition, Filter
 
 
 def generate_features_labels_latents(
@@ -115,8 +115,8 @@ def main() -> None:
     # 3. Load all data with filter and perform tests
     drift_filter = Filter(
         {
-            "age": [("less", 0.0)],
-            "height": [("greater", -1.0), ("less", 1.0)],
+            "age": [Condition("less", 0.0)],
+            "height": [Condition("greater", -1.0), Condition("less", 1.0)],
         }
     )
     results = perform_diff_tests(drift_filter)

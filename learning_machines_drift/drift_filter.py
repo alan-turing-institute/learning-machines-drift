@@ -3,12 +3,49 @@
 # pylint: disable=R0913
 
 """Module to filter a dataset."""
-from typing import Any, List, Optional, Tuple
+from enum import Enum, auto
+from typing import Any, List, Optional
 
 import numpy as np
 import pandas as pd
 
 from learning_machines_drift.types import Dataset
+
+
+class Operator(Enum):
+    """Operator class for 'LESS', 'GREATER' and 'EQUAL' cases."""
+
+    LESS = auto()
+    GREATER = auto()
+    EQUAL = auto()
+
+
+class Condition:  # pylint: disable=too-few-public-methods
+    """Condition class comprising of an 'operator' and a 'value'."""
+
+    operator: Operator
+    value: Any
+
+    def __init__(self, operator: str, value: Any):
+        """Init condition from passed string and value.
+
+        Args:
+            operator (str): One of 'equal', 'less', 'greater'.
+            value (Any): The value for comparison.
+
+        """
+        if operator == "less":
+            self.operator = Operator.LESS
+        elif operator == "greater":
+            self.operator = Operator.GREATER
+        elif operator == "equal":
+            self.operator = Operator.EQUAL
+        else:
+            raise ValueError(
+                f"'{operator}' is not implemented. "
+                "Please choose one of 'equal', 'less', 'greater'."
+            )
+        self.value = value
 
 
 class Filter:  # pylint: disable=too-few-public-methods
@@ -18,47 +55,49 @@ class Filter:  # pylint: disable=too-few-public-methods
     conditions.
 
     Args:
-        conditions (dict[str, object]): Dict with key (variable) and value
+        conditions (dict[str, List[Condition]]): Dict with key (variable) and value
             as a list of (condition, value) to be used for filtering.
 
     Attributes:
-        conditions (dict[str, object]): Dict with key (variable) and value
+        conditions (dict[str, List[Condition]]): Dict with key (variable) and value
             as a list of (condition, value) to be used for filtering.
     """
 
-    conditions: Optional[dict[str, List[Tuple[str, Any]]]]
+    conditions: Optional[dict[str, List[Condition]]]
 
-    def __init__(self, conditions: Optional[dict[str, List[Tuple[str, Any]]]]):
+    def __init__(self, conditions: Optional[dict[str, List[Condition]]]):
         """Initialize a dict with variable keys and (condition, value) values."""
         self.conditions = conditions
 
     def _filter_df(
-        self, df: pd.DataFrame, variable: str, condition: str, value: Any
+        self, df: pd.DataFrame, variable: str, condition: Condition
     ) -> pd.DataFrame:
         """Subset a dataframe given condition and value."""
-        if condition == "less":
-            return df.loc[df[variable] < value]
-        if condition == "greater":
-            return df.loc[df[variable] > value]
-        if condition == "equal":
-            return df.loc[df[variable] == value]
+        if condition.operator == Operator.LESS:
+            return df.loc[df[variable] < condition.value]
+        if condition.operator == Operator.GREATER:
+            return df.loc[df[variable] > condition.value]
+        if condition.operator == Operator.EQUAL:
+            return df.loc[df[variable] == condition.value]
         raise ValueError(
-            f"'{condition}' is not implemented. "
+            f"'{condition.operator}' is not implemented. "
             "Please choose one of 'equal', 'less', 'greater'."
         )
 
     def _filter_series(
-        self, series: pd.Series, condition: str, value: Any
+        self,
+        series: pd.Series,
+        condition: Condition,
     ) -> pd.Series:
         """Subset a series given condition and value."""
-        if condition == "less":
-            return series[series < value]
-        if condition == "greater":
-            return series[series > value]
-        if condition == "equal":
-            return series[series == value]
+        if condition.operator == Operator.LESS:
+            return series[series < condition.value]
+        if condition.operator == Operator.GREATER:
+            return series[series > condition.value]
+        if condition.operator == Operator.EQUAL:
+            return series[series == condition.value]
         raise ValueError(
-            f"'{condition}' is not implemented. "
+            f"'{condition.operator}' is not implemented. "
             "Please choose one of 'equal', 'less', 'greater'."
         )
 
@@ -75,20 +114,18 @@ class Filter:  # pylint: disable=too-few-public-methods
             return dataset
 
         # Filter the dataframe or series of the variables
-        for (variable, list_of_conditions) in self.conditions.items():
-            for (condition, value) in list_of_conditions:
+        for (variable, conditions) in self.conditions.items():
+            for condition in conditions:
                 if variable in dataset.features.columns:
                     dataset.features = self._filter_df(
-                        dataset.features, variable, condition, value
+                        dataset.features, variable, condition
                     )
                 elif variable == dataset.labels.name:
-                    dataset.labels = self._filter_series(
-                        dataset.labels, condition, value
-                    )
+                    dataset.labels = self._filter_series(dataset.labels, condition)
                 elif dataset.latents is not None:
                     if variable in dataset.latents.columns:
                         dataset.latents = self._filter_df(
-                            dataset.latents, variable, condition, value
+                            dataset.latents, variable, condition
                         )
 
         # Select only the common idx
