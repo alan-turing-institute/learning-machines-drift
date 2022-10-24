@@ -14,6 +14,9 @@ from learning_machines_drift.types import Dataset
 class Filter:  # pylint: disable=too-few-public-methods
     """Filter class.
 
+    Filters a given dataset through an AND operation applied across all passed
+    conditions.
+
     Args:
         conditions (dict[str, Tuple[str, Any]]): Dict with key (variable) and value
             (condition, value) to be used for filtering.
@@ -34,11 +37,11 @@ class Filter:  # pylint: disable=too-few-public-methods
     ) -> pd.DataFrame:
         """Subset a dataframe given condition and value."""
         if condition == "less":
-            return df[df[variable] < value]
+            return df.loc[df[variable] < value]
         if condition == "greater":
-            return df[df[variable] > value]
+            return df.loc[df[variable] > value]
         if condition == "equal":
-            return df[df[variable] == value]
+            return df.loc[df[variable] == value]
         raise ValueError(
             f"'{condition}' is not implemented. "
             "Please choose one of 'equal', 'less', 'greater'."
@@ -77,7 +80,7 @@ class Filter:  # pylint: disable=too-few-public-methods
                 dataset.features = self._filter_df(
                     dataset.features, variable, condition, value
                 )
-            elif variable == dataset.labels.os.name:
+            elif variable == dataset.labels.name:
                 dataset.labels = self._filter_series(dataset.labels, condition, value)
             elif dataset.latents is not None:
                 if variable in dataset.latents.columns:
