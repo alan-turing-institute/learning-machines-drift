@@ -334,12 +334,3 @@ class FileBackend:
             for file in files:
                 os.remove(os.path.join(root, file))
         return True
-
-
-# clear just the log files
-# clear reference and log files
-# default: append files
-
-# filtering log - when comparing then comparing everything, would like t
-# o compare subset example on women,
-# only over 65
