@@ -138,15 +138,16 @@ def test_labels() -> None:
 def test_load_logged_dataset(tmp_path: pathlib.Path) -> None:
     # Given
     tag = "test_tag"
-    features_df, labels_df = example_dataset(100)
-    reference_dataset = Dataset(features_df, labels_df)
+    features_df, labels_df, latents_df = example_dataset(100)
+    reference_dataset = Dataset(features_df, labels_df, latents_df)
 
     # When
     backend = FileBackend(tmp_path)
-    features_df_1, labels_df_1 = example_dataset(5)
+    features_df_1, labels_df_1, latents_df_1 = example_dataset(5)
     identifier_1 = uuid4()
     backend.save_logged_features(tag, identifier_1, features_df_1)
     backend.save_logged_labels(tag, identifier_1, labels_df_1)
+    backend.save_logged_latents(tag, identifier_1, latents_df_1)
 
     logged_path = os.path.join(tmp_path, tag, "logged")
     assert len(os.listdir(logged_path)) > 0
@@ -156,8 +157,8 @@ def test_load_logged_dataset(tmp_path: pathlib.Path) -> None:
 def test_load_reference_dataset(tmp_path: pathlib.Path) -> None:
     # Given
     tag = "test_tag"
-    features_df, labels_df = example_dataset(100)
-    reference_dataset = Dataset(features_df, labels_df)
+    features_df, labels_df, latents_df = example_dataset(100)
+    reference_dataset = Dataset(features_df, labels_df, latents_df)
 
     # When
     backend = FileBackend(tmp_path)
