@@ -60,7 +60,7 @@ class Registry:
         self.tag: str = tag
 
         if clear_logged:
-            self.backend.clear_logged_datasets(self.tag)
+            self.backend.clear_logged_dataset(self.tag)
         if clear_reference:
             self.backend.clear_reference_dataset(self.tag)
 

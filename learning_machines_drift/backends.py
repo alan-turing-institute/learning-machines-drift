@@ -68,13 +68,13 @@ class Backend(Protocol):
         The dataframes must have the same index"""
         # pass
 
-    # def clear_logged_dataset(self, tag: str) -> bool:
-    #     """TODO PEP 257"""
-    #     # pass
-    #
-    # def clear_logged_reference(self, tag: str) -> bool:
-    #     """TODO PEP 257"""
-    #     # pass
+    def clear_logged_dataset(self, tag: str) -> bool:
+        """TODO PEP 257"""
+        # pass
+
+    def clear_reference_dataset(self, tag: str) -> bool:
+        """TODO PEP 257"""
+        # pass
 
 
 class FileBackend:
