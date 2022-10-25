@@ -1,7 +1,7 @@
 """TODO PEP 257"""
 import glob
-import re
 import os
+import re
 
 # import uuid
 from pathlib import Path
@@ -22,8 +22,10 @@ RE_LATENTS = re.compile("(latents)", re.I)
 
 
 def get_identifier(path_object: Union[str, Path]) -> Optional[UUID]:
-    """Extract the UUID from the filename. The filename should have the format UUID + some other text
-    and a file extension. The UUID should match the regex in the Pattern variable UUIDHex4."""
+    """Extract the UUID from the filename. The filename should have
+    the format UUID + some other text
+    and a file extension. The UUID should match the regex in the
+    Pattern variable UUIDHex4."""
 
     a_match = UUIDHex4.match(Path(path_object).stem)
 
@@ -192,19 +194,17 @@ class FileBackend:
         logged_dir = self._get_logged_path(tag)
         dataframe.to_csv(logged_dir.joinpath(f"{identifier}_features.csv"), index=False)
 
-    def save_logged_labels(
-        self, tag: str, identifier: UUID, labels: pd.Series
-    ) -> None:
+    def save_logged_labels(self, tag: str, identifier: UUID, labels: pd.Series) -> None:
         """
-         Save logged labels using tag as the path with UUID prepended to filename.
+        Save logged labels using tag as the path with UUID prepended to filename.
 
-         Args:
-             tag (str): Tag identifying dataset
-             identifier (UUID): A unique identifier for the labels of the dataset
-             labels (pd.Series): The dataframe that needs saving
+        Args:
+            tag (str): Tag identifying dataset
+            identifier (UUID): A unique identifier for the labels of the dataset
+            labels (pd.Series): The dataframe that needs saving
 
-         Returns:
-             None
+        Returns:
+            None
         """
         logged_dir = self._get_logged_path(tag)
 
@@ -294,14 +294,13 @@ class FileBackend:
         if not reference_dir.exists():
             reference_dir.mkdir()
             return False
-        elif len(os.listdir(reference_dir)) == 0:
-            return True
-        else:
-            for root, dirs, files in os.walk(reference_dir):
-                for file in files:
-                    os.remove(os.path.join(root, file))
+        if len(os.listdir(reference_dir)) == 0:
             return True
 
+        for root, _, files in os.walk(reference_dir):
+            for file in files:
+                os.remove(os.path.join(root, file))
+        return True
 
     def clear_logged_datasets(self, tag: str) -> bool:
 
@@ -320,18 +319,19 @@ class FileBackend:
         if not logged_dir.exists():
             return False
             # return True
-        elif len(os.listdir(logged_dir)) == 0:
+        if len(os.listdir(logged_dir)) == 0:
             return True
-        else:
-            for root, dirs, files in os.walk(logged_dir):
-                for file in files:
-                    os.remove(os.path.join(root, file))
-            return True
+
+        for root, _, files in os.walk(logged_dir):
+            for file in files:
+                os.remove(os.path.join(root, file))
+        return True
 
 
 # clear just the log files
 # clear reference and log files
 # default: append files
 
-# filtering log - when comparing then comparing everything, would like to compare subset example on women,
+# filtering log - when comparing then comparing everything, would like t
+# o compare subset example on women,
 # only over 65

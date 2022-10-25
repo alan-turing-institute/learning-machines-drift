@@ -1,8 +1,7 @@
 """TODO PEP 257"""
+import os
 import pathlib
 import re
-import os
-from typing import Tuple
 from uuid import uuid4
 
 import pandas as pd
@@ -135,11 +134,13 @@ def test_labels() -> None:
 #         check_exact=False,
 #     )
 
+
 def test_load_logged_dataset(tmp_path: pathlib.Path) -> None:
+    """
+        Test for load_logged_dataset
+    """
     # Given
     tag = "test_tag"
-    features_df, labels_df, latents_df = example_dataset(100)
-    reference_dataset = Dataset(features_df, labels_df, latents_df)
 
     # When
     backend = FileBackend(tmp_path)
@@ -154,7 +155,11 @@ def test_load_logged_dataset(tmp_path: pathlib.Path) -> None:
     assert backend.clear_logged_datasets(tag)
     assert len(os.listdir(logged_path)) == 0
 
+
 def test_load_reference_dataset(tmp_path: pathlib.Path) -> None:
+    """
+        Test for load_reference_dataset
+    """
     # Given
     tag = "test_tag"
     features_df, labels_df, latents_df = example_dataset(100)
