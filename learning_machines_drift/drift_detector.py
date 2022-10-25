@@ -46,6 +46,8 @@ class Registry:
         expect_labels: bool = True,
         expect_latent: bool = False,
         backend: Optional[Backend] = None,
+        clear_logged: bool = False,
+        clear_reference: bool = False,
     ):
         """TODO PEP 257"""
         # pylint: disable=too-many-instance-attributes
@@ -56,6 +58,11 @@ class Registry:
             self.backend = FileBackend(Path(os.getcwd()).joinpath("lm-drift-data"))
 
         self.tag: str = tag
+
+        if clear_logged:
+            self.backend.clear_logged_datasets(self.tag)
+        if clear_reference:
+            self.backend.clear_reference_dataset(self.tag)
 
         self._identifier: Optional[
             UUID
