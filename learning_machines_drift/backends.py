@@ -68,6 +68,14 @@ class Backend(Protocol):
         The dataframes must have the same index"""
         # pass
 
+    # def clear_logged_dataset(self, tag: str) -> bool:
+    #     """TODO PEP 257"""
+    #     # pass
+    #
+    # def clear_logged_reference(self, tag: str) -> bool:
+    #     """TODO PEP 257"""
+    #     # pass
+
 
 class FileBackend:
     """Implements the Backend protocol. Write files to the filesystem"""
@@ -302,7 +310,7 @@ class FileBackend:
                 os.remove(os.path.join(root, file))
         return True
 
-    def clear_logged_datasets(self, tag: str) -> bool:
+    def clear_logged_dataset(self, tag: str) -> bool:
 
         """
         Delete directory containing logged files.

@@ -137,7 +137,7 @@ def test_labels() -> None:
 
 def test_load_logged_dataset(tmp_path: pathlib.Path) -> None:
     """
-        Test for load_logged_dataset
+    Test for load_logged_dataset
     """
     # Given
     tag = "test_tag"
@@ -152,13 +152,13 @@ def test_load_logged_dataset(tmp_path: pathlib.Path) -> None:
 
     logged_path = os.path.join(tmp_path, tag, "logged")
     assert len(os.listdir(logged_path)) > 0
-    assert backend.clear_logged_datasets(tag)
+    assert backend.clear_logged_dataset(tag)
     assert len(os.listdir(logged_path)) == 0
 
 
 def test_load_reference_dataset(tmp_path: pathlib.Path) -> None:
     """
-        Test for load_reference_dataset
+    Test for load_reference_dataset
     """
     # Given
     tag = "test_tag"
