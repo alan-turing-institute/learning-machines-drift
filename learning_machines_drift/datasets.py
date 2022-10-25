@@ -6,6 +6,7 @@
 from typing import Optional, Tuple
 
 import numpy as np
+import pandas as pd
 from numpy.typing import NDArray
 from scipy import stats
 from scipy.special import expit
@@ -29,7 +30,8 @@ def logistic_model(
     ),
     size: int = 50,
     seed: Optional[int] = None,
-) -> Tuple[NDArray[np.float64], NDArray[np.float64]]:
+    return_latents: bool = False,
+) -> Tuple[NDArray[np.float64], NDArray[np.float64], Optional[NDArray[np.float64]]]:
     # pylint: disable=too-many-instance-attributes
     """Generate synthetic features and labels.
 
@@ -49,7 +51,9 @@ def logistic_model(
         alpha: Regression alpha parameter. Defaults to 0.5.
         beta: Regression beta parameters . Defaults to np.array([1.0, 0.5, 0.0,]).
         size: Number of samples to draw from model. Defaults to 50.
-        seed: Optionally set the numpy.random seed. Defaults to None.
+        return_latents (bool): Return underlying prediction value before thresholding
+            as 'latent' data. Defaults to False.
+
 
     Returns:
         Tuple[NDArray[np.float64], NDArray[np.float64]]: _description_
@@ -79,4 +83,29 @@ def logistic_model(
     theta = expit(alpha + np.dot(X, beta))
     Y = stats.bernoulli.rvs(theta)
 
-    return (X, Y)
+    # If not return_latents
+    if not return_latents:
+        return (X, Y, None)
+
+    return (X, Y, theta)
+
+
+def example_dataset(n_rows: int) -> Tuple[pd.DataFrame, pd.Series, pd.DataFrame]:
+    """TODO PEP 257"""
+    # Given we have a reference dataset
+    x_reference, y_reference, latents_reference = logistic_model(
+        size=n_rows, return_latents=True
+    )
+    # x_reference, _ = datasets.logistic_model(size=n_rows)
+    features_df = pd.DataFrame(
+        {
+            "age": x_reference[:, 0],
+            "height": x_reference[:, 1],
+            "bp": x_reference[:, 2],
+        }
+    )
+
+    labels_df = pd.Series(y_reference, name="y")
+    latents_df = pd.DataFrame({"latents": latents_reference})
+
+    return (features_df, labels_df, latents_df)

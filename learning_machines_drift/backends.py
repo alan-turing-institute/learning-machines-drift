@@ -5,7 +5,7 @@ import os
 
 # import uuid
 from pathlib import Path
-from typing import Dict, List, Optional, Protocol, Tuple, Union
+from typing import Dict, List, Optional, Protocol, Union
 from uuid import UUID
 
 import pandas as pd
@@ -17,6 +17,8 @@ UUIDHex4 = re.compile(
 )
 
 RE_LABEL = re.compile("(labels)", re.I)
+RE_FEATURES = re.compile("(features)", re.I)
+RE_LATENTS = re.compile("(latents)", re.I)
 
 
 def get_identifier(path_object: Union[str, Path]) -> Optional[UUID]:
@@ -53,6 +55,11 @@ class Backend(Protocol):
     ) -> None:
         """TODO PEP 257"""
         # pass
+
+    def save_logged_latents(
+        self, tag: str, identifier: UUID, dataframe: pd.DataFrame
+    ) -> None:
+        """TODO PEP 257"""
 
     def load_logged_dataset(self, tag: str) -> Dataset:
         """Return a Dataset consisting of two pd.DataFrames.
@@ -138,6 +145,8 @@ class FileBackend:
         reference_dir = self._get_reference_path(tag)
         dataset.features.to_csv(reference_dir.joinpath("features.csv"), index=False)
         dataset.labels.to_csv(reference_dir.joinpath("labels.csv"), index=False)
+        if dataset.latents is not None:
+            dataset.latents.to_csv(reference_dir.joinpath("latents.csv"), index=False)
 
     def load_reference_dataset(self, tag: str) -> Dataset:
         """
@@ -153,10 +162,17 @@ class FileBackend:
         """
         reference_dir = self._get_reference_path(tag)
 
-        features_df = pd.read_csv(reference_dir.joinpath("features.csv"))
-        labels_df = pd.read_csv(reference_dir.joinpath("labels.csv"))
+        features_df: pd.DataFrame = pd.read_csv(reference_dir.joinpath("features.csv"))
 
-        return Dataset(features_df, labels_df)
+        labels_df: pd.DataFrame = pd.read_csv(reference_dir.joinpath("labels.csv"))
+        assert len(labels_df.columns) == 1
+        labels_series: pd.Series = labels_df.iloc[:, 0]
+
+        latents_df: Optional[pd.DataFrame] = None
+        if reference_dir.joinpath("latents.csv").exists():
+            latents_df = pd.read_csv(reference_dir.joinpath("latents.csv"))
+
+        return Dataset(features_df, labels_series, latents_df)
 
     def save_logged_features(
         self, tag: str, identifier: UUID, dataframe: pd.DataFrame
@@ -194,11 +210,21 @@ class FileBackend:
 
         labels.to_csv(logged_dir.joinpath(f"{identifier}_labels.csv"), index=False)
 
+    def save_logged_latents(
+        self, tag: str, identifier: UUID, dataframe: Optional[pd.DataFrame]
+    ) -> None:
+        """TODO PEP 257"""
+        if dataframe is not None:
+            logged_dir = self._get_logged_path(tag)
+            dataframe.to_csv(
+                logged_dir.joinpath(f"{identifier}_latents.csv"), index=False
+            )
+
     def load_logged_dataset(self, tag: str) -> Dataset:
         """
-        Loops through files in tag subdirectory to create a Dataset class consisting of two
-        concatenated dataframes of logged features and logged labels. Labels and features
-        are paired based on the UUID in the filename.
+        Loops through files in tag subdirectory to create a Dataset class consisting of
+        concatenated logged features, labels and optionally latents. The dataframes must
+        have the same index.
 
         Args:
             tag (str): Tag identifying dataset
@@ -209,39 +235,48 @@ class FileBackend:
         """
 
         files = [Path(f) for f in glob.glob(f"{self._get_logged_path(tag)}/*")]
-        file_pairs: List[Tuple[Path, Path]] = []
-        matcher: Dict[UUID, Path] = {}
+        loaded_file_dict: Dict[UUID, List[Path]] = {}
 
         for file in files:
-
+            # Get its identifier
             key = get_identifier(Path(file))
             if key is None:
                 raise IOError("File name does not start with a UUID")
 
-            value = matcher.pop(key, None)
+            loaded_file_dict.setdefault(key, []).append(file)
 
-            if value is not None:
-                file_pairs.append((value, file))
-            else:
-                matcher[key] = file
+        all_feature_dfs: List[pd.DataFrame] = []
+        all_label_series: List[pd.Series] = []
+        all_latent_dfs: List[pd.DataFrame] = []
 
-        # Check which is the label
+        for key, value in loaded_file_dict.items():
+            # Must have at least features and labels, optional latents
+            assert len(value) >= 2
 
-        all_feature_dfs = []
-        all_label_dfs = []
-        for pair in file_pairs:
+            # Loop over files in list of files for each identifier
+            for fname in value:
+                if RE_LABEL.search(fname.stem) is not None:
+                    all_label_df: pd.DataFrame = pd.read_csv(fname)
+                    assert len(all_label_df.columns) == 1
+                    all_label_series.append(all_label_df.iloc[:, 0])
 
-            if RE_LABEL.search(pair[0].stem) is not None:
+                if RE_FEATURES.search(fname.stem) is not None:
+                    all_feature_dfs.append(pd.read_csv(fname))
 
-                all_feature_dfs.append(pd.read_csv(pair[1]))
-                all_label_dfs.append(pd.read_csv(pair[0]))
-            else:
-                all_feature_dfs.append(pd.read_csv(pair[0]))
-                all_label_dfs.append(pd.read_csv(pair[1]))
+                if RE_LATENTS.search(fname.stem) is not None:
+                    all_latent_dfs.append(pd.read_csv(fname))
 
-        return Dataset(
-            features=pd.concat(all_feature_dfs), labels=pd.concat(all_label_dfs)
+        # Assert that the features and labels are non-empty
+        assert all_feature_dfs and all_label_series
+
+        # If latents found, return with latents, otherwise no latents
+        features: pd.DataFrame = pd.concat(all_feature_dfs)
+        labels: pd.Series = pd.concat(all_label_series)
+        latents: Optional[pd.DataFrame] = (
+            pd.concat(all_latent_dfs) if all_latent_dfs else None
         )
+
+        return Dataset(features=features, labels=labels, latents=latents)
 
     def clear_reference_dataset(self, tag: str) -> bool:
         """
