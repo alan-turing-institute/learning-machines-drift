@@ -61,7 +61,7 @@ class Backend(Protocol):
 
 
 class FileBackend:
-    """Implements the Backend protocol. Writes files to the filesystem"""
+    """Implements the Backend protocol. Write files to the filesystem"""
 
     def __init__(self, root_dir: Union[str, Path]) -> None:
         """Creates root directory for output
@@ -203,7 +203,7 @@ class FileBackend:
         Args:
             tag (str): Tag identifying dataset
 
-        Return:
+        Returns:
             Dataset
 
         """
@@ -243,6 +243,31 @@ class FileBackend:
             features=pd.concat(all_feature_dfs), labels=pd.concat(all_label_dfs)
         )
 
+    def clear_reference_dataset(self, tag: str) -> bool:
+        """
+        Delete directory containing reference files
+
+        Args:
+            tag (str): Path to reference directory
+
+         Return:
+            True: if reference_dir already exists
+            False: if reference_dir doesn't exist and has been created
+        """
+
+        reference_dir = self.root_dir.joinpath(tag).joinpath("reference")
+        if not reference_dir.exists():
+            reference_dir.mkdir()
+            return False
+        elif len(os.listdir(reference_dir)) == 0:
+            return True
+        else:
+            for root, dirs, files in os.walk(reference_dir):
+                for file in files:
+                    os.remove(os.path.join(root, file))
+            return True
+
+
     def clear_logged_datasets(self, tag: str) -> bool:
 
         """
@@ -258,7 +283,7 @@ class FileBackend:
 
         logged_dir = self.root_dir.joinpath(tag).joinpath("logged")
         if not logged_dir.exists():
-            logged_dir.mkdir()
+            return False
             # return True
         elif len(os.listdir(logged_dir)) == 0:
             return True
@@ -267,7 +292,7 @@ class FileBackend:
                 for file in files:
                     os.remove(os.path.join(root, file))
             return True
-        return False
+
 
 # clear just the log files
 # clear reference and log files
