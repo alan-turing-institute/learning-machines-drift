@@ -12,8 +12,8 @@ import pandas as pd
 from learning_machines_drift.types import Dataset
 
 
-class Operator(Enum):
-    """Operator class for 'LESS', 'GREATER' and 'EQUAL' cases."""
+class Comparison(Enum):
+    """Comparison class for 'LESS', 'GREATER' and 'EQUAL' cases."""
 
     LESS = auto()
     GREATER = auto()
@@ -21,28 +21,28 @@ class Operator(Enum):
 
 
 class Condition:  # pylint: disable=too-few-public-methods
-    """Condition class comprising of an 'operator' and a 'value'."""
+    """Condition class comprising of a 'comparison' and a 'value'."""
 
-    operator: Operator
+    comparison: Comparison
     value: Any
 
-    def __init__(self, operator: str, value: Any):
+    def __init__(self, comparison_str: str, value: Any):
         """Init condition from passed string and value.
 
         Args:
-            operator (str): One of 'equal', 'less', 'greater'.
+            comparison_str (str): One of 'equal', 'less', 'greater'.
             value (Any): The value for comparison.
 
         """
-        if operator == "less":
-            self.operator = Operator.LESS
-        elif operator == "greater":
-            self.operator = Operator.GREATER
-        elif operator == "equal":
-            self.operator = Operator.EQUAL
+        if comparison_str == "less":
+            self.comparison = Comparison.LESS
+        elif comparison_str == "greater":
+            self.comparison = Comparison.GREATER
+        elif comparison_str == "equal":
+            self.comparison = Comparison.EQUAL
         else:
             raise ValueError(
-                f"'{operator}' is not implemented. "
+                f"'{comparison_str}' is not implemented. "
                 "Please choose one of 'equal', 'less', 'greater'."
             )
         self.value = value
@@ -73,14 +73,14 @@ class Filter:  # pylint: disable=too-few-public-methods
         self, df: pd.DataFrame, variable: str, condition: Condition
     ) -> pd.DataFrame:
         """Subset a dataframe given condition and value."""
-        if condition.operator == Operator.LESS:
+        if condition.comparison == Comparison.LESS:
             return df.loc[df[variable] < condition.value]
-        if condition.operator == Operator.GREATER:
+        if condition.comparison == Comparison.GREATER:
             return df.loc[df[variable] > condition.value]
-        if condition.operator == Operator.EQUAL:
+        if condition.comparison == Comparison.EQUAL:
             return df.loc[df[variable] == condition.value]
         raise ValueError(
-            f"'{condition.operator}' is not implemented. "
+            f"'{condition.comparison}' is not implemented. "
             "Please choose one of 'equal', 'less', 'greater'."
         )
 
@@ -90,14 +90,14 @@ class Filter:  # pylint: disable=too-few-public-methods
         condition: Condition,
     ) -> pd.Series:
         """Subset a series given condition and value."""
-        if condition.operator == Operator.LESS:
+        if condition.comparison == Comparison.LESS:
             return series[series < condition.value]
-        if condition.operator == Operator.GREATER:
+        if condition.comparison == Comparison.GREATER:
             return series[series > condition.value]
-        if condition.operator == Operator.EQUAL:
+        if condition.comparison == Comparison.EQUAL:
             return series[series == condition.value]
         raise ValueError(
-            f"'{condition.operator}' is not implemented. "
+            f"'{condition.comparison}' is not implemented. "
             "Please choose one of 'equal', 'less', 'greater'."
         )
 

@@ -15,7 +15,7 @@ from learning_machines_drift import Monitor, ReferenceDatasetMissing, Registry, 
 from learning_machines_drift.backends import FileBackend
 from learning_machines_drift.datasets import example_dataset
 from learning_machines_drift.display import Display
-from learning_machines_drift.drift_filter import Condition, Filter, Operator
+from learning_machines_drift.drift_filter import Comparison, Condition, Filter
 
 N_FEATURES = 3
 N_LABELS = 2
@@ -432,9 +432,9 @@ def test_load_all_logged_data(tmp_path: pathlib.Path) -> None:
 
 
 def test_condition() -> None:
-    """Test for creating a valid condition instance."""
+    """Test for creating condition instances."""
     condition = Condition("less", 5)
-    assert condition.operator == Operator.LESS
+    assert condition.comparison == Comparison.LESS
     assert condition.value == 5
 
     with pytest.raises(Exception):
