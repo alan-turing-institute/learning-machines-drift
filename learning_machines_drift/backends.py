@@ -295,12 +295,11 @@ class FileBackend:
 
          Return:
             True: if reference_dir already exists
-            False: if reference_dir doesn't exist and has been created
+            False: if reference_dir doesn't exist
         """
 
         reference_dir = self.root_dir.joinpath(tag).joinpath("reference")
         if not reference_dir.exists():
-            reference_dir.mkdir()
             return False
         if len(os.listdir(reference_dir)) == 0:
             return True
@@ -320,13 +319,12 @@ class FileBackend:
 
         Return:
             True: if logged_dir already exists
-            False: if logged_dir doesn't exist and has been created
+            False: if logged_dir doesn't exist
         """
 
         logged_dir = self.root_dir.joinpath(tag).joinpath("logged")
         if not logged_dir.exists():
             return False
-            # return True
         if len(os.listdir(logged_dir)) == 0:
             return True
 

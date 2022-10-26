@@ -1,4 +1,5 @@
 """TODO PEP 257"""
+# pylint: disable=protected-access
 import os
 import pathlib
 import re
@@ -135,7 +136,7 @@ def test_labels() -> None:
 #     )
 
 
-def test_load_logged_dataset(tmp_path: pathlib.Path) -> None:
+def test_clear_logged_dataset(tmp_path: pathlib.Path) -> None:
     """
     Test for load_logged_dataset
     """
@@ -150,13 +151,13 @@ def test_load_logged_dataset(tmp_path: pathlib.Path) -> None:
     backend.save_logged_labels(tag, identifier_1, labels_df_1)
     backend.save_logged_latents(tag, identifier_1, latents_df_1)
 
-    logged_path = os.path.join(tmp_path, tag, "logged")
+    logged_path = backend._get_logged_path(tag)
     assert len(os.listdir(logged_path)) > 0
     assert backend.clear_logged_dataset(tag)
     assert len(os.listdir(logged_path)) == 0
 
 
-def test_load_reference_dataset(tmp_path: pathlib.Path) -> None:
+def test_clear_reference_dataset(tmp_path: pathlib.Path) -> None:
     """
     Test for load_reference_dataset
     """
@@ -169,7 +170,7 @@ def test_load_reference_dataset(tmp_path: pathlib.Path) -> None:
     backend = FileBackend(tmp_path)
     backend.save_reference_dataset(tag, reference_dataset)
 
-    reference_path = os.path.join(tmp_path, tag, "reference")
+    reference_path = backend._get_reference_path(tag)
     assert len(os.listdir(reference_path)) > 0
     assert backend.clear_reference_dataset(tag)
     assert len(os.listdir(reference_path)) == 0
