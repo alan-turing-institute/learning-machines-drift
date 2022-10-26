@@ -1,4 +1,6 @@
 """TODO PEP 257"""
+# pylint: disable=protected-access
+import os
 import pathlib
 import re
 from uuid import uuid4
@@ -132,3 +134,43 @@ def test_labels() -> None:
 #         recovered_df.sort_values(by="age").reset_index(drop=True),
 #         check_exact=False,
 #     )
+
+
+def test_clear_logged_dataset(tmp_path: pathlib.Path) -> None:
+    """
+    Test for load_logged_dataset
+    """
+    # Given
+    tag = "test_tag"
+
+    # When
+    backend = FileBackend(tmp_path)
+    features_df_1, labels_df_1, latents_df_1 = example_dataset(5)
+    identifier_1 = uuid4()
+    backend.save_logged_features(tag, identifier_1, features_df_1)
+    backend.save_logged_labels(tag, identifier_1, labels_df_1)
+    backend.save_logged_latents(tag, identifier_1, latents_df_1)
+
+    logged_path = backend._get_logged_path(tag)
+    assert len(os.listdir(logged_path)) > 0
+    assert backend.clear_logged_dataset(tag)
+    assert len(os.listdir(logged_path)) == 0
+
+
+def test_clear_reference_dataset(tmp_path: pathlib.Path) -> None:
+    """
+    Test for load_reference_dataset
+    """
+    # Given
+    tag = "test_tag"
+    features_df, labels_df, latents_df = example_dataset(100)
+    reference_dataset = Dataset(features_df, labels_df, latents_df)
+
+    # When
+    backend = FileBackend(tmp_path)
+    backend.save_reference_dataset(tag, reference_dataset)
+
+    reference_path = backend._get_reference_path(tag)
+    assert len(os.listdir(reference_path)) > 0
+    assert backend.clear_reference_dataset(tag)
+    assert len(os.listdir(reference_path)) == 0
