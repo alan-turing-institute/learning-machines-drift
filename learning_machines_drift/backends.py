@@ -1,5 +1,6 @@
 """TODO PEP 257"""
 import glob
+import os
 import re
 
 # import uuid
@@ -21,7 +22,10 @@ RE_LATENTS = re.compile("(latents)", re.I)
 
 
 def get_identifier(path_object: Union[str, Path]) -> Optional[UUID]:
-    """TODO PEP 257"""
+    """Extract the UUID from the filename. The filename should have
+    the format UUID + some other text
+    and a file extension. The UUID should match the regex in the
+    Pattern variable UUIDHex4."""
 
     a_match = UUIDHex4.match(Path(path_object).stem)
 
@@ -32,7 +36,7 @@ def get_identifier(path_object: Union[str, Path]) -> Optional[UUID]:
 
 
 class Backend(Protocol):
-    """TODO PEP 257"""
+    """Appears to be a placeholder for something - unknown at the time"""
 
     def save_reference_dataset(self, tag: str, dataset: Dataset) -> None:
         """TODO PEP 257"""
@@ -64,12 +68,26 @@ class Backend(Protocol):
         The dataframes must have the same index"""
         # pass
 
+    def clear_logged_dataset(self, tag: str) -> bool:
+        """TODO PEP 257"""
+        # pass
+
+    def clear_reference_dataset(self, tag: str) -> bool:
+        """TODO PEP 257"""
+        # pass
+
 
 class FileBackend:
-    """Implements the Backend protocol. Writes files to the filesystem"""
+    """Implements the Backend protocol. Write files to the filesystem"""
 
     def __init__(self, root_dir: Union[str, Path]) -> None:
-        """TODO PEP 257"""
+        """Creates root directory for output
+        Args:
+            root_dir (Union[str, Path]): Absolute path to where outputs will be saved.
+
+        Returns:
+            None
+        """
         self.root_dir = Path(root_dir)
         self.root_dir.mkdir(exist_ok=True)
 
@@ -98,7 +116,16 @@ class FileBackend:
         return reference_dir
 
     def _get_logged_path(self, tag: str) -> Path:
-        """TODO PEP 257"""
+        """
+        Get the directory for storing logged data,
+        creating directories if required
+
+        Args:
+            tag (str): Tag identifying dataset
+
+        Returns:
+            Path: Directory storing logged datasets
+        """
 
         # Make a directory for the current tag
         tag_dir = self.root_dir.joinpath(tag)
@@ -113,7 +140,17 @@ class FileBackend:
         return logged_dir
 
     def save_reference_dataset(self, tag: str, dataset: Dataset) -> None:
-        """TODO PEP 257"""
+        """
+        Save dataset to reference path.
+
+        Args:
+            tag (str): Tag identifying dataset
+            dataset (Dataset): Dataset that needs saving
+
+        Returns:
+            None
+
+        """
 
         reference_dir = self._get_reference_path(tag)
         dataset.features.to_csv(reference_dir.joinpath("features.csv"), index=False)
@@ -122,7 +159,17 @@ class FileBackend:
             dataset.latents.to_csv(reference_dir.joinpath("latents.csv"), index=False)
 
     def load_reference_dataset(self, tag: str) -> Dataset:
-        """TODO PEP 257"""
+        """
+        Load reference dataset from reference path.
+
+        Args:
+            tag (str): Tag identifying dataset
+
+        Returns:
+            Dataset
+
+
+        """
         reference_dir = self._get_reference_path(tag)
 
         features_df: pd.DataFrame = pd.read_csv(reference_dir.joinpath("features.csv"))
@@ -140,19 +187,36 @@ class FileBackend:
     def save_logged_features(
         self, tag: str, identifier: UUID, dataframe: pd.DataFrame
     ) -> None:
-        """TODO PEP 257"""
+        """
+        Save logged features using tag as the path with UUID prepended to filename.
+
+        Args:
+            tag (str): Tag identifying dataset
+            identifier (UUID): A unique identifier for the logged dataset
+            dataframe (pd.DataFrame): The dataframe that needs saving
+
+        Returns:
+            None
+        """
 
         logged_dir = self._get_logged_path(tag)
         dataframe.to_csv(logged_dir.joinpath(f"{identifier}_features.csv"), index=False)
 
-    def save_logged_labels(
-        self, tag: str, identifier: UUID, dataframe: pd.DataFrame
-    ) -> None:
-        """TODO PEP 257"""
+    def save_logged_labels(self, tag: str, identifier: UUID, labels: pd.Series) -> None:
+        """
+        Save logged labels using tag as the path with UUID prepended to filename.
 
+        Args:
+            tag (str): Tag identifying dataset
+            identifier (UUID): A unique identifier for the labels of the dataset
+            labels (pd.Series): The dataframe that needs saving
+
+        Returns:
+            None
+        """
         logged_dir = self._get_logged_path(tag)
 
-        dataframe.to_csv(logged_dir.joinpath(f"{identifier}_labels.csv"), index=False)
+        labels.to_csv(logged_dir.joinpath(f"{identifier}_labels.csv"), index=False)
 
     def save_logged_latents(
         self, tag: str, identifier: UUID, dataframe: Optional[pd.DataFrame]
@@ -165,13 +229,22 @@ class FileBackend:
             )
 
     def load_logged_dataset(self, tag: str) -> Dataset:
-        """Return a Dataset consisting of three (optional one) pd.DataFrames.
-        The dataframes must have the same index"""
+        """
+        Loops through files in tag subdirectory to create a Dataset class consisting of
+        concatenated logged features, labels and optionally latents. The dataframes must
+        have the same index.
+
+        Args:
+            tag (str): Tag identifying dataset
+
+        Returns:
+            Dataset
+
+        """
 
         files = [Path(f) for f in glob.glob(f"{self._get_logged_path(tag)}/*")]
         loaded_file_dict: Dict[UUID, List[Path]] = {}
 
-        # Add each identifier to file lists
         for file in files:
             # Get its identifier
             key = get_identifier(Path(file))
@@ -212,3 +285,50 @@ class FileBackend:
         )
 
         return Dataset(features=features, labels=labels, latents=latents)
+
+    def clear_reference_dataset(self, tag: str) -> bool:
+        """
+        Delete directory containing reference files
+
+        Args:
+            tag (str): Path to reference directory
+
+         Return:
+            True: if reference_dir already exists
+            False: if reference_dir doesn't exist
+        """
+
+        reference_dir = self.root_dir.joinpath(tag).joinpath("reference")
+        if not reference_dir.exists():
+            return False
+        if len(os.listdir(reference_dir)) == 0:
+            return True
+
+        for root, _, files in os.walk(reference_dir):
+            for file in files:
+                os.remove(os.path.join(root, file))
+        return True
+
+    def clear_logged_dataset(self, tag: str) -> bool:
+
+        """
+        Delete directory containing logged files.
+
+        Args:
+            tag (str): Path to logged directory
+
+        Return:
+            True: if logged_dir already exists
+            False: if logged_dir doesn't exist
+        """
+
+        logged_dir = self.root_dir.joinpath(tag).joinpath("logged")
+        if not logged_dir.exists():
+            return False
+        if len(os.listdir(logged_dir)) == 0:
+            return True
+
+        for root, _, files in os.walk(logged_dir):
+            for file in files:
+                os.remove(os.path.join(root, file))
+        return True
