@@ -52,9 +52,7 @@ class Backend(Protocol):
         """TODO PEP 257"""
         # pass
 
-    def save_logged_labels(
-        self, tag: str, identifier: UUID, dataframe: pd.DataFrame
-    ) -> None:
+    def save_logged_labels(self, tag: str, identifier: UUID, labels: pd.Series) -> None:
         """TODO PEP 257"""
         # pass
 
@@ -77,7 +75,7 @@ class Backend(Protocol):
         # pass
 
 
-class FileBackend:
+class FileBackend(Backend):
     """Implements the Backend protocol. Write files to the filesystem"""
 
     def __init__(self, root_dir: Union[str, Path]) -> None:
