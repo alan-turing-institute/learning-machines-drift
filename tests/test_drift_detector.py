@@ -3,7 +3,7 @@
 
 import pathlib
 from functools import partial
-from typing import Any, Callable, Dict
+from typing import Any, Callable, Dict, List
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -11,15 +11,11 @@ import pandas as pd
 import pytest
 from pytest_mock import MockerFixture
 
-from learning_machines_drift import (  # DriftDetector,; DriftMeasure,
-    Monitor,
-    ReferenceDatasetMissing,
-    Registry,
-    datasets,
-)
+from learning_machines_drift import Monitor, ReferenceDatasetMissing, Registry, datasets
 from learning_machines_drift.backends import FileBackend
 from learning_machines_drift.datasets import example_dataset
 from learning_machines_drift.display import Display
+from learning_machines_drift.drift_filter import Comparison, Condition, Filter
 
 N_FEATURES = 3
 N_LABELS = 2
@@ -433,6 +429,77 @@ def test_load_all_logged_data(tmp_path: pathlib.Path) -> None:
     dimensions = recovered_dataset.unify().shape
     assert dimensions[0] == 4
     assert dimensions[1] == 5
+
+
+def test_condition() -> None:
+    """Test for creating condition instances."""
+    condition = Condition("less", 5)
+    assert condition.comparison == Comparison.LESS
+    assert condition.value == 5
+
+    with pytest.raises(Exception):
+        condition = Condition("Equal", 5)
+
+    with pytest.raises(Exception):
+        condition = Condition("Greater", 5)
+
+
+@pytest.mark.parametrize("n_rows", [10, 100, 1000])
+def test_load_data_filtered(tmp_path: pathlib.Path, n_rows: int) -> None:
+    """TODO PEP 257"""
+    det = Registry(tag="test", backend=FileBackend(tmp_path))
+    features_df, labels_df, latents_df = example_dataset(n_rows, seed=42)
+    det.register_ref_dataset(features=features_df, labels=labels_df, latents=latents_df)
+
+    # And we have features and predicted labels
+    features_reg, labels_reg, latents_reg = example_dataset(n_rows * 2, seed=43)
+
+    # When we log features and labels of new data
+    with det:
+        det.log_features(features_reg)
+        det.log_labels(labels_reg)
+        det.log_latents(latents_reg)
+
+    # Make a drift filter
+    filter_dict: Dict[str, List[Condition]] = dict(
+        [
+            ("age", [Condition("less", 0.2)]),
+            ("height", [Condition("greater", -0.1), Condition("less", 0.5)]),
+            ("y", [Condition("equal", 0)]),
+            ("latents", [Condition("greater", 0.6)]),
+        ]
+    )
+    drift_filter = Filter(filter_dict)
+
+    # Load data (unfiltered datasets)
+    monitor_unfiltered = Monitor(tag="test", backend=FileBackend(tmp_path))
+    _ = monitor_unfiltered.load_data()
+
+    # Load data (filtered datasets)
+    monitor = Monitor(tag="test", backend=FileBackend(tmp_path))
+    _ = monitor.load_data(drift_filter)
+
+    # Assert conditions on unfiltered and filtered datasets
+    for (ref_dataset, reg_dataset, assertion_bool) in [
+        (monitor_unfiltered.ref_dataset, monitor_unfiltered.registered_dataset, False),
+        (monitor.ref_dataset, monitor.registered_dataset, True),
+    ]:
+        assert ref_dataset is not None and reg_dataset is not None
+        assert ref_dataset.latents is not None and reg_dataset.latents is not None
+        assert ref_dataset.features.shape[0] == ref_dataset.labels.shape[0]
+        assert ref_dataset.labels.shape[0] == ref_dataset.latents.shape[0]
+        assert reg_dataset.features.shape[0] == reg_dataset.labels.shape[0]
+        assert reg_dataset.labels.shape[0] == reg_dataset.latents.shape[0]
+        assert ref_dataset.features["age"].lt(0.2).all() == assertion_bool
+        assert reg_dataset.features["age"].lt(0.2).all() == assertion_bool
+        assert ref_dataset.features["height"].gt(-0.1).all() == assertion_bool
+        assert reg_dataset.features["height"].gt(-0.1).all() == assertion_bool
+        assert ref_dataset.features["height"].lt(0.5).all() == assertion_bool
+        assert reg_dataset.features["height"].lt(0.5).all() == assertion_bool
+        assert ref_dataset.labels.eq(0).all() == assertion_bool
+        assert reg_dataset.labels.eq(0).all() == assertion_bool
+        assert ref_dataset.latents["latents"].gt(0.6).all() == assertion_bool
+        assert reg_dataset.latents["latents"].gt(0.6).all() == assertion_bool
 
 
 def test_category_columns(tmp_path: pathlib.Path) -> None:

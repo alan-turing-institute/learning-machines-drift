@@ -278,10 +278,10 @@ class FileBackend:
         assert all_feature_dfs and all_label_series
 
         # If latents found, return with latents, otherwise no latents
-        features: pd.DataFrame = pd.concat(all_feature_dfs)
-        labels: pd.Series = pd.concat(all_label_series)
+        features: pd.DataFrame = pd.concat(all_feature_dfs).reset_index(drop=True)
+        labels: pd.Series = pd.concat(all_label_series).reset_index(drop=True)
         latents: Optional[pd.DataFrame] = (
-            pd.concat(all_latent_dfs) if all_latent_dfs else None
+            pd.concat(all_latent_dfs).reset_index(drop=True) if all_latent_dfs else None
         )
 
         return Dataset(features=features, labels=labels, latents=latents)

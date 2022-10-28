@@ -28,11 +28,6 @@ from learning_machines_drift.types import (
     ShapeSummary,
 )
 
-# from numpy.typing import ArrayLike, NDArray
-# from pydantic import BaseModel
-# from pygments import formatters, highlight, lexers
-# from scipy import stats
-
 
 class Registry:
     """TODO PEP 257"""
@@ -100,10 +95,9 @@ class Registry:
         self.backend.save_reference_dataset(self.tag, self.ref_dataset)
 
     def ref_summary(self) -> BaselineSummary:
-        """TODO PEP 257"""
+        """Return a json describing shape of dataset features and labels"""
 
         if self.ref_dataset is None:
-
             raise ReferenceDatasetMissing
 
         feature_n_rows = self.ref_dataset.features.shape[0]
@@ -127,7 +121,7 @@ class Registry:
         )
 
     def log_features(self, features: pd.DataFrame) -> None:
-        """TODO PEP 257"""
+        """Log dataset features"""
 
         self.registered_features = features
         self.backend.save_logged_features(
@@ -135,7 +129,7 @@ class Registry:
         )
 
     def log_labels(self, labels: pd.Series) -> None:
-        """TODO PEP 257"""
+        """Log dataset labels"""
 
         self.registered_labels = labels
         self.backend.save_logged_labels(
