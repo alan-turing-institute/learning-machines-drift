@@ -1,3 +1,4 @@
+_build/
 .coverage
 *__pycache__
 *.pytest_cache
@@ -6,3 +7,5 @@
 .idea/
 test/
 **/alzheimers-data
+poetry.lock
+
