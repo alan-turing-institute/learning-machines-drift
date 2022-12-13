@@ -122,7 +122,6 @@ class Registry:
 
     def log_features(self, features: pd.DataFrame) -> None:
         """Log dataset features"""
-
         self.registered_features = features
         self.backend.save_logged_features(
             self.tag, self.identifier, self.registered_features

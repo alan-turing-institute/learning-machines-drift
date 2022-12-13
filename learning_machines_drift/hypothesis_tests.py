@@ -9,15 +9,22 @@ import numpy as np
 import numpy.typing as npt
 import pandas as pd
 from scipy import stats
-from sdmetrics.single_table import GMLogLikelihood, LogisticDetection
+from sdmetrics.single_table import LogisticDetection
 from sdmetrics.utils import HyperTransformer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import f1_score, roc_auc_score
 from sklearn.model_selection import StratifiedKFold
+from sdmetrics.single_column import BoundaryAdherence
 
 from learning_machines_drift.types import Dataset
 
-
+from enum import Enum
+ 
+class Wrapper(Enum):
+    TYPE_TUPLE = 1
+    TYPE_OTHER = 2
+    TYPE_SDMETRIC = 3
+    
 class HypothesisTests:
     """
     A class for performing hypothesis tests and scoring between registered and
@@ -66,14 +73,13 @@ class HypothesisTests:
         ]
         for attribute in attributes:
             obj_as_dict[attribute] = getattr(obj, attribute)
-
         return obj_as_dict
 
     def _calc(
         self,
         func: Callable[..., Any],
         subset: Optional[List[str]] = None,
-        as_tuple: bool = False,
+        wrapper: Wrapper = Wrapper.TYPE_OTHER,
     ) -> Any:
         """Method for calculating statistic and pvalue from a passed scoring
         function.
@@ -93,16 +99,22 @@ class HypothesisTests:
             ref_col: pd.Series,
             reg_col: pd.Series,
             results: Dict[str, Any],
-            as_tuple: bool = False,
+            wrapper: Wrapper = Wrapper.TYPE_OTHER,
         ) -> Dict[str, Any]:
-            if not as_tuple:
-                result = func(ref_col, reg_col)
-            else:
+            
+            if wrapper is Wrapper.TYPE_TUPLE:
                 result = func((ref_col, reg_col))
+            elif wrapper is Wrapper.TYPE_SDMETRIC:
+                result = func(real_data=ref_col, synthetic_data=reg_col)
+                result = {"statistic":result}
+            else:
+                result = func(ref_col, reg_col)
+              
             if not isinstance(result, dict):
                 results[feature] = self._to_dict(result)
             else:
                 results[feature] = result
+            
             return results
 
         results: Dict[str, Any] = {}
@@ -148,7 +160,7 @@ class HypothesisTests:
             else:
                 raise ValueError("Reference dataset is None.")
             # Run calc and update dictionary
-            results = call_func(col_name, ref_col, reg_col, results, as_tuple)
+            results = call_func(col_name, ref_col, reg_col, results, wrapper)
 
         return results
 
@@ -293,7 +305,7 @@ class HypothesisTests:
             random_state=self.random_state,
         )
 
-        results = self._calc(func, as_tuple=True)
+        results = self._calc(func, wrapper=Wrapper.TYPE_TUPLE)
 
         if verbose:
             print(about_str)
@@ -480,18 +492,7 @@ class HypothesisTests:
 
     # pylint: enable=invalid-name
 
-    # def sd_evaluate(self, verbose=True) -> Any:
-    #     method = "SD Evaluate"
-    #     description = "Detection metric based on a LogisticRegression
-    #     classifier from scikit-learn"
-    #     about_str = "\nMethod: {method}\nDescription:{description}"
-    #     about_str = about_str.format(method=method, description=description)
-
-    #     if verbose:
-    #         print(about_str)
-    #     results = evaluate(
-    #         self.reference_dataset.unify(),
-    #         self.registered_dataset.unify(),
-    #         aggregate=False,
-    #     )
-    #     return results
+    def get_boundary_adherence(self):
+        unified_ref_subset, unified_reg_subset = self.get_unified_subsets()
+        results = self._calc(BoundaryAdherence.compute, wrapper=Wrapper.TYPE_SDMETRIC)
+        return results
