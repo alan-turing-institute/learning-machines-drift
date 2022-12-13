@@ -29,6 +29,7 @@ repos:
     hooks:
       - id: safety
         name: Safety
+        # Ignore "51457" while no fix available: https://pyup.io/v/51457/f17
         entry: poetry run safety check --full-report -i 51457
         pass_filenames: false
         language: system
