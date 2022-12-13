@@ -330,42 +330,6 @@ class HypothesisTests:
 
         return out_features
 
-    def gaussian_mixture_log_likelihood(
-        self, verbose: bool = True, normalize: bool = False
-    ) -> Dict[str, Dict[str, float]]:
-        """Calculates the log-likelihood of reference data given Gaussian
-        Mixture Model (GMM) fits on the reference data using Synthetic Data
-        Vault package.
-
-        Args:
-            verbose (bool): Boolean for verbose output to stdout.
-            normalize (bool): Normalize raw_score to interval [0, 1].
-
-        Returns:
-            results (Dict[str, Dict[str, float]]): Log-likelihood of reference
-            data with fitted model that has lowest Bayesian Information
-            Criterion (BIC).
-        """
-        method: str = f"Gaussian Mixture Log Likelihood (normalize: {normalize})"
-        description: str = (
-            "This metric fits multiple GaussianMixture models to the real "
-            "data and then evaluates the average log likelihood of the "
-            "synthetic data on them."
-        )
-        about_str = self._format_about_str(method=method, description=description)
-
-        if verbose:
-            print(about_str)
-
-        results: float = GMLogLikelihood.compute(*self.get_unified_subsets())
-
-        if normalize:
-            results = GMLogLikelihood.normalize(results)
-
-        return {
-            "gaussian_mixture_log_likelihood": {"statistic": results, "pvalue": np.nan}
-        }
-
     def get_unified_subsets(self) -> Tuple[pd.DataFrame, pd.DataFrame]:
         """Unify both datasets and return dataframes with common columns."""
 
