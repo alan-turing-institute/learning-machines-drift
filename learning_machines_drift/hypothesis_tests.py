@@ -14,7 +14,7 @@ from sdmetrics.utils import HyperTransformer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import f1_score, roc_auc_score
 from sklearn.model_selection import StratifiedKFold
-from sdmetrics.single_column import BoundaryAdherence
+from sdmetrics.single_column import BoundaryAdherence, RangeCoverage
 
 from learning_machines_drift.types import Dataset
 
@@ -492,7 +492,10 @@ class HypothesisTests:
 
     # pylint: enable=invalid-name
 
-    def get_boundary_adherence(self):
-        unified_ref_subset, unified_reg_subset = self.get_unified_subsets()
-        results = self._calc(BoundaryAdherence.compute, wrapper=Wrapper.TYPE_SDMETRIC)
+    def get_boundary_adherence(self)->Dict:
+        results:Dict = self._calc(BoundaryAdherence.compute, wrapper=Wrapper.TYPE_SDMETRIC)
+        return results
+
+    def get_range_coverage(self)->Dict:
+        results:Dict = self._calc(RangeCoverage.compute, wrapper=Wrapper.TYPE_SDMETRIC)
         return results

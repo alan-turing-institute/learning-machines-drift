@@ -185,17 +185,7 @@ def test_summary_statistic_list(
     meas.load_data()
     h_test_dispatcher: Dict[str, Any] = {
         "scipy_kolmogorov_smirnov": meas.hypothesis_tests.scipy_kolmogorov_smirnov,
-        "scipy_chisquare": meas.hypothesis_tests.scipy_chisquare,
         "scipy_mannwhitneyu": meas.hypothesis_tests.scipy_mannwhitneyu,
-        "scipy_permutation": meas.hypothesis_tests.scipy_permutation,
-        "gaussian_mixture_log_likelihood": meas.hypothesis_tests.gaussian_mixture_log_likelihood,
-        "logistic_detection": meas.hypothesis_tests.logistic_detection,
-        "logistic_detection_f1": partial(
-            meas.hypothesis_tests.logistic_detection_custom, score_type="f1"
-        ),
-        "logistic_detection_roc_auc": partial(
-            meas.hypothesis_tests.logistic_detection_custom, score_type="roc_auc"
-        ),
     }
 
     for h_test_name, h_test_fn in h_test_dispatcher.items():
@@ -290,7 +280,6 @@ def test_with_noncommon_columns(tmp_path) -> None:  # type: ignore
         "scipy_chisquare": meas.hypothesis_tests.scipy_chisquare,
         "scipy_mannwhitneyu": meas.hypothesis_tests.scipy_mannwhitneyu,
         "scipy_permutation": meas.hypothesis_tests.scipy_permutation,
-        "gaussian_mixture_log_likelihood": meas.hypothesis_tests.gaussian_mixture_log_likelihood,
         "logistic_detection": meas.hypothesis_tests.logistic_detection,
         "logistic_detection_f1": partial(
             meas.hypothesis_tests.logistic_detection_custom, score_type="f1"
@@ -361,7 +350,6 @@ def test_display(tmp_path: pathlib.Path) -> None:
     h_test_dispatcher: Dict[str, Any] = {
         "scipy_kolmogorov_smirnov": meas.hypothesis_tests.scipy_kolmogorov_smirnov,
         "scipy_mannwhitneyu": meas.hypothesis_tests.scipy_mannwhitneyu,
-        "gaussian_mixture_log_likelihood": meas.hypothesis_tests.gaussian_mixture_log_likelihood,
     }
 
     # Loop over h_tests
@@ -574,3 +562,49 @@ def test_dataset_types(tmp_path: pathlib.Path) -> None:
         assert isinstance(meas.ref_dataset.features, pd.DataFrame)
         assert isinstance(meas.ref_dataset.labels, pd.Series)
         assert isinstance(meas.ref_dataset.latents, pd.DataFrame)
+
+
+def test_sdmetrics(tmp_path: pathlib.Path) -> None:
+    """TODO PEP 257"""
+    features_df, labels_df, latents_df = example_dataset(50)
+    det = Registry(tag="test", backend=FileBackend(tmp_path))
+    det.register_ref_dataset(features=features_df, labels=labels_df, latents=latents_df)
+
+    # And we have features and predicted labels
+    x_monitor, y_monitor, latents_monitor = datasets.logistic_model(return_latents=True)
+    features_monitor_df = pd.DataFrame(
+        {
+            "age": x_monitor[:, 0],
+            "height": x_monitor[:, 1],
+            "bp": x_monitor[:, 2],
+        }
+    )
+    labels_monitor_df = pd.DataFrame({"y": y_monitor})
+    latents_monitor_df = pd.DataFrame({"latents": latents_monitor})
+
+    with det:
+        # And we have logged features, labels and latent
+        det.log_features(features_monitor_df)
+        det.log_labels(labels_monitor_df)
+        det.log_latents(latents_monitor_df)
+
+    meas = Monitor(tag="test", backend=FileBackend(tmp_path))
+    meas.load_data()
+    
+    result = meas.hypothesis_tests.get_boundary_adherence()
+    assert type(result) is dict
+    assert len(result.keys()) == 5
+    assert next(iter(result))=="age"
+    result_age = result["age"]
+    assert type(result_age) is dict
+    assert next(iter(result_age.keys())) == "statistic"
+    assert result_age["statistic"] >= 0.0 and result_age["statistic"] <= 1.0
+
+    result = meas.hypothesis_tests.get_range_coverage()
+    assert type(result) is dict
+    assert len(result.keys()) == 5
+    assert next(iter(result))=="age"
+    result_age = result["age"]
+    assert type(result_age) is dict
+    assert next(iter(result_age.keys())) == "statistic"
+    assert result_age["statistic"] >= 0.0 and result_age["statistic"] <= 1.0

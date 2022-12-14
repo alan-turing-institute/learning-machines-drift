@@ -79,7 +79,10 @@ def main() -> None:
     measure = load_data()
 
     # # 4. Run Test
-    print(measure.hypothesis_tests.get_boundary_adherence())
+    print("Boundary Adherence: {}".format(measure.hypothesis_tests.get_boundary_adherence()))
+    print("Range Coverage: {}".format(measure.hypothesis_tests.get_range_coverage()))
+    
+ 
     # measure.hypothesis_tests.scipy_kolmogorov_smirnov()
 
 main()
