@@ -632,6 +632,45 @@ paramiko = ["paramiko"]
 pgp = ["gpg"]
 
 [[package]]
+name = "esig"
+version = "0.9.8.3"
+description = "This package provides \"rough path\" tools for analysing vector time series."
+category = "main"
+optional = false
+python-versions = "*"
+files = [
+    {file = "esig-0.9.8.3-cp310-cp310-macosx_10_11_x86_64.whl", hash = "sha256:a9553c4ae50005fa9b9270e43e712d441f2422ca33ae5d059e936b5f90a0e899"},
+    {file = "esig-0.9.8.3-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:89b867f0b846615dc5eea6ce1a049396f246ca3f84ba8b7c0953d2aa97d23103"},
+    {file = "esig-0.9.8.3-cp310-cp310-win32.whl", hash = "sha256:f6bb20c0aedb9840ebf707c66996b4fb0762b9170dd5343bdcc0ed33be4900fe"},
+    {file = "esig-0.9.8.3-cp310-cp310-win_amd64.whl", hash = "sha256:c3c6e0da930abf702a3bb1d73f70d06743288e76cdf76a82a712f53cdaa32775"},
+    {file = "esig-0.9.8.3-cp36-cp36m-macosx_10_11_x86_64.whl", hash = "sha256:b58be1b0d89caab3a64675fc1b8327ae12bd57cf83ee4e1be16de772da6c3445"},
+    {file = "esig-0.9.8.3-cp36-cp36m-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:875f45830cc77c3c60ece8b7a9e8d67d0605135eb8def45420951dab8e4d7165"},
+    {file = "esig-0.9.8.3-cp36-cp36m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:0011f1d70675334c730613721306b726f57f1faa18408d66d10fc8c7a6aaa0ef"},
+    {file = "esig-0.9.8.3-cp36-cp36m-win32.whl", hash = "sha256:8844e46e8cf6cafcf6bc67f20e8f1bff130c9ecc2fa7ee6be7e5e13027b0048c"},
+    {file = "esig-0.9.8.3-cp36-cp36m-win_amd64.whl", hash = "sha256:facf7c23561311177ba74e83b8f271d1155cc0a63dac1864a77da560d41ae3f0"},
+    {file = "esig-0.9.8.3-cp37-cp37m-macosx_10_11_x86_64.whl", hash = "sha256:05cf7864c5ac59aa8f70f0d25589dabae28a896c31d3341c7108a113ff852772"},
+    {file = "esig-0.9.8.3-cp37-cp37m-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:7ee859e50f1e87d17a05c8432d6adae158013cf22e5d8f516c7506af435eacc0"},
+    {file = "esig-0.9.8.3-cp37-cp37m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:cf3c6b89294dfc9bacc486db25fe4e89b8085eb4987dc3d442883f52fae4a081"},
+    {file = "esig-0.9.8.3-cp37-cp37m-win32.whl", hash = "sha256:a747e8a6da42841d813e1ea4b5bfd0e9cd598c254e9e5976d4351721c8dd321c"},
+    {file = "esig-0.9.8.3-cp37-cp37m-win_amd64.whl", hash = "sha256:81c803abc00ea1183764187d25cd7f8f099512a1a9d9ec57dc7d8cb7b2e8ffc1"},
+    {file = "esig-0.9.8.3-cp38-cp38-macosx_10_11_x86_64.whl", hash = "sha256:20e8402f39c3104db67f2e2c080c945a094673f82a2661e7f945bfec0e00d800"},
+    {file = "esig-0.9.8.3-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:0e93fb73cc69fccf3178863035af769ada990aa97fb01ab0ed450c8e9e118a65"},
+    {file = "esig-0.9.8.3-cp38-cp38-win32.whl", hash = "sha256:89741bafb0e7788154453e4f8915dd579f6277fb123454a2b2985ad8200efcac"},
+    {file = "esig-0.9.8.3-cp38-cp38-win_amd64.whl", hash = "sha256:6dae11d3c2bb29ea680e85909087cb29d5079b82fc6329190abe4e783097cd10"},
+    {file = "esig-0.9.8.3-cp39-cp39-macosx_10_11_x86_64.whl", hash = "sha256:d4082d18f0e480c0e55693338abedb3371a8459afbf9e1c45ca0fb021e65948c"},
+    {file = "esig-0.9.8.3-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:6b9697ca023d2b9296177e67cba90c5000a2c9fb7a9253c64cfcdf069d98f3f4"},
+    {file = "esig-0.9.8.3-cp39-cp39-win32.whl", hash = "sha256:b2c71589bebfc3215bce51b9bb440857a9acd56761e54c8dcac869179ed04c02"},
+    {file = "esig-0.9.8.3-cp39-cp39-win_amd64.whl", hash = "sha256:954bddb8060c29cc7b58f8f61ed657357e76a5562bad43045415eda378f5845a"},
+    {file = "esig-0.9.8.3.tar.gz", hash = "sha256:04665a252ae9352c1930705814398354f64eb606a6fc457287963914007c7b5a"},
+]
+
+[package.dependencies]
+numpy = ">=1.7"
+
+[package.extras]
+iisignature = ["iisignature"]
+
+[[package]]
 name = "exceptiongroup"
 version = "1.0.4"
 description = "Backport of PEP 654 (exception groups)"
@@ -2745,4 +2784,4 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.10"
-content-hash = "53c9f1fcc2ef7c04f50d6289bd6e7b81567e0aafb9be2c371b10651c8e8b3ef4"
+content-hash = "b38be6f5f8ff49f029cd8c27b396472e1feb70e5d51fdcb887ab1372e1b23bc9"
