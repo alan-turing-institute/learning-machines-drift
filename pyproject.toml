@@ -10,7 +10,7 @@ numpy = "^1.22.4"
 scipy = "^1.8.1"
 pydantic = "^1.9.1"
 Pygments = "^2.11.2"
-sdmetrics = "^0.6.0"
+sdmetrics = "0.6.0"
 poetry = "^1.1.13"
 tabulate = "^0.8.10"
 joblib = ">=1.2"
@@ -72,6 +72,10 @@ ignore_missing_imports = true
 module = "sdmetrics.*"
 ignore_missing_imports = true
 
+#[build-system]
+#requires = ["poetry-core>=1.0.0"]
+#build-backend = "poetry.core.masonry.api"
+
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"

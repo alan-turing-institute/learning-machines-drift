@@ -8,4 +8,4 @@ _build/
 test/
 **/alzheimers-data
 poetry.lock
-
+dist/
