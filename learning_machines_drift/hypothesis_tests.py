@@ -521,6 +521,7 @@ class HypothesisTests:
 
         return {results_key: {"statistic": results, "pvalue": np.nan}}
 
+    # TODO: add test for this method if developed further pylint: ...
     def binary_classifier_efficacy(
         self,
         target_variable: str,
