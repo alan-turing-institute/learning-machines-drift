@@ -1,0 +1,7 @@
+demo\_evidently module
+======================
+
+.. automodule:: demo_evidently
+   :members:
+   :undoc-members:
+   :show-inheritance:
