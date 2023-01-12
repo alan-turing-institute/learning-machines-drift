@@ -75,7 +75,7 @@ class Backend(Protocol):
         # pass
 
 
-class FileBackend(Backend):
+class FileBackend:
     """Implements the Backend protocol. Write files to the filesystem"""
 
     def __init__(self, root_dir: Union[str, Path]) -> None:
