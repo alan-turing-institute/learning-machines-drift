@@ -3,13 +3,20 @@
 import textwrap
 from collections import Counter
 from functools import partial
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
 from scipy import stats
-from sdmetrics.single_table import GMLogLikelihood, LogisticDetection
+from sdmetrics.single_table import (
+    BinaryAdaBoostClassifier,
+    BinaryDecisionTreeClassifier,
+    BinaryLogisticRegression,
+    BinaryMLPClassifier,
+    GMLogLikelihood,
+    LogisticDetection,
+)
 from sdmetrics.utils import HyperTransformer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import f1_score, roc_auc_score
@@ -513,6 +520,50 @@ class HypothesisTests:
             results = LogisticDetection.normalize(results)
 
         return {results_key: {"statistic": results, "pvalue": np.nan}}
+
+    # TODO: add test for this method if developed further pylint: disable=fixme
+    def binary_classifier_efficacy(
+        self,
+        target_variable: str,
+        clf: Union[
+            BinaryAdaBoostClassifier,
+            BinaryDecisionTreeClassifier,
+            BinaryLogisticRegression,
+            BinaryMLPClassifier,
+        ] = BinaryLogisticRegression,
+        verbose: bool = True,
+    ) -> Dict[str, Dict[str, float]]:
+        """Calculates accuracy of classifier trained on reference data and
+        tested on registered data.
+
+        Args:
+            target_variable (str): Target (ground truth label) variable name.
+            clf (Union[BinaryAdaBoostClassifier, BinaryDecisionTreeClassifier,
+                BinaryLogisticRegression, BinaryMLPClassifier]): SDV binary classifier class.
+            verbose (bool): Boolean for verbose output to stdout.
+
+        Returns:
+            results (Dict[str, Dict[str, float]]): Score providing an overall similarity measure of
+                reference and registered dataset.
+        """
+        method = f"Binary classification (ML efficacy): ({clf.__str__})"
+        description = (
+            "Efficacy metric using accuracy of classifier trained on "
+            "reference dataset and tested on registered dataset."
+        )
+        about_str = self._format_about_str(method=method, description=description)
+
+        if verbose:
+            print(about_str)
+
+        result: float = clf.compute(
+            test_data=self.registered_dataset.features,
+            train_data=self.reference_dataset.features,
+            target=target_variable,
+            metadata=None,
+        )
+
+        return {"binary_classifier_efficacy": {"statistic": result, "pvalue": np.nan}}
 
     # pylint: enable=invalid-name
 
