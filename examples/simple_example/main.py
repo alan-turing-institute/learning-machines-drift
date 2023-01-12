@@ -72,7 +72,7 @@ def register_reference() -> Registry:
 
 def store_logs(detector: Registry) -> None:
     """Generate data and log using Registry"""
-    num_iterations = 3
+    num_iterations = 1
     for _ in range(num_iterations):
         (
             new_features_df,
@@ -85,23 +85,20 @@ def store_logs(detector: Registry) -> None:
 def perform_diff_tests(drift_filter: Optional[Filter] = None) -> List[Any]:
     """Load data, perform hypothesis tests"""
     measure = load_data(drift_filter)
-    ks_results = measure.hypothesis_tests.scipy_kolmogorov_smirnov()
-    perm_results = measure.hypothesis_tests.scipy_permutation()
-    log_results = measure.hypothesis_tests.logistic_detection_custom(
-        score_type="roc_auc"
-    )
-
-    return [ks_results, perm_results, log_results]
+    # ks_results = measure.hypothesis_tests.scipy_kolmogorov_smirnov()
+    boundary_results = measure.hypothesis_tests.sdv_boundary_adherence()
+    return [boundary_results]
 
 
 def display_diff_results(results: List[Any]) -> None:
     """Display list of results"""
     for res in results:
+        print (res)
         Display().table(res)
-        Display().plot(res, score_type="statistic")
-        plt.show()
-        Display().plot(res, score_type="pvalue")
-        plt.show()
+        # Display().plot(res, score_type="statistic")
+        # plt.show()
+        # Display().plot(res, score_type="pvalue")
+        # plt.show()
 
 
 def main() -> None:
@@ -111,18 +108,21 @@ def main() -> None:
 
     # 2. Generate and store log data
     store_logs(registry)
-
+    measure = load_data(None)
+    measure.hypothesis_tests.get_boundary_adherence()
     # 3. Load all data with filter and perform tests
-    drift_filter = Filter(
-        {
-            "age": [Condition("less", 0.0)],
-            "height": [Condition("greater", -1.0), Condition("less", 1.0)],
-        }
-    )
-    results = perform_diff_tests(drift_filter)
+    # drift_filter = Filter(
+    #     {
+    #         "age": [Condition("less", 0.0)],
+    #         "height": [Condition("greater", -1.0), Condition("less", 1.0)],
+    #     }
+    # )
+    # results = perform_diff_tests(None)
 
     # 4. Display results
-    display_diff_results(results)
+    # display_diff_results(results)
+
+    
 
 
 # measure = Monitor(tag="simple_example", backend=FileBackend("my-data"))
