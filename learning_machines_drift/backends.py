@@ -1,4 +1,6 @@
-"""TODO PEP 257"""
+"""
+Backend Module
+"""
 import glob
 import os
 import re
@@ -52,9 +54,7 @@ class Backend(Protocol):
         """TODO PEP 257"""
         # pass
 
-    def save_logged_labels(
-        self, tag: str, identifier: UUID, dataframe: pd.DataFrame
-    ) -> None:
+    def save_logged_labels(self, tag: str, identifier: UUID, labels: pd.Series) -> None:
         """TODO PEP 257"""
         # pass
 

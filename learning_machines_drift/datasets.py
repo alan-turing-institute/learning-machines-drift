@@ -1,4 +1,5 @@
 """TODO PEP 257"""
+
 # pylint: disable=C0103
 # pylint: disable=W0621
 # pylint: disable=R0913
@@ -94,6 +95,7 @@ def example_dataset(
     n_rows: int, seed: Optional[int] = None
 ) -> Tuple[pd.DataFrame, pd.Series, pd.DataFrame]:
     """TODO PEP 257"""
+
     # Given we have a reference dataset
     x_reference, y_reference, latents_reference = logistic_model(
         size=n_rows, return_latents=True, seed=seed
