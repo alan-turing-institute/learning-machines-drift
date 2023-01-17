@@ -1,4 +1,4 @@
-"""TODO PEP 257"""
+"""Monitor class for interacting with data and scoring drift."""
 import os
 from pathlib import Path
 from typing import Optional
@@ -11,14 +11,28 @@ from learning_machines_drift.types import Dataset
 
 
 class Monitor:
-    """TODO PEP 257"""
+    """A class for monitoring data with data loading from backend for scoring of
+    drift useing hypothesis tests class.
+
+
+    Attributes:
+        tag (str): The tag where data for monitoring is located within backend.
+        ref_dataset (Dataset, optional): The reference dataset.
+        registered_dataset (Dataset, optional): The logged, registered dataset
+            for drift comparison to reference dataset.
+    """
 
     def __init__(
         self,
         tag: str,
         backend: Optional[Backend] = None,
     ) -> None:
-        """TODO PEP 257"""
+        """Initialize monitor class.
+
+        Args:
+            tag (str): tag where data is located within backend.
+            backend (Backend, optional): optional backend where data is stored.
+        """
 
         if backend:
             self.backend: Backend = backend
@@ -30,7 +44,16 @@ class Monitor:
         self.registered_dataset: Optional[Dataset] = None
 
     def load_data(self, drift_filter: Optional[Filter] = None) -> Dataset:
-        """TODO PEP 257"""
+        """Load data from backend into monitor.
+
+        Args:
+            drift_filter (Filter, optional): An optional filter with conditions
+                applied to both reference and registered loaded data.
+
+        Returns:
+            Dataset: A `Dataset` instance with (optionally) filtered datasets.
+
+        """
 
         self.ref_dataset = self.backend.load_reference_dataset(self.tag)
         self.registered_dataset = self.backend.load_logged_dataset(self.tag)
@@ -44,7 +67,12 @@ class Monitor:
 
     @property
     def hypothesis_tests(self) -> HypothesisTests:
-        """TODO PEP 257"""
+        """Hypothesis tests.
+
+        Raises:
+            ReferenceDatasetMissing: The reference dataset is `None`.
+            ValueError: There is no additional registered data.
+        """
 
         if self.ref_dataset is None:
             raise ReferenceDatasetMissing
