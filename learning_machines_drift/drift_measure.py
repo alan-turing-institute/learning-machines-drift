@@ -20,6 +20,7 @@ class Monitor:
         ref_dataset (Dataset, optional): The reference dataset.
         registered_dataset (Dataset, optional): The logged, registered dataset
             for drift comparison to reference dataset.
+
     """
 
     def __init__(
@@ -32,6 +33,7 @@ class Monitor:
         Args:
             tag (str): tag where data is located within backend.
             backend (Backend, optional): optional backend where data is stored.
+
         """
 
         if backend:
@@ -72,6 +74,7 @@ class Monitor:
         Raises:
             ReferenceDatasetMissing: The reference dataset is `None`.
             ValueError: There is no additional registered data.
+
         """
 
         if self.ref_dataset is None:
