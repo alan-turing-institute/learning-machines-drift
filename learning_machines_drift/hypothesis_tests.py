@@ -165,6 +165,49 @@ class HypothesisTests:
 
         return results
 
+    # # Skip the ones that are not calculable
+    # @staticmethod
+    # def _get_category_columns(dataset: Dataset) -> List[str]:
+    #     """Get a list of feature names that have category-like features.
+    #     Category-like features are defined as:
+    #         - Unit or Binary (less than two values)
+    #         OR
+    #         - Categorical (category dtype)
+
+    #     Args:
+    #         data (pd.DataFrame): data to be have features checked.
+
+    #     Returns:
+    #         List[str]: List of feature names that are category-like.
+    #     """
+    #     # Unify all features, labels and latents
+    #     data: pd.DataFrame = dataset.unify()
+    #     # Get the number of unique values by feature
+    #     nunique: pd.Series = data.nunique()
+    #     # Unit or binary features
+    #     unit_or_bin_features: List[str] = nunique[nunique <= 2].index.to_list()
+    #     # Integer or category features
+    #     cat_features: List[str] = data.dtypes[
+    #         data.dtypes.eq("category")
+    #     ].index.to_list()
+    #     # Get list of unique features for output
+    #     out_features: List[str] = list(np.unique(unit_or_bin_features + cat_features))
+
+    #     return out_features
+
+    # def get_unified_subsets(self) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    #     """Unify both datasets and return dataframes with common columns."""
+
+    #     def get_intersect(data1: pd.DataFrame, data2: pd.DataFrame) -> List[str]:
+    #         """Get list of common columns to both dataframes."""
+    #         return list(set(data1.columns) & set(data2.columns))
+
+    #     unified_ref = self.reference_dataset.unify()
+    #     unified_reg = self.registered_dataset.unify()
+    #     subset: List[str] = get_intersect(unified_ref, unified_reg)
+    #     return (unified_ref[subset], unified_reg[subset])
+    
+    
     def scipy_kolmogorov_smirnov(self, verbose: bool = True) -> Any:
         """Calculates feature-wise two-sample Kolmogorov-Smirnov test for
         goodness of fit. Assumes continuous underlying distributions but
@@ -210,60 +253,60 @@ class HypothesisTests:
             print(about_str)
         return results
 
-    @staticmethod
-    def _chi_square(data1: pd.Series, data2: pd.Series) -> dict[str, float]:
-        """Perform a chi-square test on two category-like series.
+    # @staticmethod
+    # def _chi_square(data1: pd.Series, data2: pd.Series) -> dict[str, float]:
+    #     """Perform a chi-square test on two category-like series.
 
-        Args:
-            data1 (pd.Series): First series.
-            data2 (pd.Series): Second series.
-        Returns:
-            dict[str, float]: dict of chi-square statistic and p-value.
-        """
-        # Get unique elements across all data
-        base: npt.NDArray[Any] = np.unique(np.append(data1, data2))
-        # Get counts of values in data1
-        d1_counter: Counter[Any] = Counter(data1)
-        # Get counts of values in data2
-        d2_counter: Counter[Any] = Counter(data2)
-        # Get counts in order of base for both counters
-        d1_counts: List[int] = [d1_counter[el] for el in base]
-        d2_counts: List[int] = [d2_counter[el] for el in base]
-        # Calculate chi-square
-        statistic, pvalue, _, _ = stats.chi2_contingency(
-            np.stack([d1_counts, d2_counts])
-        )
-        return {"statistic": statistic, "pvalue": pvalue}
+    #     Args:
+    #         data1 (pd.Series): First series.
+    #         data2 (pd.Series): Second series.
+    #     Returns:
+    #         dict[str, float]: dict of chi-square statistic and p-value.
+    #     """
+    #     # Get unique elements across all data
+    #     base: npt.NDArray[Any] = np.unique(np.append(data1, data2))
+    #     # Get counts of values in data1
+    #     d1_counter: Counter[Any] = Counter(data1)
+    #     # Get counts of values in data2
+    #     d2_counter: Counter[Any] = Counter(data2)
+    #     # Get counts in order of base for both counters
+    #     d1_counts: List[int] = [d1_counter[el] for el in base]
+    #     d2_counts: List[int] = [d2_counter[el] for el in base]
+    #     # Calculate chi-square
+    #     statistic, pvalue, _, _ = stats.chi2_contingency(
+    #         np.stack([d1_counts, d2_counts])
+    #     )
+    #     return {"statistic": statistic, "pvalue": pvalue}
 
-    def scipy_chisquare(self, verbose: bool = True) -> Any:
-        """Calculates feature-wise chi-square statistic and p-value for
-        the hypothesis test of independence of the observed frequencies.
-        Provides a test for the independence of two count distributions.
-        Assumes categorical underlying distributions.
+    # def scipy_chisquare(self, verbose: bool = True) -> Any:
+    #     """Calculates feature-wise chi-square statistic and p-value for
+    #     the hypothesis test of independence of the observed frequencies.
+    #     Provides a test for the independence of two count distributions.
+    #     Assumes categorical underlying distributions.
 
-        Args:
-            verbose (bool): Boolean for verbose output to stdout.
+    #     Args:
+    #         verbose (bool): Boolean for verbose output to stdout.
 
-        Returns:
-            results (dict): Dictionary of statistics and  p-values by feature.
-        """
-        method = (
-            "SciPy chi-square test of independence of variables in a "
-            "contingency table."
-        )
-        description = (
-            "Chi-square test for categorical-like data comparing counts in "
-            "registered and reference data."
-        )
-        about_str = self._format_about_str(method=method, description=description)
+    #     Returns:
+    #         results (dict): Dictionary of statistics and  p-values by feature.
+    #     """
+    #     method = (
+    #         "SciPy chi-square test of independence of variables in a "
+    #         "contingency table."
+    #     )
+    #     description = (
+    #         "Chi-square test for categorical-like data comparing counts in "
+    #         "registered and reference data."
+    #     )
+    #     about_str = self._format_about_str(method=method, description=description)
 
-        results = self._calc(
-            self._chi_square,
-            subset=self._get_category_columns(self.registered_dataset),
-        )
-        if verbose:
-            print(about_str)
-        return results
+    #     results = self._calc(
+    #         self._chi_square,
+    #         subset=self._get_category_columns(self.registered_dataset),
+    #     )
+    #     if verbose:
+    #         print(about_str)
+    #     return results
 
     def scipy_permutation(
         self,
@@ -313,47 +356,7 @@ class HypothesisTests:
 
         return results
 
-    # Skip the ones that are not calculable
-    @staticmethod
-    def _get_category_columns(dataset: Dataset) -> List[str]:
-        """Get a list of feature names that have category-like features.
-        Category-like features are defined as:
-            - Unit or Binary (less than two values)
-            OR
-            - Categorical (category dtype)
-
-        Args:
-            data (pd.DataFrame): data to be have features checked.
-
-        Returns:
-            List[str]: List of feature names that are category-like.
-        """
-        # Unify all features, labels and latents
-        data: pd.DataFrame = dataset.unify()
-        # Get the number of unique values by feature
-        nunique: pd.Series = data.nunique()
-        # Unit or binary features
-        unit_or_bin_features: List[str] = nunique[nunique <= 2].index.to_list()
-        # Integer or category features
-        cat_features: List[str] = data.dtypes[
-            data.dtypes.eq("category")
-        ].index.to_list()
-        # Get list of unique features for output
-        out_features: List[str] = list(np.unique(unit_or_bin_features + cat_features))
-
-        return out_features
-
-    def get_unified_subsets(self) -> Tuple[pd.DataFrame, pd.DataFrame]:
-        """Unify both datasets and return dataframes with common columns."""
-
-        def get_intersect(data1: pd.DataFrame, data2: pd.DataFrame) -> List[str]:
-            """Get list of common columns to both dataframes."""
-            return list(set(data1.columns) & set(data2.columns))
-
-        unified_ref = self.reference_dataset.unify()
-        unified_reg = self.registered_dataset.unify()
-        subset: List[str] = get_intersect(unified_ref, unified_reg)
-        return (unified_ref[subset], unified_reg[subset])
+    
 
     def logistic_detection(
         self, normalize: bool = False, verbose: bool = True
