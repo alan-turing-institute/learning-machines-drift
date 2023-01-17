@@ -17,8 +17,8 @@ class Monitor:
 
     Attributes:
         tag (str): The tag where data for monitoring is located within backend.
-        ref_dataset (Dataset, optional): The reference dataset.
-        registered_dataset (Dataset, optional): The logged, registered dataset
+        ref_dataset (Optional[Dataset]): The reference dataset.
+        registered_dataset (Optional[Dataset]): The logged, registered dataset
             for drift comparison to reference dataset.
 
     """
@@ -32,7 +32,7 @@ class Monitor:
 
         Args:
             tag (str): tag where data is located within backend.
-            backend (Backend, optional): optional backend where data is stored.
+            backend (Optional[Backend]): optional backend where data is stored.
 
         """
 
