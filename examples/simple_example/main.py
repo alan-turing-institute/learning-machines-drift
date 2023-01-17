@@ -93,7 +93,7 @@ def perform_diff_tests(drift_filter: Optional[Filter] = None) -> List[Any]:
 def display_diff_results(results: List[Any]) -> None:
     """Display list of results"""
     for res in results:
-        print (res)
+        print(res)
         Display().table(res)
         # Display().plot(res, score_type="statistic")
         # plt.show()
@@ -104,12 +104,33 @@ def display_diff_results(results: List[Any]) -> None:
 def main() -> None:
     """Generating data, diff data, visualise results"""
     # 1. Generate and store reference data
-    registry = register_reference()
+    # registry = register_reference()
 
     # 2. Generate and store log data
-    store_logs(registry)
+    # store_logs(registry)
     measure = load_data(None)
-    measure.hypothesis_tests.get_boundary_adherence()
+
+    # results = measure.hypothesis_tests.get_boundary_adherence()
+    # print(results.keys())
+
+    # results = measure.hypothesis_tests.get_range_coverage()
+    # print(results)
+
+    # results = measure.hypothesis_tests.binary_classifier_efficacy(target_variable="ground-truth-label")
+    # print(results)
+
+    # results = measure.hypothesis_tests.logistic_detection_custom()
+    # print(results)
+
+    # results = measure.hypothesis_tests.logistic_detection()
+    # print(results)
+
+    # results = measure.hypothesis_tests.scipy_permutation()
+    # print(results)
+
+    results = measure.hypothesis_tests.scipy_kolmogorov_smirnov()
+    print(results)
+
     # 3. Load all data with filter and perform tests
     # drift_filter = Filter(
     #     {
@@ -121,8 +142,6 @@ def main() -> None:
 
     # 4. Display results
     # display_diff_results(results)
-
-    
 
 
 # measure = Monitor(tag="simple_example", backend=FileBackend("my-data"))

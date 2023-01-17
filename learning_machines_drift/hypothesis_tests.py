@@ -2,6 +2,7 @@
 
 import textwrap
 from collections import Counter
+from enum import Enum
 from functools import partial
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
@@ -9,23 +10,28 @@ import numpy as np
 import numpy.typing as npt
 import pandas as pd
 from scipy import stats
-from sdmetrics.single_table import LogisticDetection
+from sdmetrics.single_column import BoundaryAdherence, RangeCoverage
+from sdmetrics.single_table import (
+    BinaryAdaBoostClassifier,
+    BinaryDecisionTreeClassifier,
+    BinaryLogisticRegression,
+    BinaryMLPClassifier,
+    LogisticDetection,
+)
 from sdmetrics.utils import HyperTransformer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import f1_score, roc_auc_score
 from sklearn.model_selection import StratifiedKFold
-from sdmetrics.single_column import BoundaryAdherence, RangeCoverage
-from sdmetrics.single_table import BinaryAdaBoostClassifier, BinaryDecisionTreeClassifier, BinaryLogisticRegression, BinaryMLPClassifier
 
 from learning_machines_drift.types import Dataset
 
-from enum import Enum
- 
+
 class Wrapper(Enum):
     TYPE_TUPLE = 1
     TYPE_OTHER = 2
     TYPE_SDMETRIC = 3
-    
+
+
 class HypothesisTests:
     """
     A class for performing hypothesis tests and scoring between registered and
@@ -102,20 +108,20 @@ class HypothesisTests:
             results: Dict[str, Any],
             wrapper: Wrapper = Wrapper.TYPE_OTHER,
         ) -> Dict[str, Any]:
-            
+
             if wrapper is Wrapper.TYPE_TUPLE:
                 result = func((ref_col, reg_col))
             elif wrapper is Wrapper.TYPE_SDMETRIC:
                 result = func(real_data=ref_col, synthetic_data=reg_col)
-                result = {"statistic":result}
+                result = {"statistic": result}
             else:
                 result = func(ref_col, reg_col)
-              
+
             if not isinstance(result, dict):
                 results[feature] = self._to_dict(result)
             else:
                 results[feature] = result
-            
+
             return results
 
         results: Dict[str, Any] = {}
@@ -165,50 +171,51 @@ class HypothesisTests:
 
         return results
 
-    # # Skip the ones that are not calculable
-    # @staticmethod
-    # def _get_category_columns(dataset: Dataset) -> List[str]:
-    #     """Get a list of feature names that have category-like features.
-    #     Category-like features are defined as:
-    #         - Unit or Binary (less than two values)
-    #         OR
-    #         - Categorical (category dtype)
+    # Skip the ones that are not calculable
+    @staticmethod
+    def _get_category_columns(dataset: Dataset) -> List[str]:
+        """Get a list of feature names that have category-like features.
+        Category-like features are defined as:
+            - Unit or Binary (less than two values)
+            OR
+            - Categorical (category dtype)
 
-    #     Args:
-    #         data (pd.DataFrame): data to be have features checked.
+        Args:
+            data (pd.DataFrame): data to be have features checked.
 
-    #     Returns:
-    #         List[str]: List of feature names that are category-like.
-    #     """
-    #     # Unify all features, labels and latents
-    #     data: pd.DataFrame = dataset.unify()
-    #     # Get the number of unique values by feature
-    #     nunique: pd.Series = data.nunique()
-    #     # Unit or binary features
-    #     unit_or_bin_features: List[str] = nunique[nunique <= 2].index.to_list()
-    #     # Integer or category features
-    #     cat_features: List[str] = data.dtypes[
-    #         data.dtypes.eq("category")
-    #     ].index.to_list()
-    #     # Get list of unique features for output
-    #     out_features: List[str] = list(np.unique(unit_or_bin_features + cat_features))
+        Returns:
+            List[str]: List of feature names that are category-like.
+        """
+        # Unify all features, labels and latents
+        data: pd.DataFrame = dataset.unify()
+        # Get the number of unique values by feature
+        nunique: pd.Series = data.nunique()
+        # Unit or binary features
+        unit_or_bin_features: List[str] = nunique[nunique <= 2].index.to_list()
+        # Integer or category features
+        cat_features: List[str] = data.dtypes[
+            data.dtypes.eq("category")
+        ].index.to_list()
+        # Get list of unique features for output
+        out_features: List[str] = list(np.unique(unit_or_bin_features + cat_features))
 
-    #     return out_features
+        return out_features
 
-    # def get_unified_subsets(self) -> Tuple[pd.DataFrame, pd.DataFrame]:
-    #     """Unify both datasets and return dataframes with common columns."""
+    def _get_unified_subsets(self) -> Tuple[pd.DataFrame, pd.DataFrame]:
+        """Unify both datasets and return dataframes with common columns."""
 
-    #     def get_intersect(data1: pd.DataFrame, data2: pd.DataFrame) -> List[str]:
-    #         """Get list of common columns to both dataframes."""
-    #         return list(set(data1.columns) & set(data2.columns))
+        def get_intersect(data1: pd.DataFrame, data2: pd.DataFrame) -> List[str]:
+            """Get list of common columns to both dataframes."""
+            return list(set(data1.columns) & set(data2.columns))
 
-    #     unified_ref = self.reference_dataset.unify()
-    #     unified_reg = self.registered_dataset.unify()
-    #     subset: List[str] = get_intersect(unified_ref, unified_reg)
-    #     return (unified_ref[subset], unified_reg[subset])
-    
-    
-    def scipy_kolmogorov_smirnov(self, verbose: bool = True) -> Any:
+        unified_ref = self.reference_dataset.unify()
+        unified_reg = self.registered_dataset.unify()
+        subset: List[str] = get_intersect(unified_ref, unified_reg)
+        return (unified_ref[subset], unified_reg[subset])
+
+    def scipy_kolmogorov_smirnov(
+        self, verbose: bool = True
+    ) -> Dict[str, Dict[str, Dict[str, Dict[str, float]]]]:
         """Calculates feature-wise two-sample Kolmogorov-Smirnov test for
         goodness of fit. Assumes continuous underlying distributions but
         scores are still interpretable if data is approximately continuous.
@@ -226,9 +233,11 @@ class HypothesisTests:
         results = self._calc(stats.ks_2samp)
         if verbose:
             print(about_str)
-        return results
+        return {'scipy_kolmogorov_smirnov': {"statistic": results}}
 
-    def scipy_mannwhitneyu(self, verbose: bool = True) -> Any:
+    def scipy_mannwhitneyu(
+        self, verbose: bool = True
+    ) -> Dict[str, Dict[str, Dict[str, Dict[str, float]]]]:
         """Calculates feature-wise Mann-Whitney U test, a nonparametric test of
         the null hypothesis that the distribution underlying sample x is the
         same as the distribution underlying sample y. Provides a test for the
@@ -251,68 +260,14 @@ class HypothesisTests:
         results = self._calc(stats.mannwhitneyu)
         if verbose:
             print(about_str)
-        return results
 
-    # @staticmethod
-    # def _chi_square(data1: pd.Series, data2: pd.Series) -> dict[str, float]:
-    #     """Perform a chi-square test on two category-like series.
-
-    #     Args:
-    #         data1 (pd.Series): First series.
-    #         data2 (pd.Series): Second series.
-    #     Returns:
-    #         dict[str, float]: dict of chi-square statistic and p-value.
-    #     """
-    #     # Get unique elements across all data
-    #     base: npt.NDArray[Any] = np.unique(np.append(data1, data2))
-    #     # Get counts of values in data1
-    #     d1_counter: Counter[Any] = Counter(data1)
-    #     # Get counts of values in data2
-    #     d2_counter: Counter[Any] = Counter(data2)
-    #     # Get counts in order of base for both counters
-    #     d1_counts: List[int] = [d1_counter[el] for el in base]
-    #     d2_counts: List[int] = [d2_counter[el] for el in base]
-    #     # Calculate chi-square
-    #     statistic, pvalue, _, _ = stats.chi2_contingency(
-    #         np.stack([d1_counts, d2_counts])
-    #     )
-    #     return {"statistic": statistic, "pvalue": pvalue}
-
-    # def scipy_chisquare(self, verbose: bool = True) -> Any:
-    #     """Calculates feature-wise chi-square statistic and p-value for
-    #     the hypothesis test of independence of the observed frequencies.
-    #     Provides a test for the independence of two count distributions.
-    #     Assumes categorical underlying distributions.
-
-    #     Args:
-    #         verbose (bool): Boolean for verbose output to stdout.
-
-    #     Returns:
-    #         results (dict): Dictionary of statistics and  p-values by feature.
-    #     """
-    #     method = (
-    #         "SciPy chi-square test of independence of variables in a "
-    #         "contingency table."
-    #     )
-    #     description = (
-    #         "Chi-square test for categorical-like data comparing counts in "
-    #         "registered and reference data."
-    #     )
-    #     about_str = self._format_about_str(method=method, description=description)
-
-    #     results = self._calc(
-    #         self._chi_square,
-    #         subset=self._get_category_columns(self.registered_dataset),
-    #     )
-    #     if verbose:
-    #         print(about_str)
-    #     return results
+        return {'scipy_mannwhitneyu': {"statistic": results}}
 
     def scipy_permutation(
         self,
         agg_func: Callable[..., float] = np.mean,
         verbose: bool = True,
-    ) -> Any:
+    ) -> Dict[str, Dict[str, Dict[str, Dict[str, float]]]]:
         """Performs feature-wise permutation test with default statistic to
         measure differences under permutations of labels as the mean.
 
@@ -354,9 +309,7 @@ class HypothesisTests:
         if verbose:
             print(about_str)
 
-        return results
-
-    
+        return {'scipy_permutation': {"statistic": results}}
 
     def logistic_detection(
         self, normalize: bool = False, verbose: bool = True
@@ -386,7 +339,7 @@ class HypothesisTests:
         if verbose:
             print(about_str)
 
-        results: float = LogisticDetection.compute(*self.get_unified_subsets())
+        results: float = LogisticDetection.compute(*self._get_unified_subsets())
 
         if normalize:
             results = LogisticDetection.normalize(results)
@@ -439,7 +392,7 @@ class HypothesisTests:
             print(about_str)
 
         # Get unified subsets
-        unified_ref_subset, unified_reg_subset = self.get_unified_subsets()
+        unified_ref_subset, unified_reg_subset = self._get_unified_subsets()
 
         # Transform data for fitting using SD metrics HyperTransformer
         ht = HyperTransformer()
@@ -540,10 +493,16 @@ class HypothesisTests:
 
     # pylint: enable=invalid-name
 
-    def get_boundary_adherence(self)->Dict:
-        results:Dict = self._calc(BoundaryAdherence.compute, wrapper=Wrapper.TYPE_SDMETRIC)
-        return results
+    def get_boundary_adherence(
+        self,
+    ) -> Dict[str, Dict[str, Dict[str, Dict[str, float]]]]:
+        results: Dict[str, Dict[str, float]] = self._calc(
+            BoundaryAdherence.compute, wrapper=Wrapper.TYPE_SDMETRIC
+        )
+        return {"boundary_adherence": {"statistic": results}}
 
-    def get_range_coverage(self)->Dict:
-        results:Dict = self._calc(RangeCoverage.compute, wrapper=Wrapper.TYPE_SDMETRIC)
-        return results
+    def get_range_coverage(self) -> Dict[str, Dict[str, Dict[str, Dict[str, float]]]]:
+        results: Dict[str, Dict[str, float]] = self._calc(
+            RangeCoverage.compute, wrapper=Wrapper.TYPE_SDMETRIC
+        )
+        return {"range_coverage": {"statistic": results}}

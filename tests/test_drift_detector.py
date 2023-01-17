@@ -241,7 +241,9 @@ def test_statistics_summary(tmp_path) -> None:  # type: ignore
 
     # Check we get a dictionary with an entry for every feature column
     assert isinstance(res, dict)
-    assert res.keys() == set(det.registered_dataset.unify().columns)
+    method = res['scipy_kolmogorov_smirnov']
+    statistic = method['statistic']
+    assert statistic.keys() == set(det.registered_dataset.unify().columns)
 
 
 def test_with_noncommon_columns(tmp_path) -> None:  # type: ignore
@@ -277,7 +279,6 @@ def test_with_noncommon_columns(tmp_path) -> None:  # type: ignore
 
     h_test_dispatcher: Dict[str, Any] = {
         "scipy_kolmogorov_smirnov": meas.hypothesis_tests.scipy_kolmogorov_smirnov,
-        "scipy_chisquare": meas.hypothesis_tests.scipy_chisquare,
         "scipy_mannwhitneyu": meas.hypothesis_tests.scipy_mannwhitneyu,
         "scipy_permutation": meas.hypothesis_tests.scipy_permutation,
         "logistic_detection": meas.hypothesis_tests.logistic_detection,
@@ -307,9 +308,11 @@ def test_with_noncommon_columns(tmp_path) -> None:  # type: ignore
             (
                 unified_ref_subset,
                 unified_reg_subset,
-            ) = meas.hypothesis_tests.get_unified_subsets()
-            assert res.keys() == set(unified_reg_subset.columns)
-            assert res.keys() == set(unified_ref_subset.columns)
+            ) = meas.hypothesis_tests._get_unified_subsets()
+            method = res[h_test_name]
+            statistic = method['statistic']
+            assert statistic.keys() == set(unified_reg_subset.columns)
+            assert statistic.keys() == set(unified_ref_subset.columns)
         # Otherwise, there should be single item in returned dictionary that
         # matches the specified names in the test
         else:
@@ -517,7 +520,7 @@ def test_category_columns(tmp_path: pathlib.Path) -> None:
     meas = Monitor(tag="test", backend=FileBackend(tmp_path))
     meas.load_data()
     h_test_dispatcher: Dict[str, Any] = {
-        "scipy_chisquare": meas.hypothesis_tests.scipy_chisquare
+        # "scipy_chisquare": meas.hypothesis_tests.scipy_chisquare
     }
 
     for h_test_name, h_test_fn in h_test_dispatcher.items():
@@ -590,21 +593,25 @@ def test_sdmetrics(tmp_path: pathlib.Path) -> None:
 
     meas = Monitor(tag="test", backend=FileBackend(tmp_path))
     meas.load_data()
-    
+
     result = meas.hypothesis_tests.get_boundary_adherence()
-    assert type(result) is dict
-    assert len(result.keys()) == 5
-    assert next(iter(result))=="age"
-    result_age = result["age"]
+    method = result['boundary_adherence']
+    statistic = method['statistic']
+    assert type(statistic) is dict
+    assert len(statistic.keys()) == 5
+    assert next(iter(statistic)) == "age"
+    result_age = statistic["age"]
     assert type(result_age) is dict
     assert next(iter(result_age.keys())) == "statistic"
     assert result_age["statistic"] >= 0.0 and result_age["statistic"] <= 1.0
 
     result = meas.hypothesis_tests.get_range_coverage()
-    assert type(result) is dict
-    assert len(result.keys()) == 5
-    assert next(iter(result))=="age"
-    result_age = result["age"]
+    method = result['range_coverage']
+    statistic = method['statistic']
+    assert type(statistic) is dict
+    assert len(statistic.keys()) == 5
+    assert next(iter(statistic)) == "age"
+    result_age = statistic["age"]
     assert type(result_age) is dict
     assert next(iter(result_age.keys())) == "statistic"
     assert result_age["statistic"] >= 0.0 and result_age["statistic"] <= 1.0

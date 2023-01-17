@@ -10,25 +10,29 @@ from learning_machines_drift import FileBackend, Monitor, Registry, datasets
 from learning_machines_drift.display import Display
 from learning_machines_drift.drift_filter import Condition, Filter
 
+
 def generate_features_labels_latents(
-        numrows: int,
-    ) -> Tuple[NDArray[np.float64], NDArray[np.float64], NDArray[np.float64]]:
+    numrows: int,
+) -> Tuple[NDArray[np.float64], NDArray[np.float64], NDArray[np.float64]]:
 
-        """This generates data and returns features, labels and latents"""
+    """This generates data and returns features, labels and latents"""
 
-        features, labels, latents = datasets.logistic_model(
-            x_mu=np.array([0.0, 0.0, 0.0]), size=numrows, return_latents=True
-        )
+    features, labels, latents = datasets.logistic_model(
+        x_mu=np.array([0.0, 0.0, 0.0]), size=numrows, return_latents=True
+    )
 
-        features_df: pd.DataFrame = pd.DataFrame(
-            {"age": features[:, 0], "height": features[:, 1], "ground-truth-label": labels}
-        )
+    features_df: pd.DataFrame = pd.DataFrame(
+        {"age": features[:, 0], "height": features[:, 1], "ground-truth-label": labels}
+    )
 
-        predictions_series: pd.Series = pd.Series(labels)
-        latents_df: pd.DataFrame = pd.DataFrame({"latents": latents})
-        return (features_df, predictions_series, latents_df)
+    predictions_series: pd.Series = pd.Series(labels)
+    latents_df: pd.DataFrame = pd.DataFrame({"latents": latents})
+    return (features_df, predictions_series, latents_df)
 
-def register_reference(tag="simple_example", backend=FileBackend("my-data")) -> Registry:
+
+def register_reference(
+    tag="simple_example", backend=FileBackend("my-data")
+) -> Registry:
     """Generate data, register data to detector and return detector"""
     features_df, predictions_series, latents_df = generate_features_labels_latents(10)
     detector = Registry(tag=tag, backend=backend)
@@ -61,11 +65,13 @@ def register_new(detector: Registry) -> None:
         ) = generate_features_labels_latents(5)
         log_new_data(detector, new_features_df, new_predictions_series, new_latents_df)
 
+
 def load_data(tag="simple_example", backend=FileBackend("my-data")) -> Monitor:
     """Load data and return Monitor"""
     measure = Monitor(tag=tag, backend=backend)
     measure.load_data(drift_filter=None)
     return measure
+
 
 def main() -> None:
     """Generating data, diff data, visualise results"""
@@ -79,10 +85,14 @@ def main() -> None:
     measure = load_data()
 
     # # 4. Run Test
-    print("Boundary Adherence: {}".format(measure.hypothesis_tests.get_boundary_adherence()))
+    print(
+        "Boundary Adherence: {}".format(
+            measure.hypothesis_tests.get_boundary_adherence()
+        )
+    )
     print("Range Coverage: {}".format(measure.hypothesis_tests.get_range_coverage()))
-    
- 
+
     # measure.hypothesis_tests.scipy_kolmogorov_smirnov()
+
 
 main()
