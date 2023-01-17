@@ -111,17 +111,6 @@ class Backend(Protocol):
 
         """
 
-    def clear_logged_dataset(self, tag: str) -> bool:
-        """Delete directory containing logged files.
-
-        Args:
-            tag (str): Path to logged directory.
-
-        Return:
-            True: if `tag/logged` path exists.
-            False: if `tag/logged` path does not exist.
-        """
-
     def clear_reference_dataset(self, tag: str) -> bool:
         """Delete directory containing reference files.
 
@@ -131,6 +120,17 @@ class Backend(Protocol):
          Return:
             True: if `tag/reference` path exists.
             False: if `tag/reference` path does not exist.
+        """
+
+    def clear_logged_dataset(self, tag: str) -> bool:
+        """Delete directory containing logged files.
+
+        Args:
+            tag (str): Path to logged directory.
+
+        Return:
+            True: if `tag/logged` path exists.
+            False: if `tag/logged` path does not exist.
         """
 
 
@@ -197,6 +197,13 @@ class FileBackend:
         return logged_dir
 
     def save_reference_dataset(self, tag: str, dataset: Dataset) -> None:
+        """Saves passed `dataset` to backend under `tag`.
+
+        Args:
+            tag (str): A tag for locating the dataset within the backend.
+            dataset (Dataset): Reference dataset to be saved.
+
+        """
         reference_dir = self._get_reference_path(tag)
         dataset.features.to_csv(reference_dir.joinpath("features.csv"), index=False)
         dataset.labels.to_csv(reference_dir.joinpath("labels.csv"), index=False)
@@ -204,6 +211,12 @@ class FileBackend:
             dataset.latents.to_csv(reference_dir.joinpath("latents.csv"), index=False)
 
     def load_reference_dataset(self, tag: str) -> Dataset:
+        """Load reference dataset from reference path.
+
+        Args:
+            tag (str): Tag identifying dataset.
+
+        """
         reference_dir = self._get_reference_path(tag)
 
         features_df: pd.DataFrame = pd.read_csv(reference_dir.joinpath("features.csv"))
@@ -221,10 +234,29 @@ class FileBackend:
     def save_logged_features(
         self, tag: str, identifier: UUID, dataframe: pd.DataFrame
     ) -> None:
+        """Save logged features using tag as the path with UUID prepended to
+        filename.
+
+        Args:
+            tag (str): Tag identifying dataset.
+            identifier (UUID): A unique identifier for the logged dataset.
+            dataframe (pd.DataFrame): The dataframe that needs saving.
+
+        """
         logged_dir = self._get_logged_path(tag)
         dataframe.to_csv(logged_dir.joinpath(f"{identifier}_features.csv"), index=False)
 
     def save_logged_labels(self, tag: str, identifier: UUID, labels: pd.Series) -> None:
+        """Save logged labels using tag as the path with UUID prepended to
+        filename.
+
+        Args:
+            tag (str): Tag identifying dataset.
+            identifier (UUID): A unique identifier for the labels of the
+                dataset.
+            labels (pd.Series): The dataframe that needs saving.
+
+        """
         logged_dir = self._get_logged_path(tag)
 
         labels.to_csv(logged_dir.joinpath(f"{identifier}_labels.csv"), index=False)
@@ -232,6 +264,16 @@ class FileBackend:
     def save_logged_latents(
         self, tag: str, identifier: UUID, dataframe: Optional[pd.DataFrame]
     ) -> None:
+        """Save optionally passed latents `dataframe` using tag as the path
+        with UUID prepended to filename.
+
+        Args:
+            tag (str): Tag identifying dataset.
+            identifier (UUID): A unique identifier for the labels of the
+                dataset.
+            dataframe (pd.DataFrame): The dataframe of latents to be saved.
+
+        """
         if dataframe is not None:
             logged_dir = self._get_logged_path(tag)
             dataframe.to_csv(
@@ -239,6 +281,12 @@ class FileBackend:
             )
 
     def load_logged_dataset(self, tag: str) -> Dataset:
+        """Return a Dataset from the union of logged data.
+
+        Args:
+            tag (str): Tag identifying dataset.
+
+        """
         files = [Path(f) for f in glob.glob(f"{self._get_logged_path(tag)}/*")]
         loaded_file_dict: Dict[UUID, List[Path]] = {}
 
@@ -284,6 +332,15 @@ class FileBackend:
         return Dataset(features=features, labels=labels, latents=latents)
 
     def clear_reference_dataset(self, tag: str) -> bool:
+        """Delete directory containing reference files.
+
+        Args:
+            tag (str): Path to reference directory.
+
+         Return:
+            True: if `tag/reference` path exists.
+            False: if `tag/reference` path does not exist.
+        """
         reference_dir = self.root_dir.joinpath(tag).joinpath("reference")
         if not reference_dir.exists():
             return False
@@ -296,6 +353,15 @@ class FileBackend:
         return True
 
     def clear_logged_dataset(self, tag: str) -> bool:
+        """Delete directory containing logged files.
+
+        Args:
+            tag (str): Path to logged directory.
+
+        Return:
+            True: if `tag/logged` path exists.
+            False: if `tag/logged` path does not exist.
+        """
         logged_dir = self.root_dir.joinpath(tag).joinpath("logged")
         if not logged_dir.exists():
             return False
