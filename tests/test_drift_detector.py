@@ -1,4 +1,4 @@
-"""TODO PEP 257"""
+"""Tests for drift detector."""
 # pylint: disable=W0621,too-many-locals
 
 import pathlib
@@ -24,16 +24,16 @@ N_LATENTS = 1
 
 @pytest.fixture()
 def detector(mocker: MockerFixture) -> Registry:
-    """Return a DriftDetector which writes data to a temporary directory"""
+    """Returns a DriftDetector that writes data to a temporary directory."""
 
-    det = Registry(tag="test")
+    det = Registry(tag="test", expect_latent=True)
     mocker.patch.object(det, "backend")
     return det
 
 
 @pytest.fixture()
 def measure(mocker: MockerFixture) -> Monitor:
-    """Return a DriftDetector which writes data to a temporary directory"""
+    """Returns a DriftDetector that writes data to a temporary directory."""
 
     meas = Monitor(tag="test")
     mocker.patch.object(meas, "backend")
@@ -44,12 +44,13 @@ def measure(mocker: MockerFixture) -> Monitor:
 def detector_with_ref_data(
     tmp_path: pathlib.Path, detector: Registry
 ) -> Callable[[int], Registry]:
-    """Return a DriftDetector with a reference dataset registered
-    which writes data to a temporary directory"""
+    """Returns a DriftDetector with a reference dataset registered which
+    writes data to a temporary directory.
+    """
     print(tmp_path)
 
     def _detector_with_ref_data(n_rows: int) -> Registry:
-        """TODO PEP 257"""
+        """Returns registry with saved reference data."""
 
         features_df, labels_df, latents_df = example_dataset(n_rows)
 
@@ -67,7 +68,7 @@ def detector_with_ref_data(
 def test_register_dataset(
     detector_with_ref_data: Callable[[int], Registry], n_rows: int
 ) -> None:
-    """TODO PEP 257"""
+    """Tests whether registry has expected reference data."""
 
     # Given we have a reference dataset
     det: Registry = detector_with_ref_data(n_rows)
@@ -89,7 +90,8 @@ def test_register_dataset(
 
 
 def test_ref_summary_no_dataset(detector) -> None:  # type: ignore
-    """TODO PEP 257"""
+    """Tests that the correct exception is raised upon detector with no
+    reference dataset."""
 
     # Given a detector with no reference dataset registered
 
@@ -103,7 +105,7 @@ def test_ref_summary_no_dataset(detector) -> None:  # type: ignore
 
 
 def test_all_registered(detector_with_ref_data: Callable[[int], Registry]) -> None:
-    """TODO PEP 257"""
+    """Tests whether all expected data is registered."""
     # Given we have registered a reference dataset
     det = detector_with_ref_data(100)
 
@@ -113,9 +115,6 @@ def test_all_registered(detector_with_ref_data: Callable[[int], Registry]) -> No
 
     # When we log features and labels of new data
     with det:
-        # I set these false here as the backend doesn't support them yet
-        # Should discuss how we want to handle this
-        det.expect_labels = True
         det.log_features(
             pd.DataFrame(
                 {
@@ -151,7 +150,7 @@ def test_summary_statistic_list(
     # detector_with_ref_data: Callable[[int], Registry], tmp_path: pathlib.Path
     tmp_path: pathlib.Path,
 ) -> None:
-    """TODO PEP 257"""
+    """Tests application of hypothesis tests from a monitor."""
     # TODO fix to use 'detector_with_ref_data' # pylint: disable=fixme
     # features_df, labels_df, latents_df = example_dataset(10)
     # det = Registry(tag="test", backend=FileBackend(tmp_path))
@@ -219,7 +218,8 @@ def test_summary_statistic_list(
 
 
 def test_statistics_summary(tmp_path) -> None:  # type: ignore
-    """TODO PEP 257"""
+    """Tests whether hypothesis tests are applied to all columns of unifed
+    dataset as expected."""
 
     # Given we have registered a reference dataset
     features_df, labels_df, latents_df = example_dataset(100)
@@ -255,7 +255,9 @@ def test_statistics_summary(tmp_path) -> None:  # type: ignore
 
 
 def test_with_noncommon_columns(tmp_path) -> None:  # type: ignore
-    """TODO PEP 257"""
+    """Tests the application of hypothesis tests to the intersection of columns
+    when there are differing columns in the reference and registered dataset.
+    """
 
     # Given we have registered a reference dataset
     features_df, labels_df, latents_df = example_dataset(100)
@@ -328,7 +330,7 @@ def test_with_noncommon_columns(tmp_path) -> None:  # type: ignore
 
 
 def test_display(tmp_path: pathlib.Path) -> None:
-    """TODO PEP 257"""
+    """Tests whether the display class returns the expected types."""
 
     # Given we have registered a reference dataset
     features_df, labels_df, latents_df = example_dataset(100)
@@ -384,7 +386,8 @@ def test_display(tmp_path: pathlib.Path) -> None:
 
 
 def test_load_all_logged_data(tmp_path: pathlib.Path) -> None:
-    """TODO PEP 257"""
+    """Tests whether logging of data and that upon reload the data has the
+    correct shape."""
     det = Registry(tag="test", backend=FileBackend(tmp_path))
     features_df, labels_df, latents_df = example_dataset(20)
     det.register_ref_dataset(features=features_df, labels=labels_df, latents=latents_df)
@@ -446,7 +449,8 @@ def test_condition() -> None:
 
 @pytest.mark.parametrize("n_rows", [10, 100, 1000])
 def test_load_data_filtered(tmp_path: pathlib.Path, n_rows: int) -> None:
-    """TODO PEP 257"""
+    """Tests whether a filter applied to load data from registry correctly
+    filters data."""
     det = Registry(tag="test", backend=FileBackend(tmp_path))
     features_df, labels_df, latents_df = example_dataset(n_rows, seed=42)
     det.register_ref_dataset(features=features_df, labels=labels_df, latents=latents_df)
@@ -503,7 +507,7 @@ def test_load_data_filtered(tmp_path: pathlib.Path, n_rows: int) -> None:
 
 
 def test_category_columns(tmp_path: pathlib.Path) -> None:
-    """TODO PEP 257"""
+    """Tests the returned result structure for categorical hypothesis test."""
     features_df, labels_df, latents_df = example_dataset(10)
     det = Registry(tag="test", backend=FileBackend(tmp_path))
     det.register_ref_dataset(features=features_df, labels=labels_df, latents=latents_df)
@@ -545,7 +549,7 @@ def test_category_columns(tmp_path: pathlib.Path) -> None:
 
 
 def test_dataset_types(tmp_path: pathlib.Path) -> None:
-    """TODO PEP 257"""
+    """Tests whether the reference dataset components have the expected types."""
     features_df, labels_df, latents_df = example_dataset(10)
     det = Registry(tag="test", backend=FileBackend(tmp_path))
     det.register_ref_dataset(features=features_df, labels=labels_df, latents=latents_df)
