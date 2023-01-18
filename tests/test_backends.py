@@ -1,8 +1,7 @@
-"""TODO PEP 257"""
+"""Tests for backend."""
 # pylint: disable=protected-access
 import os
 import pathlib
-import re
 from uuid import uuid4
 
 import pandas as pd
@@ -14,7 +13,7 @@ from learning_machines_drift.datasets import example_dataset
 
 
 def test_file_backend_reference(tmp_path: pathlib.Path) -> None:
-    """TODO PEP 257"""
+    """Tests whether reference dataset upon saving and loading is equal."""
 
     # Given
     tag = "test_tag"
@@ -34,7 +33,8 @@ def test_file_backend_reference(tmp_path: pathlib.Path) -> None:
 def test_file_backend_features(  # pylint: disable=too-many-locals
     tmp_path: pathlib.Path,
 ) -> None:
-    """TODO PEP 257"""
+    """Tests whether three batches of data can be logged at different
+    identifiers and reloaded."""
 
     # Given
     tag = "test_tag"
@@ -84,18 +84,12 @@ def test_file_backend_features(  # pylint: disable=too-many-locals
 
 
 def test_get_identifier() -> None:
-    """TODO PEP 257"""
+    """Tests whether identifier can be extracted from a file name string."""
 
     expected_uuid = uuid4()
 
     string_with_id = f"{expected_uuid}_any_other_text.csv"
     assert get_identifier(string_with_id) == expected_uuid
-
-
-def test_labels() -> None:
-    """TODO PEP 257"""
-    re_label = re.compile("labels", re.I)
-    print(re_label.search("asdfsa_labels"))
 
 
 # def test_file_backend_labels(tmp_path: pathlib.Path) -> None:
@@ -137,9 +131,7 @@ def test_labels() -> None:
 
 
 def test_clear_logged_dataset(tmp_path: pathlib.Path) -> None:
-    """
-    Test for load_logged_dataset
-    """
+    """Tests whether logged dataset is cleared."""
     # Given
     tag = "test_tag"
 
@@ -158,9 +150,7 @@ def test_clear_logged_dataset(tmp_path: pathlib.Path) -> None:
 
 
 def test_clear_reference_dataset(tmp_path: pathlib.Path) -> None:
-    """
-    Test for load_reference_dataset
-    """
+    """Tests whether a reference dataset is cleared."""
     # Given
     tag = "test_tag"
     features_df, labels_df, latents_df = example_dataset(100)
