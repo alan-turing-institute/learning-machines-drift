@@ -1,20 +1,9 @@
-# pylint: disable=C0103
-# pylint: disable=W0621
-# pylint: disable=R0913
-
 """TODO PEP 257"""
 import os
-
-# from atexit import register
-# from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
-
-# , Any, Callable, Dict, List
 from uuid import UUID, uuid4
 
-# import numpy as np
-# import numpy.typing as npt
 import pandas as pd
 
 from learning_machines_drift.backends import Backend, FileBackend
