@@ -1,8 +1,4 @@
-# pylint: disable=C0103
-# pylint: disable=W0621
-# pylint: disable=R0913
-
-"""Module to filter a dataset."""
+"""Module with class filter a dataset."""
 from enum import Enum, auto
 from typing import Any, List, Optional
 
@@ -13,7 +9,7 @@ from learning_machines_drift.types import Dataset
 
 
 class Comparison(Enum):
-    """Comparison class for 'LESS', 'GREATER' and 'EQUAL' cases."""
+    """Comparison enum for 'LESS', 'GREATER' and 'EQUAL' cases."""
 
     LESS = auto()
     GREATER = auto()
@@ -51,22 +47,26 @@ class Condition:  # pylint: disable=too-few-public-methods
 class Filter:  # pylint: disable=too-few-public-methods
     """Filter class.
 
-    Filters a given dataset through an AND operation applied across all passed
-    conditions.
-
-    Args:
-        conditions (dict[str, List[Condition]]): Dict with key (variable) and value
-            as a list of (condition, value) to be used for filtering.
+    Filters a given dataset through an `AND` operation applied across all
+    passed conditions.
 
     Attributes:
-        conditions (dict[str, List[Condition]]): Dict with key (variable) and value
-            as a list of (condition, value) to be used for filtering.
+        conditions (dict[str, List[Condition]]): Dict with key (variable) and
+            value as a list of (condition, value) to be used for filtering.
+
     """
 
     conditions: Optional[dict[str, List[Condition]]]
 
     def __init__(self, conditions: Optional[dict[str, List[Condition]]]):
-        """Initialize a dict with variable keys and (condition, value) values."""
+        """Initialize a dict with variable keys and (condition, value) values.
+
+        Args:
+            conditions (dict[str, List[Condition]]): Dict with key (variable)
+                and value as a list of (condition, value) to be used for
+                filtering.
+
+        """
         self.conditions = conditions
 
     def _filter_df(
@@ -108,7 +108,7 @@ class Filter:  # pylint: disable=too-few-public-methods
             dataset (Dataset): the dataset to be filtered.
 
         Returns:
-            Dataset: transformed dataset given filters
+            Dataset: transformed dataset given filters.
         """
         if self.conditions is None:
             return dataset
