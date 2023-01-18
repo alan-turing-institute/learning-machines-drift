@@ -1,4 +1,4 @@
-"""Module with class filter a dataset."""
+"""Module with class to filter a dataset."""
 from enum import Enum, auto
 from typing import Any, List, Optional
 
