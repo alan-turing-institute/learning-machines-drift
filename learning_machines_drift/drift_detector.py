@@ -1,4 +1,6 @@
 """Module for registry handling storage and logging of datasets."""
+from __future__ import annotations
+
 import os
 from pathlib import Path
 from typing import Optional
@@ -22,18 +24,17 @@ class Registry:
     """Class for registry for logging datasets.
 
     Attributes:
-        backend (Optional[Backend]): TODO,
-        tag (str): TODO,
-        ref_dataset (Optional[Dataset]): TODO,
-        registered_features (Optional[pd.DataFrame]): TODO,
-        registered_labels (Optional[pd.Series]): TODO,
-        registered_latents (Optional[pd.Series]): TODO,
+        backend (Optional[Backend]): Optional backend for data.
+        tag (str): Tag identifying dataset.
+        ref_dataset (Optional[Dataset]): Optional reference dataset.
+        registered_features (Optional[pd.DataFrame]): Optional registered
+            features.
+        registered_labels (Optional[pd.Series]): Optional registered labels.
+        registered_latents (Optional[pd.Series]): Optional registered latents.
         expect_features (bool): Whether features are expected in registry.
         expect_labels (bool): Whether a labels series is expected in registry.
         expect_latent (bool): Whether latents are expected in registry.
 
-    Args:
-        TODO
     """
 
     def __init__(
@@ -46,7 +47,22 @@ class Registry:
         clear_logged: bool = False,
         clear_reference: bool = False,
     ):
-        """TODO PEP 257"""
+        """Initializes a registry.
+
+
+        Args:
+            tag (str): A tag to be used with in backend for the registry.
+            expect_features (bool): Should features be present.
+            expect_labels (bool): Should labels be present.
+            expect_latent (bool): Should latents be present.
+            backend (Optional[Backend]): An optional backend to be used for
+                storage.
+            clear_logged (bool): Whether any existing registered data should at
+                `tag` in `backend` should be cleared.
+            clear_reference (bool): Whether any existing reference data at
+                `tag` in `backend` should be cleared.
+
+        """
 
         if backend:
             self.backend: Backend = backend
@@ -75,7 +91,12 @@ class Registry:
 
     @property
     def identifier(self) -> UUID:
-        """TODO PEP 257"""
+        """Gets the identifier of the registry.
+
+        Returns:
+            UUID: The identifier.
+
+        """
 
         if self._identifier is None:
             raise ValueError("DriftDetector must be used in a context manager")
@@ -85,17 +106,30 @@ class Registry:
     def register_ref_dataset(
         self,
         features: pd.DataFrame,
-        labels: pd.DataFrame,
+        labels: pd.Series,
         latents: Optional[pd.DataFrame] = None,
     ) -> None:
-        """TODO PEP 257"""
+        """Registers passed reference data.
+
+        Args:
+            features (pd.DataFrame): Reference features to be stored.
+            labels (pd.Series): Reference labels to be stored.
+            latents (Optional[pd.DataFrame]): Reference latents to be stored.
+
+        """
 
         self.ref_dataset = Dataset(features=features, labels=labels, latents=latents)
 
         self.backend.save_reference_dataset(self.tag, self.ref_dataset)
 
     def ref_summary(self) -> BaselineSummary:
-        """Return a json describing shape of dataset features and labels"""
+        """Return a JSON describing shape of dataset feature, labels and
+            latents.
+
+        Returns:
+            BaselineSummary: Summary of the dataset shapes.
+
+        """
 
         if self.ref_dataset is None:
             raise ReferenceDatasetMissing
@@ -121,7 +155,12 @@ class Registry:
         )
 
     def log_features(self, features: pd.DataFrame) -> None:
-        """Log dataset features"""
+        """Logs dataset features in registered data.
+
+        Args:
+            features (pd.DataFrame): Features dataframe to be registered.
+
+        """
 
         self.registered_features = features
         self.backend.save_logged_features(
@@ -129,7 +168,12 @@ class Registry:
         )
 
     def log_labels(self, labels: pd.Series) -> None:
-        """Log dataset labels"""
+        """Logs dataset labels in registered data.
+
+        Args:
+            labels (pd.Series): Labels series to be registered.
+
+        """
 
         self.registered_labels = labels
         self.backend.save_logged_labels(
@@ -137,7 +181,12 @@ class Registry:
         )
 
     def log_latents(self, latent: pd.DataFrame) -> None:
-        """TODO PEP 257"""
+        """Logs dataset latents in registered data.
+
+        Args:
+            latents (pd.DataFrame): Latents dataframe to be registered.
+
+        """
 
         self.registered_latent = latent
         self.backend.save_logged_latents(
@@ -145,7 +194,12 @@ class Registry:
         )
 
     def all_registered(self) -> bool:
-        """TODO PEP 257"""
+        """Checks whether all expected datastes are registered.
+
+        Returns:
+            bool: True if all expected registered, False otherwise.
+
+        """
 
         if self.expect_features and self.registered_features is None:
             return False
@@ -160,7 +214,12 @@ class Registry:
 
     @property
     def registered_dataset(self) -> Dataset:
-        """TODO PEP 257"""
+        """Gets the registered dataset.
+
+        Returns:
+            Dataset: The registered dataset.
+
+        """
 
         # This should check these two things are not None
 
@@ -168,16 +227,22 @@ class Registry:
             self.registered_features, self.registered_labels, self.registered_latent
         )
 
-    def __enter__(self) -> "Registry":
-        """TODO PEP 257"""
+    def __enter__(self) -> Registry:
+        """Assigns a new UUID upon context.
+
+        Returns:
+            Registry: With new UUID assigned to `_identifier`.
+
+        """
 
         self._identifier = uuid4()
         return self
 
     def __exit__(self, exc_type, exc_value, traceback) -> None:  # type: ignore
-        """TODO PEP 257"""
+        """Sets `_identifier` as `None` upon leaving context.
 
+        Returns:
+            Registry: With new UUID assigned to `_identifier`.
+
+        """
         self._identifier = None
-
-
-#        pass
