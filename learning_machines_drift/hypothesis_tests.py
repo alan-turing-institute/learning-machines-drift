@@ -499,6 +499,7 @@ class HypothesisTests:
         results: Dict[str, Dict[str, float]] = self._calc(
             BoundaryAdherence.compute, wrapper=Wrapper.TYPE_SDMETRIC
         )
+        print(results)
         return {"boundary_adherence": {"statistic": results}}
 
     def get_range_coverage(self) -> Dict[str, Dict[str, Dict[str, Dict[str, float]]]]:

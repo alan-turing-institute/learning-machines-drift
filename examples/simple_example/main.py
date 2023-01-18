@@ -119,8 +119,8 @@ def main() -> None:
     # results = measure.hypothesis_tests.binary_classifier_efficacy(target_variable="ground-truth-label")
     # print(results)
 
-    # results = measure.hypothesis_tests.logistic_detection_custom()
-    # print(results)
+    results = measure.hypothesis_tests.logistic_detection_custom()
+    print(results)
 
     # results = measure.hypothesis_tests.logistic_detection()
     # print(results)
@@ -128,8 +128,8 @@ def main() -> None:
     # results = measure.hypothesis_tests.scipy_permutation()
     # print(results)
 
-    results = measure.hypothesis_tests.scipy_kolmogorov_smirnov()
-    print(results)
+    # results = measure.hypothesis_tests.scipy_kolmogorov_smirnov()
+    # print(results)
 
     # 3. Load all data with filter and perform tests
     # drift_filter = Filter(
