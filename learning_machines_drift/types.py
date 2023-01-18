@@ -66,16 +66,3 @@ class Dataset:
     def unify(self) -> pd.DataFrame:
         """TODO PEP 257"""
         return pd.concat([self.features, self.labels, self.latents], axis=1)
-
-
-@dataclass
-class DatasetLatent:
-    """TODO PEP 257"""
-
-    dataset: Dataset
-    latent: Optional[pd.DataFrame]
-
-    @staticmethod
-    def from_dataset(dataset: Dataset) -> "DatasetLatent":
-        """TODO PEP 257"""
-        return DatasetLatent(dataset=dataset, latent=None)
