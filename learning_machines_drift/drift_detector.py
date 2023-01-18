@@ -1,4 +1,4 @@
-"""TODO PEP 257"""
+"""Module for registry handling storage and logging of datasets."""
 import os
 from pathlib import Path
 from typing import Optional
@@ -19,9 +19,22 @@ from learning_machines_drift.types import (
 
 
 class Registry:
-    """TODO PEP 257"""
+    """Class for registry for logging datasets.
 
-    # pylint: disable=too-many-instance-attributes
+    Attributes:
+        backend (Optional[Backend]): TODO,
+        tag (str): TODO,
+        ref_dataset (Optional[Dataset]): TODO,
+        registered_features (Optional[pd.DataFrame]): TODO,
+        registered_labels (Optional[pd.Series]): TODO,
+        registered_latents (Optional[pd.Series]): TODO,
+        expect_features (bool): Whether features are expected in registry.
+        expect_labels (bool): Whether a labels series is expected in registry.
+        expect_latent (bool): Whether latents are expected in registry.
+
+    Args:
+        TODO
+    """
 
     def __init__(
         self,
@@ -34,7 +47,6 @@ class Registry:
         clear_reference: bool = False,
     ):
         """TODO PEP 257"""
-        # pylint: disable=too-many-instance-attributes
 
         if backend:
             self.backend: Backend = backend
@@ -48,9 +60,8 @@ class Registry:
         if clear_reference:
             self.backend.clear_reference_dataset(self.tag)
 
-        self._identifier: Optional[
-            UUID
-        ] = None  # A unique identifier used to match logged features and labels
+        # A unique identifier used to match logged features and labels
+        self._identifier: Optional[UUID] = None
         self.ref_dataset: Optional[Dataset] = None
 
         self.expect_features: bool = expect_features
