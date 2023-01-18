@@ -111,7 +111,7 @@ def main() -> None:
     measure = load_data(None)
 
     # results = measure.hypothesis_tests.get_boundary_adherence()
-    # print(results.keys())
+    # print(results)
 
     # results = measure.hypothesis_tests.get_range_coverage()
     # print(results)
@@ -119,17 +119,39 @@ def main() -> None:
     # results = measure.hypothesis_tests.binary_classifier_efficacy(target_variable="ground-truth-label")
     # print(results)
 
-    results = measure.hypothesis_tests.logistic_detection_custom()
+    # results = measure.hypothesis_tests.logistic_detection_custom()
+    # print(results)
+
+    # {'methodname':
+    #     {'statistic': 
+    #         {'age': {'statistic': 0.8666666666666667},
+    #         'height': {'statistic': 0.8666666666666667}
+    #         }
+    #     }
+    # }
+
+    # {'methodname':
+    #     {'age': {'statistic': 0.8666666666666667},
+    #     'height': {'statistic': 0.8666666666666667}
+    #     }
+    # }
+
+    # {'methodname':
+    #     {'single_value':
+    #         {'statistic': 0.999, 'pvalue':0.005}
+    #     }
+    # }
+    results = measure.hypothesis_tests.logistic_detection()
     print(results)
 
-    # results = measure.hypothesis_tests.logistic_detection()
-    # print(results)
+    results = measure.hypothesis_tests.scipy_permutation()
+    print(results)
 
-    # results = measure.hypothesis_tests.scipy_permutation()
-    # print(results)
+    results = measure.hypothesis_tests.scipy_kolmogorov_smirnov()
+    print(results)
 
-    # results = measure.hypothesis_tests.scipy_kolmogorov_smirnov()
-    # print(results)
+    results = measure.hypothesis_tests.scipy_mannwhitneyu()
+    print(results)
 
     # 3. Load all data with filter and perform tests
     # drift_filter = Filter(

@@ -1,7 +1,7 @@
 # pylint: disable=no-member
 """TODO PEP 257"""
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 import pandas as pd
 from pydantic import BaseModel
@@ -79,3 +79,10 @@ class DatasetLatent:
     def from_dataset(dataset: Dataset) -> "DatasetLatent":
         """TODO PEP 257"""
         return DatasetLatent(dataset=dataset, latent=None)
+
+@dataclass
+class StructuredResult:
+    """TODO PEP 257"""
+
+    method_name: str
+    results: Dict[str, Dict[str, float]]

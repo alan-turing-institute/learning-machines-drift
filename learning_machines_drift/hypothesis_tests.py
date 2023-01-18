@@ -23,7 +23,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import f1_score, roc_auc_score
 from sklearn.model_selection import StratifiedKFold
 
-from learning_machines_drift.types import Dataset
+from learning_machines_drift.types import Dataset, StructuredResult
 
 
 class Wrapper(Enum):
@@ -215,7 +215,7 @@ class HypothesisTests:
 
     def scipy_kolmogorov_smirnov(
         self, verbose: bool = True
-    ) -> Dict[str, Dict[str, Dict[str, Dict[str, float]]]]:
+    ) -> StructuredResult:
         """Calculates feature-wise two-sample Kolmogorov-Smirnov test for
         goodness of fit. Assumes continuous underlying distributions but
         scores are still interpretable if data is approximately continuous.
@@ -233,11 +233,14 @@ class HypothesisTests:
         results = self._calc(stats.ks_2samp)
         if verbose:
             print(about_str)
-        return {'scipy_kolmogorov_smirnov': {"statistic": results}}
+
+        result_dict:Dict[str, Dict[str, float]]=results
+        structured_result = StructuredResult("scipy_kolmogorov_smirnov", result_dict)
+        return structured_result
 
     def scipy_mannwhitneyu(
         self, verbose: bool = True
-    ) -> Dict[str, Dict[str, Dict[str, Dict[str, float]]]]:
+    ) -> StructuredResult:
         """Calculates feature-wise Mann-Whitney U test, a nonparametric test of
         the null hypothesis that the distribution underlying sample x is the
         same as the distribution underlying sample y. Provides a test for the
@@ -261,13 +264,15 @@ class HypothesisTests:
         if verbose:
             print(about_str)
 
-        return {'scipy_mannwhitneyu': {"statistic": results}}
+        result_dict:Dict[str, Dict[str, float]]=results
+        structured_result = StructuredResult("scipy_mannwhitneyu", result_dict)
+        return structured_result
 
     def scipy_permutation(
         self,
         agg_func: Callable[..., float] = np.mean,
         verbose: bool = True,
-    ) -> Dict[str, Dict[str, Dict[str, Dict[str, float]]]]:
+    ) -> StructuredResult:
         """Performs feature-wise permutation test with default statistic to
         measure differences under permutations of labels as the mean.
 
@@ -309,11 +314,13 @@ class HypothesisTests:
         if verbose:
             print(about_str)
 
-        return {'scipy_permutation': {"statistic": results}}
+        result_dict:Dict[str, Dict[str, float]]=results
+        structured_result = StructuredResult("scipy_permutation", result_dict)
+        return structured_result
 
     def logistic_detection(
         self, normalize: bool = False, verbose: bool = True
-    ) -> Dict[str, Dict[str, float]]:
+    ) -> StructuredResult:
         """Calculates a measure of similarity using fitted logistic regression
         to predict reference or registered label using Synthetic Data
         Vault package.
@@ -344,7 +351,9 @@ class HypothesisTests:
         if normalize:
             results = LogisticDetection.normalize(results)
 
-        return {"logistic_detection": {"statistic": results, "pvalue": np.nan}}
+        result_dict:Dict[str, Dict[str, float]]={'single_value':results, 'pvalue': np.nan}
+        structured_result = StructuredResult("logistic_detection", result_dict)
+        return structured_result
 
     # pylint: disable=invalid-name
     def logistic_detection_custom(  # pylint: disable=too-many-locals, too-many-branches
@@ -353,7 +362,7 @@ class HypothesisTests:
         score_type: Optional[str] = None,
         seed: Optional[int] = None,
         verbose: bool = True,
-    ) -> Dict[str, Dict[str, float]]:
+    ) -> StructuredResult:
         """Calculates a measure of similarity using fitted logistic regression
         to predict reference or registered label using Synthetic Data
         Vault package. Optional `score_type` and `seed` can be passed to provide
@@ -444,8 +453,10 @@ class HypothesisTests:
 
         if normalize and score_type is None:
             results = LogisticDetection.normalize(results)
-
-        return {results_key: {"statistic": results, "pvalue": np.nan}}
+        
+        result_dict:Dict[str, Dict[str, float]]={'single_value':results, 'pvalue': np.nan}
+        structured_result = StructuredResult("logistic_detection_custom", result_dict)
+        return structured_result    
 
     # TODO: add test for this method if developed further pylint: disable=fixme
     def binary_classifier_efficacy(
@@ -458,7 +469,7 @@ class HypothesisTests:
             BinaryMLPClassifier,
         ] = BinaryLogisticRegression,
         verbose: bool = True,
-    ) -> Dict[str, Dict[str, float]]:
+    ) -> StructuredResult:
         """Calculates accuracy of classifier trained on reference data and
         tested on registered data.
 
@@ -488,22 +499,24 @@ class HypothesisTests:
             target=target_variable,
             metadata=None,
         )
-
-        return {"binary_classifier_efficacy": {"statistic": result, "pvalue": np.nan}}
+        result_dict:Dict[str, Dict[str, float]]={'single_value':result, 'pvalue': np.nan}
+        structured_result = StructuredResult("binary_classifier_efficacy", result_dict)
+        return structured_result
 
     # pylint: enable=invalid-name
 
     def get_boundary_adherence(
         self,
-    ) -> Dict[str, Dict[str, Dict[str, Dict[str, float]]]]:
+    ) -> StructuredResult:
         results: Dict[str, Dict[str, float]] = self._calc(
             BoundaryAdherence.compute, wrapper=Wrapper.TYPE_SDMETRIC
         )
-        print(results)
-        return {"boundary_adherence": {"statistic": results}}
+        structured_result = StructuredResult("boundary_adherence", results)
+        return structured_result
 
-    def get_range_coverage(self) -> Dict[str, Dict[str, Dict[str, Dict[str, float]]]]:
+    def get_range_coverage(self) -> StructuredResult:
         results: Dict[str, Dict[str, float]] = self._calc(
             RangeCoverage.compute, wrapper=Wrapper.TYPE_SDMETRIC
         )
-        return {"range_coverage": {"statistic": results}}
+        structured_result = StructuredResult("range_coverage", results)
+        return structured_result
