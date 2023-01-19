@@ -26,9 +26,14 @@ from learning_machines_drift.types import Dataset
 
 
 class HypothesisTests:
-    """
-    A class for performing hypothesis tests and scoring between registered and
-    reference datasets.
+    """A class for performing hypothesis tests and scoring between registered
+    and reference datasets.
+
+    Attributes:
+        reference_dataset (Dataset): Reference datastet for drift measures.
+        registered_dataset (Dataset): Registered/logged datastet for drift
+            measures.
+        random_state (Optional[int]): Optional seeding for reproducibility.
     """
 
     def __init__(
@@ -37,7 +42,15 @@ class HypothesisTests:
         registered_dataset: Dataset,
         random_state: Optional[int] = None,
     ) -> None:
-        """Initialize with registered and reference and optional seed."""
+        """Initialize with registered and reference and optional seed.
+
+        Args:
+            reference_dataset (Dataset): Reference datastet for drift measures.
+            registered_dataset (Dataset): Registered/logged datastet for drift
+                measures.
+            random_state (Optional[int]): Optional seeding for reproducibility.
+
+        """
         self.reference_dataset = reference_dataset
         self.registered_dataset = registered_dataset
         self.random_state = random_state
@@ -192,6 +205,7 @@ class HypothesisTests:
 
         Returns:
             results (dict): Dictionary of statistics and  p-values by feature.
+
         """
         method = "SciPy Mann-Whitney U"
         description = (
@@ -211,8 +225,10 @@ class HypothesisTests:
         Args:
             data1 (pd.Series): First series.
             data2 (pd.Series): Second series.
+
         Returns:
             dict[str, float]: dict of chi-square statistic and p-value.
+
         """
         # Get unique elements across all data
         base: npt.NDArray[Any] = np.unique(np.append(data1, data2))
@@ -240,6 +256,7 @@ class HypothesisTests:
 
         Returns:
             results (dict): Dictionary of statistics and  p-values by feature.
+
         """
         method = (
             "SciPy chi-square test of independence of variables in a "
@@ -434,10 +451,9 @@ class HypothesisTests:
         interpretable metrics for the user.
 
         `score_type` can be:
-            None: defaults to scoring of `logistic_detection` method.
-            "f1": Cross-validated F1 score with  0.5 threshold.
-            "roc_auc": Cross-validated receiver operating characteristic (area
-                under the curve)
+            - None: defaults to scoring of `logistic_detection` method.
+            - "f1": Cross-validated F1 score with  0.5 threshold.
+            - "roc_auc": Cross-validated receiver operating characteristic (area under the curve).
 
         Args:
             score_type (Optional[str]): None for default or string; "f1" and
