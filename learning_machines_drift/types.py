@@ -65,13 +65,9 @@ class ShapeSummary(BaseModel):
 
 
 class BaselineSummary(BaseModel):
-    """Class for storing a shape summary with JSON string representation.
+    """Class for storing a shape summary with JSON string representation."""
 
-    Attributes:
-        shapes (ShapeSummary): A shape summary instance of a dataset.
-
-    """
-
+    #: ShapeSummary: A shape summary instance of a dataset.
     shapes: ShapeSummary
 
     def __str__(self) -> str:
