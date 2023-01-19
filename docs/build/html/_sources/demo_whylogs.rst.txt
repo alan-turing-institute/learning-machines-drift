@@ -1,7 +1,0 @@
-demo\_whylogs module
-====================
-
-.. automodule:: demo_whylogs
-   :members:
-   :undoc-members:
-   :show-inheritance:

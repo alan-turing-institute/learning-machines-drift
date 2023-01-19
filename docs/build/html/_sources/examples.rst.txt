@@ -1,7 +1,0 @@
-Examples
-===========
-
-Installation and Usage:
-***********************
-
-Some explanatory text
