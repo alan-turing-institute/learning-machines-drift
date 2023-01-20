@@ -554,13 +554,16 @@ class HypothesisTests:
 
         Args:
             target_variable (str): Target (ground truth label) variable name.
-            clf (Union[BinaryAdaBoostClassifier, BinaryDecisionTreeClassifier,
-                BinaryLogisticRegression, BinaryMLPClassifier]): SDV binary classifier class.
+            clf (Union[
+                BinaryAdaBoostClassifier, 
+                BinaryDecisionTreeClassifier,
+                BinaryLogisticRegression, 
+                BinaryMLPClassifier]): SDV binary classifier class.
             verbose (bool): Boolean for verbose output to stdout.
 
         Returns:
-            results (Dict[str, Dict[str, float]]): Score providing an overall similarity measure of
-                reference and registered dataset.
+            results (float): Score providing an overall similarity measure of
+                reference and registered datasets.
         """
         method = f"Binary classification (ML efficacy): ({clf.__str__})"
         description = (
@@ -580,21 +583,3 @@ class HypothesisTests:
         )
 
         return {"binary_classifier_efficacy": {"statistic": result, "pvalue": np.nan}}
-
-    # pylint: enable=invalid-name
-
-    # def sd_evaluate(self, verbose=True) -> Any:
-    #     method = "SD Evaluate"
-    #     description = "Detection metric based on a LogisticRegression
-    #     classifier from scikit-learn"
-    #     about_str = "\nMethod: {method}\nDescription:{description}"
-    #     about_str = about_str.format(method=method, description=description)
-
-    #     if verbose:
-    #         print(about_str)
-    #     results = evaluate(
-    #         self.reference_dataset.unify(),
-    #         self.registered_dataset.unify(),
-    #         aggregate=False,
-    #     )
-    #     return results
