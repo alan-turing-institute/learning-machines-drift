@@ -365,7 +365,7 @@ class HypothesisTests:
         if normalize:
             results = LogisticDetection.normalize(results)
 
-        result_dict:Dict[str, Dict[str, float]]={'single_value':results, 'pvalue': np.nan}
+        result_dict:Dict[str, Dict[str, float]]={'single_value':{'statistic':results}, 'pvalue': np.nan}
         structured_result = StructuredResult("logistic_detection", result_dict)
         return structured_result
 

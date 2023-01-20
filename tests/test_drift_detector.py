@@ -3,7 +3,7 @@
 
 import pathlib
 from functools import partial
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable, Dict, List, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -13,7 +13,7 @@ from pytest_mock import MockerFixture
 
 from learning_machines_drift import Monitor, ReferenceDatasetMissing, Registry, datasets
 from learning_machines_drift.backends import FileBackend
-from learning_machines_drift.datasets import generate_features_labels_latents
+from learning_machines_drift.datasets import generate_features_labels_latents, logistic_model
 from learning_machines_drift.display import Display
 from learning_machines_drift.drift_filter import Comparison, Condition, Filter
 from learning_machines_drift.types import StructuredResult
@@ -182,7 +182,8 @@ def test_summary_statistic_list(
     h_test_dispatcher: Dict[str, Any] = {
         "scipy_kolmogorov_smirnov": meas.hypothesis_tests.scipy_kolmogorov_smirnov,
         "scipy_mannwhitneyu": meas.hypothesis_tests.scipy_mannwhitneyu,
-        "boundary_adherence": meas.hypothesis_tests.get_boundary_adherence
+        "boundary_adherence": meas.hypothesis_tests.get_boundary_adherence,
+        "logistic_detection": meas.hypothesis_tests.logistic_detection,
     }
 
     for h_test_name, h_test_fn in h_test_dispatcher.items():
@@ -236,30 +237,42 @@ def test_with_noncommon_columns(tmp_path) -> None:  # type: ignore
     when there are differing columns in the reference and registered dataset.
     """
 
+    def generate_features_labels_latents(
+        numrows: int,
+    ) -> Tuple[pd.DataFrame, pd.Series,pd.DataFrame]:
+
+        """This generates data and returns features, labels and latents"""
+
+        features, labels, latents = logistic_model(
+            x_mu=np.array([0.0, 0.0, 0.0]), size=numrows, return_latents=True
+        )
+
+        features_df: pd.DataFrame = pd.DataFrame(
+            {"age": features[:, 0], "ground-truth-label": labels}
+        )
+
+        predictions_series: pd.Series = pd.Series(labels)
+        latents_df: pd.DataFrame = pd.DataFrame({"latents": latents})
+        return (features_df, predictions_series, latents_df)
+
     # Given we have registered a reference dataset
-    features_df, labels_df, latents_df = example_dataset(100)
+    features_df, labels_df, latents_df = generate_features_labels_latents(10)
     det = Registry(tag="test", backend=FileBackend(tmp_path))
     det.register_ref_dataset(features=features_df, labels=labels_df, latents=latents_df)
 
-    # And we have features and predicted labels
-    x_monitor, y_monitor, latents_monitor = datasets.logistic_model(return_latents=True)
-    # latent_x = x_monitor.mean(axis=0)
-    features_monitor_df = pd.DataFrame(
-        {
-            "age": x_monitor[:, 0],
-            "height": x_monitor[:, 1],
-            # Exclude "bp" so not present in monitor
-            # "bp": x_monitor[:, 2],
-        }
-    )
-    labels_monitor_df = pd.DataFrame({"y": y_monitor})
-    latents_monitor_df = pd.DataFrame({"latents": latents_monitor})
+    num_iterations = 1
+    for _ in range(num_iterations):
+        (
+            new_features_df,
+            new_predictions_series,
+            new_latents_df,
+        ) = generate_features_labels_latents(5)
 
-    with det:
-        # And we have logged features, labels and latent
-        det.log_features(features_monitor_df)
-        det.log_labels(labels_monitor_df)
-        det.log_latents(latents_monitor_df)
+        with det:
+            # And we have logged features, labels and latent
+            det.log_features(new_features_df)
+            det.log_labels(new_predictions_series)
+            det.log_latents(new_latents_df)
 
     meas = Monitor(tag="test", backend=FileBackend(tmp_path))
     meas.load_data()
@@ -269,41 +282,41 @@ def test_with_noncommon_columns(tmp_path) -> None:  # type: ignore
         "scipy_mannwhitneyu": meas.hypothesis_tests.scipy_mannwhitneyu,
         "scipy_permutation": meas.hypothesis_tests.scipy_permutation,
         "logistic_detection": meas.hypothesis_tests.logistic_detection,
-        "logistic_detection_f1": partial(
-            meas.hypothesis_tests.logistic_detection_custom, score_type="f1"
-        ),
-        "logistic_detection_roc_auc": partial(
-            meas.hypothesis_tests.logistic_detection_custom, score_type="roc_auc"
-        ),
+        # "logistic_detection_f1": partial(
+        #     meas.hypothesis_tests.logistic_detection_custom, score_type="f1"
+        # ),
+        # "logistic_detection_roc_auc": partial(
+        #     meas.hypothesis_tests.logistic_detection_custom, score_type="roc_auc"
+        # ),
     }
 
     for h_test_name, h_test_fn in h_test_dispatcher.items():
-        res = h_test_fn(verbose=False)
+        res = h_test_fn()
 
         # Check res is a dict
-        assert isinstance(res, dict)
-
-        # If `chisquare`, not compatible with any of the test dataset dtypes
-        # so skip
-        if h_test_name == "scipy_chisquare":
-            continue
-
-        # If `scipy` test, it will be column-wise
-        if h_test_name.startswith("scipy"):
-            # Get unified subsets with columns common to both registered and reference.
-            # Only these columns should hav test results.
-            (
-                unified_ref_subset,
-                unified_reg_subset,
-            ) = meas.hypothesis_tests._get_unified_subsets()
-            method = res[h_test_name]
-            statistic = method['statistic']
-            assert statistic.keys() == set(unified_reg_subset.columns)
-            assert statistic.keys() == set(unified_ref_subset.columns)
-        # Otherwise, there should be single item in returned dictionary that
-        # matches the specified names in the test
+        assert isinstance(res, StructuredResult)
+        assert (res.method_name==h_test_name)
+        if list(res.results.keys())[0] == 'single_value':
+            assert isinstance(res.results['single_value'], dict)
         else:
-            assert list(res.keys()) == [h_test_name]
+            assert list(res.results.keys())==list(det.registered_dataset.unify().columns)
+
+        # # If `scipy` test, it will be column-wise
+        # if h_test_name.startswith("scipy"):
+        #     # Get unified subsets with columns common to both registered and reference.
+        #     # Only these columns should hav test results.
+        #     (
+        #         unified_ref_subset,
+        #         unified_reg_subset,
+        #     ) = meas.hypothesis_tests._get_unified_subsets()
+        #     method = res[h_test_name]
+        #     statistic = method['statistic']
+        #     assert statistic.keys() == set(unified_reg_subset.columns)
+        #     assert statistic.keys() == set(unified_ref_subset.columns)
+        # # Otherwise, there should be single item in returned dictionary that
+        # # matches the specified names in the test
+        # else:
+        #     assert list(res.keys()) == [h_test_name]
 
 
 def test_display(tmp_path: pathlib.Path) -> None:

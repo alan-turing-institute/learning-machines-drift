@@ -10,7 +10,6 @@ from learning_machines_drift import FileBackend, Monitor, Registry, datasets
 from learning_machines_drift.display import Display
 from learning_machines_drift.drift_filter import Condition, Filter
 from learning_machines_drift.types import StructuredResult
-from learning_machines_drift.datasets import example_dataset
 
 def generate_features_labels_latents(
     numrows: int,
@@ -144,14 +143,14 @@ def mock_test() -> None:
 def main() -> None:
     """Generating data, diff data, visualise results"""
     # 1. Generate and store reference data
-    registry = register_reference()
+    # registry = register_reference()
 
     # 2. Generate and store log data
-    store_logs(registry)
+    # store_logs(registry)
     measure = load_data(None)
 
-    results = measure.hypothesis_tests.get_boundary_adherence()
-    print(results)
+    # results = measure.hypothesis_tests.get_boundary_adherence()
+    # print(results)
 
     # print(list(results.results.keys()))
     
@@ -164,8 +163,8 @@ def main() -> None:
     # results = measure.hypothesis_tests.binary_classifier_efficacy(target_variable="ground-truth-label")
     # print(results)
 
-    # results = measure.hypothesis_tests.logistic_detection_custom()
-    # print(results)
+    results = measure.hypothesis_tests.logistic_detection()
+    print(results)
 
     # {'methodname':
     #     {'statistic': 
@@ -255,4 +254,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    mock_test()
+    main()
