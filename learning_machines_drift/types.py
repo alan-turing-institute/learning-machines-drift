@@ -93,7 +93,10 @@ class Dataset:
                 labels and latents.
 
         """
-        return pd.concat([self.features, self.labels, self.latents], axis=1)
+        # if self.latents is None:
+            # return pd.concat([self.features, pd.DataFrame(self.labels, columns=["labels"])], axis=1)
+        # else:
+        return pd.concat([self.features, pd.DataFrame(self.labels, columns=["labels"]), self.latents], axis=1)
 
 
 @dataclass

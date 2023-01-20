@@ -95,35 +95,53 @@ def logistic_model(
     return (X, Y, theta)
 
 
-def example_dataset(
-    n_rows: int, seed: Optional[int] = None
-) -> Tuple[pd.DataFrame, pd.Series, pd.DataFrame]:
-    """Generates an example dataset of features, labels and latents
-    using the logistic model.
+# def example_dataset(
+#     n_rows: int, seed: Optional[int] = None
+# ) -> Tuple[pd.DataFrame, pd.Series, pd.DataFrame]:
+#     """Generates an example dataset of features, labels and latents
+#     using the logistic model.
 
-    Args:
-        n_rows (int): Number of rows/samples.
-        seed (Optional[int]): Optional random seed for reproducibility.
+#     Args:
+#         n_rows (int): Number of rows/samples.
+#         seed (Optional[int]): Optional random seed for reproducibility.
 
-    Returns:
-        Tuple[pd.DataFrame, pd.Series, pd.DataFrame]: A dataset tuple of
-            generated features, labels and latents.
+#     Returns:
+#         Tuple[pd.DataFrame, pd.Series, pd.DataFrame]: A dataset tuple of
+#             generated features, labels and latents.
 
-    """
+#     """
 
-    # Given we have a reference dataset
-    x_reference, y_reference, latents_reference = logistic_model(
-        size=n_rows, return_latents=True, seed=seed
+#     # Given we have a reference dataset
+#     x_reference, y_reference, latents_reference = logistic_model(
+#         size=n_rows, return_latents=True, seed=seed
+#     )
+#     features_df = pd.DataFrame(
+#         {
+#             "age": x_reference[:, 0],
+#             "height": x_reference[:, 1],
+#             "bp": x_reference[:, 2],
+#         }
+#     )
+
+#     labels_df = pd.Series(y_reference, name="y")
+#     latents_df = pd.DataFrame({"latents": latents_reference})
+
+#     return (features_df, labels_df, latents_df)
+
+def generate_features_labels_latents(
+    numrows: int,
+) -> Tuple[pd.DataFrame, pd.Series,pd.DataFrame]:
+
+    """This generates data and returns features, labels and latents"""
+
+    features, labels, latents = logistic_model(
+        x_mu=np.array([0.0, 0.0, 0.0]), size=numrows, return_latents=True
     )
-    features_df = pd.DataFrame(
-        {
-            "age": x_reference[:, 0],
-            "height": x_reference[:, 1],
-            "bp": x_reference[:, 2],
-        }
+
+    features_df: pd.DataFrame = pd.DataFrame(
+        {"age": features[:, 0], "height": features[:, 1], "ground-truth-label": labels}
     )
 
-    labels_df = pd.Series(y_reference, name="y")
-    latents_df = pd.DataFrame({"latents": latents_reference})
-
-    return (features_df, labels_df, latents_df)
+    predictions_series: pd.Series = pd.Series(labels)
+    latents_df: pd.DataFrame = pd.DataFrame({"latents": latents})
+    return (features_df, predictions_series, latents_df)
