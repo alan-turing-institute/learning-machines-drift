@@ -49,13 +49,10 @@ class Filter:  # pylint: disable=too-few-public-methods
 
     Filters a given dataset through an `AND` operation applied across all
     passed conditions.
-
-    Attributes:
-        conditions (dict[str, List[Condition]]): Dict with key (variable) and
-            value as a list of (condition, value) to be used for filtering.
-
     """
 
+    #: dict[str, List[Condition]]: Dict with key (variable) and value as a
+    #: list of (condition, value) to be used for filtering.
     conditions: Optional[dict[str, List[Condition]]]
 
     def __init__(self, conditions: Optional[dict[str, List[Condition]]]):

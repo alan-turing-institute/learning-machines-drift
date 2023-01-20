@@ -9,58 +9,43 @@ from pygments import formatters, highlight, lexers
 
 
 class FeatureSummary(BaseModel):
-    """Provides a summary of a features dataframe.
+    """Provides a summary of a features dataframe."""
 
-    Attributes:
-        n_rows (int): Number of samples (rows).
-        n_features (int): Number of features (columns).
-
-    """
-
+    #: int: Number of samples (rows).
     n_rows: int
+    #: int: Number of features (columns).
     n_features: int
 
 
 class LabelSummary(BaseModel):
-    """Provides a summary of a labels series.
+    """Provides a summary of a labels series."""
 
-    Attributes:
-        n_rows (int): Number of samples (rows).
-        n_labels (int): Number of distinct labels. For example, for binary
-            data, this would be equal to 2.
-
-    """
-
+    #: int: Number of samples (rows).
     n_rows: int
+    #: int: Number of distinct labels. For example, for binary data, this would
+    #: be equal to 2.
     n_labels: int
 
 
 class LatentSummary(BaseModel):
-    """Provides a summary of a latents dataframe.
+    """Provides a summary of a latents dataframe."""
 
-    Attributes:
-        n_rows (int): Number of samples (rows).
-        n_latents (int): Number of latent features (columns).
-
-    """
-
+    #: int: Number of samples (rows).
     n_rows: int
+    #: int: Number of latent features (columns).
     n_latents: int
 
 
 class ShapeSummary(BaseModel):
     """Provides a summary of the object shapes in a dataset of features,
     labels and latents.
-
-    Attributes:
-        features (FeatureSummary): Features shape summary.
-        labels (LabelSummary): Labels shape summary.
-        latents (Optional[LatentSummary]): Optional latents shape summary.
-
     """
 
+    #: FeatureSummary: Features shape summary.
     features: FeatureSummary
+    #: LabelSummary: Labels shape summary.
     labels: LabelSummary
+    #: Optional[LatentSummary]: Optional latents shape summary.
     latents: Optional[LatentSummary]
 
 
@@ -80,19 +65,13 @@ class BaselineSummary(BaseModel):
 
 @dataclass
 class Dataset:
-    """Class for representing a drift dataset.
+    """Class for representing a drift dataset."""
 
-    Attributes:
-        features (pd.DataFrame): A combined dataframe of input features and
-            ground truth labels.
-        labels (pd.Series): A series of predicted labels from a model.
-        latents (Optional[pd.DataFrame]): An optional dataframe of latent
-            variables per sample.
-
-    """
-
+    #: pd.DataFrame: A combined dataframe of input features and ground truth labels.
     features: pd.DataFrame
+    #: pd.Series: A series of predicted labels from a model.
     labels: pd.Series
+    #: Optional[pd.DataFrame]: An optional dataframe of latent variables per sample.
     latents: Optional[pd.DataFrame] = None
 
     @property
