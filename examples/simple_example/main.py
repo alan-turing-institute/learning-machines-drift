@@ -1,4 +1,4 @@
-"""TODO PEP 257"""
+"""Simple synthetic example with predictors Age and Height for binary labels."""
 from typing import Any, List, Optional, Tuple
 
 import matplotlib.pyplot as plt

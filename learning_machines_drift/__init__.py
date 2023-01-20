@@ -1,4 +1,4 @@
-"""TODO PEP 257"""
+"""Tools for measuring data drift."""
 
 # pylint: disable=useless-import-alias
 from learning_machines_drift.backends import FileBackend as FileBackend

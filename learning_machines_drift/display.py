@@ -7,10 +7,10 @@ import pandas as pd
 
 
 class Display:
-    """A class for converting a dictionary of hypothesis test scores to displayed output."""
+    """A class for converting a dictionary of hypothesis test scores to
+    displayed output.
 
-    def __init__(self) -> None:
-        """Initialize with registered and reference and optional seed."""
+    """
 
     @classmethod
     def plot(
@@ -55,9 +55,7 @@ class Display:
                 max(x_vals),
                 alpha,
                 ls=":",
-                label=r"$\alpha$={0:.3f}".format(  # pylint: disable=consider-using-f-string
-                    alpha
-                ),
+                label=r"$\alpha$" f"={alpha:.3f}",
             )
 
         # Labels
@@ -87,7 +85,7 @@ class Display:
                 from a hypothesis test output.
 
         Returns:
-            pd.DataFrame
+            pd.DataFrame: Dataframe of scores.
         """
         # Convert dict to pandas dataframe
         df: pd.DataFrame = pd.DataFrame.from_dict(score_dict, orient="index")

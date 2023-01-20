@@ -2,7 +2,7 @@
 name = "learning-machines-drift"
 version = "0.1.0"
 description = ""
-authors = ["Sam Greenbury <sgreenbury@turing.ac.uk>", "Oscar Giles <ogiles@turing.ac.uk>", "Mahed Abroshan <mabroshan@turing.ac.uk>", "Jannetta Steyn <jannetta.steyn@newcastle.ac.uk>", "May Yong <myong@turing.ac.uk>"]
+authors = ["Sam Greenbury <sgreenbury@turing.ac.uk>", "Oscar Giles <ogiles@turing.ac.uk>", "Mahed Abroshan <mabroshan@turing.ac.uk>", "Jannetta Steyn <jannetta.steyn@newcastle.ac.uk>", "Jack Roberts <jroberts@turing.ac.uk>", "May Yong <myong@turing.ac.uk>"]
 
 [tool.poetry.dependencies]
 python = ">=3.9,<3.10"
@@ -15,6 +15,10 @@ poetry = "^1.1.13"
 tabulate = "^0.8.10"
 joblib = ">=1.2"
 wheel = "^0.38.4"
+esig = "^0.9.8.3"
+ipykernel = "^6.19.4"
+myst-parser = "^0.18.1"
+sphinx-rtd-theme = "^1.1.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.2.0"
@@ -72,6 +76,10 @@ ignore_missing_imports = true
 module = "sdmetrics.*"
 ignore_missing_imports = true
 
+#[build-system]
+#requires = ["poetry-core>=1.0.0"]
+#build-backend = "poetry.core.masonry.api"
+
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
