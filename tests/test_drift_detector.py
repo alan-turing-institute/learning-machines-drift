@@ -202,39 +202,34 @@ def test_statistics_summary(tmp_path) -> None:  # type: ignore
     dataset as expected."""
 
     # Given we have registered a reference dataset
-    features_df, labels_df, latents_df = example_dataset(100)
+    features_df, labels_df, latents_df =  generate_features_labels_latents(10)
     det = Registry(tag="test", backend=FileBackend(tmp_path))
     det.register_ref_dataset(features=features_df, labels=labels_df, latents=latents_df)
 
     # And we have features and predicted labels
-    x_monitor, y_monitor, latents_monitor = datasets.logistic_model(return_latents=True)
-    # latent_x = x_monitor.mean(axis=0)
-    features_monitor_df = pd.DataFrame(
-        {
-            "age": x_monitor[:, 0],
-            "height": x_monitor[:, 1],
-            "bp": x_monitor[:, 2],
-        }
-    )
-    labels_monitor_df = pd.Series({"y": y_monitor})
-    latents_monitor_df = pd.DataFrame({"latents": latents_monitor})
+    # And we have features and predicted labels
+    num_iterations = 1
+    for _ in range(num_iterations):
+        (
+            new_features_df,
+            new_predictions_series,
+            new_latents_df,
+        ) = generate_features_labels_latents(5)
 
-    with det:
-        # And we have logged features, labels and latent
-        det.log_features(features_monitor_df)
-        det.log_labels(labels_monitor_df)
-        det.log_latents(latents_monitor_df)
+        with det:
+            # And we have logged features, labels and latent
+            det.log_features(new_features_df)
+            det.log_labels(new_predictions_series)
+            det.log_latents(new_latents_df)
 
     meas = Monitor(tag="test", backend=FileBackend(tmp_path))
     meas.load_data()
-    res = meas.hypothesis_tests.scipy_kolmogorov_smirnov(verbose=True)
+    res = meas.hypothesis_tests.scipy_kolmogorov_smirnov()
 
     # Check we get a dictionary with an entry for every feature column
-    assert isinstance(res, dict)
-    method = res['scipy_kolmogorov_smirnov']
-    statistic = method['statistic']
-    assert statistic.keys() == set(det.registered_dataset.unify().columns)
-
+    assert isinstance(res, StructuredResult)
+    assert res.method_name == "scipy_kolmogorov_smirnov"
+    assert list(res.results.keys())==list(det.registered_dataset.unify().columns)
 
 def test_with_noncommon_columns(tmp_path) -> None:  # type: ignore
     """Tests the application of hypothesis tests to the intersection of columns
