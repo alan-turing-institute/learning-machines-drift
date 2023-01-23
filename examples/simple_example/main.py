@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from numpy.typing import NDArray
+from typing import Dict
 
 from learning_machines_drift import FileBackend, Monitor, Registry, datasets
 from learning_machines_drift.display import Display
@@ -101,7 +102,7 @@ def display_diff_results(results: List[Any]) -> None:
         # plt.show()
 
 def mock_test() -> None:
-    features_df, labels_df, latents_df = example_dataset(10)
+    features_df, labels_df, latents_df = generate_features_labels_latents(10)
     det = Registry(tag="test", backend=FileBackend('test-data'))
     det.register_ref_dataset(features=features_df, labels=labels_df, latents=latents_df)
 
@@ -135,9 +136,8 @@ def mock_test() -> None:
             assert isinstance(res.results['single_value'], dict)
         else:
             print(list(res.results.keys()))
+            print(list(res.results.keys())[0])
             print(list(det.registered_dataset.unify().columns))
-
-            #assert list(results.results.keys())==list(registry.registered_dataset.unify().columns)
             assert list(res.results.keys())==list(det.registered_dataset.unify().columns)
 
 def main() -> None:
@@ -163,8 +163,8 @@ def main() -> None:
     # results = measure.hypothesis_tests.binary_classifier_efficacy(target_variable="ground-truth-label")
     # print(results)
 
-    results = measure.hypothesis_tests.logistic_detection()
-    print(results)
+    # results = measure.hypothesis_tests.logistic_detection()
+    # print(results)
 
     # {'methodname':
     #     {'statistic': 
@@ -191,8 +191,8 @@ def main() -> None:
     # results = measure.hypothesis_tests.scipy_permutation()
     # print(results)
 
-    # results = measure.hypothesis_tests.scipy_kolmogorov_smirnov()
-    # print(results)
+    results = measure.hypothesis_tests.scipy_kolmogorov_smirnov()
+    print(results)
 
     # results = measure.hypothesis_tests.scipy_mannwhitneyu()
     # print(results)
@@ -254,4 +254,5 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    # main()
+    mock_test()
