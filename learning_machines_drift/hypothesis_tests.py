@@ -490,13 +490,16 @@ class HypothesisTests:
 
         Args:
             target_variable (str): Target (ground truth label) variable name.
-            clf (Union[BinaryAdaBoostClassifier, BinaryDecisionTreeClassifier,
-                BinaryLogisticRegression, BinaryMLPClassifier]): SDV binary classifier class.
+            clf (Union[
+                BinaryAdaBoostClassifier,
+                BinaryDecisionTreeClassifier,
+                BinaryLogisticRegression,
+                BinaryMLPClassifier]): SDV binary classifier class.
             verbose (bool): Boolean for verbose output to stdout.
 
         Returns:
-            results (Dict[str, Dict[str, float]]): Score providing an overall similarity measure of
-                reference and registered dataset.
+            results (float): Score providing an overall similarity measure of
+                reference and registered datasets.
         """
         method = f"Binary classification (ML efficacy): ({clf.__str__})"
         description = (
