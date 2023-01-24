@@ -1,20 +1,20 @@
 """Simple synthetic example with predictors Age and Height for binary labels."""
-from typing import Any, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from numpy.typing import NDArray
-from typing import Dict
 
 from learning_machines_drift import FileBackend, Monitor, Registry, datasets
 from learning_machines_drift.display import Display
 from learning_machines_drift.drift_filter import Condition, Filter
 from learning_machines_drift.types import StructuredResult
 
+
 def generate_features_labels_latents(
     numrows: int,
-) -> Tuple[pd.DataFrame, pd.Series,pd.DataFrame]:
+) -> Tuple[pd.DataFrame, pd.Series, pd.DataFrame]:
 
     """This generates data and returns features, labels and latents"""
 
@@ -101,9 +101,10 @@ def display_diff_results(results: List[Any]) -> None:
         # Display().plot(res, score_type="pvalue")
         # plt.show()
 
+
 def mock_test() -> None:
     features_df, labels_df, latents_df = generate_features_labels_latents(10)
-    det = Registry(tag="test", backend=FileBackend('test-data'))
+    det = Registry(tag="test", backend=FileBackend("test-data"))
     det.register_ref_dataset(features=features_df, labels=labels_df, latents=latents_df)
 
     # And we have features and predicted labels
@@ -115,7 +116,6 @@ def mock_test() -> None:
             new_latents_df,
         ) = generate_features_labels_latents(5)
         log_new_data(det, new_features_df, new_predictions_series, new_latents_df)
-    
 
     meas = Monitor(tag="test", backend=FileBackend("test-data"))
     meas.load_data()
@@ -131,14 +131,17 @@ def mock_test() -> None:
 
         # Check res is a StructureResult
         assert isinstance(res, StructuredResult)
-        assert (res.method_name==h_test_name)
-        if list(res.results.keys())[0] == 'single_value':
-            assert isinstance(res.results['single_value'], dict)
+        assert res.method_name == h_test_name
+        if list(res.results.keys())[0] == "single_value":
+            assert isinstance(res.results["single_value"], dict)
         else:
             print(list(res.results.keys()))
             print(list(res.results.keys())[0])
             print(list(det.registered_dataset.unify().columns))
-            assert list(res.results.keys())==list(det.registered_dataset.unify().columns)
+            assert list(res.results.keys()) == list(
+                det.registered_dataset.unify().columns
+            )
+
 
 def main() -> None:
     """Generating data, diff data, visualise results"""
@@ -153,7 +156,7 @@ def main() -> None:
     # print(results)
 
     # print(list(results.results.keys()))
-    
+
     # print(list(registry.registered_dataset.unify().columns))
 
     # assert list(results.results.keys())==list(registry.registered_dataset.unify().columns)
@@ -167,7 +170,7 @@ def main() -> None:
     # print(results)
 
     # {'methodname':
-    #     {'statistic': 
+    #     {'statistic':
     #         {'age': {'statistic': 0.8666666666666667},
     #         'height': {'statistic': 0.8666666666666667}
     #         }

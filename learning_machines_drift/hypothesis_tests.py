@@ -226,9 +226,7 @@ class HypothesisTests:
         subset: List[str] = get_intersect(unified_ref, unified_reg)
         return (unified_ref[subset], unified_reg[subset])
 
-    def scipy_kolmogorov_smirnov(
-        self, verbose: bool = True
-    ) -> StructuredResult:
+    def scipy_kolmogorov_smirnov(self, verbose: bool = True) -> StructuredResult:
         """Calculates feature-wise two-sample Kolmogorov-Smirnov test for
         goodness of fit. Assumes continuous underlying distributions but
         scores are still interpretable if data is approximately continuous.
@@ -247,13 +245,11 @@ class HypothesisTests:
         if verbose:
             print(about_str)
 
-        result_dict:Dict[str, Dict[str, float]]=results
+        result_dict: Dict[str, Dict[str, float]] = results
         structured_result = StructuredResult("scipy_kolmogorov_smirnov", result_dict)
         return structured_result
 
-    def scipy_mannwhitneyu(
-        self, verbose: bool = True
-    ) -> StructuredResult:
+    def scipy_mannwhitneyu(self, verbose: bool = True) -> StructuredResult:
         """Calculates feature-wise Mann-Whitney U test, a nonparametric test of
         the null hypothesis that the distribution underlying sample x is the
         same as the distribution underlying sample y. Provides a test for the
@@ -278,7 +274,7 @@ class HypothesisTests:
         if verbose:
             print(about_str)
 
-        result_dict:Dict[str, Dict[str, float]]=results
+        result_dict: Dict[str, Dict[str, float]] = results
         structured_result = StructuredResult("scipy_mannwhitneyu", result_dict)
         return structured_result
 
@@ -328,7 +324,7 @@ class HypothesisTests:
         if verbose:
             print(about_str)
 
-        result_dict:Dict[str, Dict[str, float]]=results
+        result_dict: Dict[str, Dict[str, float]] = results
         structured_result = StructuredResult("scipy_permutation", result_dict)
         return structured_result
 
@@ -365,7 +361,10 @@ class HypothesisTests:
         if normalize:
             results = LogisticDetection.normalize(results)
 
-        result_dict:Dict[str, Dict[str, float]]={'single_value':{'statistic':results}, 'pvalue': np.nan}
+        result_dict: Dict[str, Dict[str, float]] = {
+            "single_value": {"statistic": results},
+            "pvalue": np.nan,
+        }
         structured_result = StructuredResult("logistic_detection", result_dict)
         return structured_result
 
@@ -466,10 +465,13 @@ class HypothesisTests:
 
         if normalize and score_type is None:
             results = LogisticDetection.normalize(results)
-        
-        result_dict:Dict[str, Dict[str, float]]={'single_value':results, 'pvalue': np.nan}
+
+        result_dict: Dict[str, Dict[str, float]] = {
+            "single_value": results,
+            "pvalue": np.nan,
+        }
         structured_result = StructuredResult("logistic_detection_custom", result_dict)
-        return structured_result    
+        return structured_result
 
     # TODO: add test for this method if developed further pylint: disable=fixme
     def binary_classifier_efficacy(
@@ -512,7 +514,10 @@ class HypothesisTests:
             target=target_variable,
             metadata=None,
         )
-        result_dict:Dict[str, Dict[str, float]]={'single_value':result, 'pvalue': np.nan}
+        result_dict: Dict[str, Dict[str, float]] = {
+            "single_value": result,
+            "pvalue": np.nan,
+        }
         structured_result = StructuredResult("binary_classifier_efficacy", result_dict)
         return structured_result
 

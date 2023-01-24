@@ -13,10 +13,14 @@ from pytest_mock import MockerFixture
 
 from learning_machines_drift import Monitor, ReferenceDatasetMissing, Registry, datasets
 from learning_machines_drift.backends import FileBackend
-from learning_machines_drift.datasets import generate_features_labels_latents, logistic_model
+from learning_machines_drift.datasets import (
+    generate_features_labels_latents,
+    logistic_model,
+)
 from learning_machines_drift.display import Display
 from learning_machines_drift.drift_filter import Comparison, Condition, Filter
 from learning_machines_drift.types import StructuredResult
+
 N_FEATURES = 3
 N_LABELS = 2
 N_LATENTS = 1
@@ -29,6 +33,7 @@ def detector(mocker: MockerFixture) -> Registry:
     mocker.patch.object(det, "backend")
     return det
 
+
 @pytest.fixture()
 def measure(mocker: MockerFixture) -> Monitor:
     """Returns a DriftDetector that writes data to a temporary directory."""
@@ -36,13 +41,13 @@ def measure(mocker: MockerFixture) -> Monitor:
     mocker.patch.object(meas, "backend")
     return meas
 
+
 @pytest.fixture()
-def detector_with_ref_data(
-    detector: Registry
-) -> Callable[[int], Registry]:
+def detector_with_ref_data(detector: Registry) -> Callable[[int], Registry]:
     """Returns a DriftDetector with a reference dataset registered which
     writes data to a temporary directory.
     """
+
     def _detector_with_ref_data(n_rows: int) -> Registry:
         """Returns registry with saved reference data."""
         features_df, labels_df, latents_df = generate_features_labels_latents(n_rows)
@@ -51,21 +56,20 @@ def detector_with_ref_data(
             features=features_df, labels=labels_df, latents=latents_df
         )
         return detector
+
     return _detector_with_ref_data
 
 
-def detector_with_log_data(
-    detector: Registry,
-    num_rows:int
-) -> Registry:
+def detector_with_log_data(detector: Registry, num_rows: int) -> Registry:
     """Returns a DriftDetector with a logged datasets registered which
     writes data to a temporary directory.
     """
     num_iterations = 1
     for _ in range(num_iterations):
-        (new_features_df,
-        new_predictions_series,
-        new_latents_df,
+        (
+            new_features_df,
+            new_predictions_series,
+            new_latents_df,
         ) = generate_features_labels_latents(num_rows)
         with detector:
             # And we have logged features, labels and latent
@@ -73,13 +77,11 @@ def detector_with_log_data(
             detector.log_labels(new_predictions_series)
             detector.log_latents(new_latents_df)
     return detector
-    
 
 
 @pytest.mark.parametrize("n_rows", [5, 10, 100, 1000])
 def test_register_dataset(
-    detector_with_ref_data: Callable[[int], Registry], 
-    n_rows: int
+    detector_with_ref_data: Callable[[int], Registry], n_rows: int
 ) -> None:
     """Tests whether registry has expected reference data."""
 
@@ -116,14 +118,15 @@ def test_ref_summary_no_dataset(detector) -> None:  # type: ignore
     # And we should not have saved any reference data
     detector.backend.save_reference_dataset.assert_not_called()
 
+
 @pytest.mark.parametrize("n_rows", [5, 10, 100, 1000])
 def test_all_registered(
-    detector_with_ref_data: Callable[[int], Registry], 
-    n_rows: int) -> None:
+    detector_with_ref_data: Callable[[int], Registry], n_rows: int
+) -> None:
     """Tests whether all expected data is registered."""
     # Given we have registered a reference dataset
     det = detector_with_ref_data(n_rows)
-    det = detector_with_log_data(det,n_rows)
+    det = detector_with_log_data(det, n_rows)
 
     # Then we can ensure that everything is registered
     assert det.all_registered()
@@ -137,16 +140,17 @@ def test_all_registered(
     # And we saved the logged labels
     det.backend.save_logged_labels.assert_called_once()  # type: ignore
 
+
 def test_summary_statistic_list(
     tmp_path: pathlib.Path,
 ) -> None:
     """Tests application of hypothesis tests from a monitor."""
     # TODO fix to use 'detector_with_ref_data' # pylint: disable=fixme
-    n_rows=10
+    n_rows = 10
     features_df, labels_df, latents_df = generate_features_labels_latents(n_rows)
     det = Registry(tag="test", backend=FileBackend(tmp_path))
-    det.register_ref_dataset(features=features_df, labels=labels_df, latents=latents_df)    
-    det = detector_with_log_data(det,n_rows)
+    det.register_ref_dataset(features=features_df, labels=labels_df, latents=latents_df)
+    det = detector_with_log_data(det, n_rows)
     measure = Monitor(tag="test", backend=FileBackend(tmp_path))
     measure.load_data()
 
@@ -160,23 +164,26 @@ def test_summary_statistic_list(
         res = h_test_fn()
         # Check res is a StructureResult
         assert isinstance(res, StructuredResult)
-        assert (res.method_name==h_test_name)
-        if list(res.results.keys())[0] == 'single_value':
-            assert isinstance(res.results['single_value'], dict)
+        assert res.method_name == h_test_name
+        if list(res.results.keys())[0] == "single_value":
+            assert isinstance(res.results["single_value"], dict)
         else:
             # print(list(res.results.keys()))
             # print(list(det.registered_dataset.unify().columns))
-            assert list(res.results.keys())==list(det.registered_dataset.unify().columns)
+            assert list(res.results.keys()) == list(
+                det.registered_dataset.unify().columns
+            )
+
 
 def test_statistics_summary(tmp_path) -> None:  # type: ignore
     """Tests whether hypothesis tests are applied to all columns of unifed
     dataset as expected."""
 
     # Given we have registered a reference dataset
-    n_rows=10
+    n_rows = 10
     features_df, labels_df, latents_df = generate_features_labels_latents(n_rows)
     det = Registry(tag="test", backend=FileBackend(tmp_path))
-    det.register_ref_dataset(features=features_df, labels=labels_df, latents=latents_df)    
+    det.register_ref_dataset(features=features_df, labels=labels_df, latents=latents_df)
     det = detector_with_log_data(det, n_rows)
     measure = Monitor(tag="test", backend=FileBackend(tmp_path))
     measure.load_data()
@@ -185,7 +192,8 @@ def test_statistics_summary(tmp_path) -> None:  # type: ignore
     # Check we get a dictionary with an entry for every feature column
     assert isinstance(res, StructuredResult)
     assert res.method_name == "scipy_kolmogorov_smirnov"
-    assert list(res.results.keys())==list(det.registered_dataset.unify().columns)
+    assert list(res.results.keys()) == list(det.registered_dataset.unify().columns)
+
 
 def test_with_noncommon_columns(tmp_path) -> None:  # type: ignore
     """Tests the application of hypothesis tests to the intersection of columns
@@ -195,21 +203,22 @@ def test_with_noncommon_columns(tmp_path) -> None:  # type: ignore
     # Given we have registered a reference dataset
     features_df, labels_df, latents_df = generate_features_labels_latents(10)
     det = Registry(tag="test", backend=FileBackend(tmp_path))
-    det.register_ref_dataset(features=features_df, labels=labels_df, latents=latents_df)    
-    
+    det.register_ref_dataset(features=features_df, labels=labels_df, latents=latents_df)
+
     num_iterations = 1
     for _ in range(num_iterations):
-        (new_features_df,
-        new_predictions_series,
-        new_latents_df,
+        (
+            new_features_df,
+            new_predictions_series,
+            new_latents_df,
         ) = generate_features_labels_latents(10)
-        new_features_df = new_features_df.drop(['age'], axis=1)
+        new_features_df = new_features_df.drop(["age"], axis=1)
         with det:
             # And we have logged features, labels and latent
             det.log_features(new_features_df)
             det.log_labels(new_predictions_series)
             det.log_latents(new_latents_df)
-    
+
     measure = Monitor(tag="test", backend=FileBackend(tmp_path))
     measure.load_data()
 
@@ -230,11 +239,13 @@ def test_with_noncommon_columns(tmp_path) -> None:  # type: ignore
         res = h_test_fn()
         # Check res is a dict
         assert isinstance(res, StructuredResult)
-        assert (res.method_name==h_test_name)
-        if list(res.results.keys())[0] == 'single_value':
-            assert isinstance(res.results['single_value'], dict)
+        assert res.method_name == h_test_name
+        if list(res.results.keys())[0] == "single_value":
+            assert isinstance(res.results["single_value"], dict)
         else:
-            assert list(res.results.keys())==list(det.registered_dataset.unify().columns)
+            assert list(res.results.keys()) == list(
+                det.registered_dataset.unify().columns
+            )
 
         # # If `scipy` test, it will be column-wise
         # if h_test_name.startswith("scipy"):
@@ -257,11 +268,11 @@ def test_with_noncommon_columns(tmp_path) -> None:  # type: ignore
 def test_display(tmp_path: pathlib.Path) -> None:
     """Tests whether the display class returns the expected types."""
 
-    n_rows=10
+    n_rows = 10
     features_df, labels_df, latents_df = generate_features_labels_latents(n_rows)
     det = Registry(tag="test", backend=FileBackend(tmp_path))
-    det.register_ref_dataset(features=features_df, labels=labels_df, latents=latents_df)    
-    det = detector_with_log_data(det,n_rows)
+    det.register_ref_dataset(features=features_df, labels=labels_df, latents=latents_df)
+    det = detector_with_log_data(det, n_rows)
     measure = Monitor(tag="test", backend=FileBackend(tmp_path))
     measure.load_data()
 
@@ -296,13 +307,13 @@ def test_load_all_logged_data(tmp_path: pathlib.Path) -> None:
     num_rows = 10
     features_df, labels_df, latents_df = generate_features_labels_latents(num_rows)
     det = Registry(tag="test", backend=FileBackend(tmp_path))
-    det.register_ref_dataset(features=features_df, labels=labels_df, latents=latents_df)    
-    det = detector_with_log_data(det,num_rows)
+    det.register_ref_dataset(features=features_df, labels=labels_df, latents=latents_df)
+    det = detector_with_log_data(det, num_rows)
     measure = Monitor(tag="test", backend=FileBackend(tmp_path))
     recovered_dataset = measure.load_data()
-    dimensions:Tuple[int, int] = recovered_dataset.unify().shape
+    dimensions: Tuple[int, int] = recovered_dataset.unify().shape
     assert dimensions[0] == num_rows
-    assert dimensions[1] == (3+1+1)
+    assert dimensions[1] == (3 + 1 + 1)
 
 
 def test_condition() -> None:
@@ -324,8 +335,8 @@ def test_load_data_filtered(tmp_path: pathlib.Path, n_rows: int) -> None:
     filters data."""
     features_df, labels_df, latents_df = generate_features_labels_latents(n_rows)
     det = Registry(tag="test", backend=FileBackend(tmp_path))
-    det.register_ref_dataset(features=features_df, labels=labels_df, latents=latents_df)    
-    det = detector_with_log_data(det,n_rows)
+    det.register_ref_dataset(features=features_df, labels=labels_df, latents=latents_df)
+    det = detector_with_log_data(det, n_rows)
     measure = Monitor(tag="test", backend=FileBackend(tmp_path))
     measure.load_data()
 
@@ -373,11 +384,11 @@ def test_load_data_filtered(tmp_path: pathlib.Path, n_rows: int) -> None:
 
 def test_category_columns(tmp_path: pathlib.Path) -> None:
     """Tests the returned result structure for categorical hypothesis test."""
-    n_rows=10
+    n_rows = 10
     features_df, labels_df, latents_df = generate_features_labels_latents(n_rows)
     det = Registry(tag="test", backend=FileBackend(tmp_path))
-    det.register_ref_dataset(features=features_df, labels=labels_df, latents=latents_df)    
-    det = detector_with_log_data(det,n_rows)
+    det.register_ref_dataset(features=features_df, labels=labels_df, latents=latents_df)
+    det = detector_with_log_data(det, n_rows)
     measure = Monitor(tag="test", backend=FileBackend(tmp_path))
     measure.load_data()
 
@@ -399,11 +410,11 @@ def test_category_columns(tmp_path: pathlib.Path) -> None:
 
 def test_dataset_types(tmp_path: pathlib.Path) -> None:
     """Tests whether the reference dataset components have the expected types."""
-    n_rows=10
+    n_rows = 10
     features_df, labels_df, latents_df = generate_features_labels_latents(n_rows)
     det = Registry(tag="test", backend=FileBackend(tmp_path))
-    det.register_ref_dataset(features=features_df, labels=labels_df, latents=latents_df)    
-    det = detector_with_log_data(det,n_rows)
+    det.register_ref_dataset(features=features_df, labels=labels_df, latents=latents_df)
+    det = detector_with_log_data(det, n_rows)
     measure = Monitor(tag="test", backend=FileBackend(tmp_path))
     measure.load_data()
 
@@ -415,16 +426,16 @@ def test_dataset_types(tmp_path: pathlib.Path) -> None:
 
 def test_sdmetrics(tmp_path: pathlib.Path) -> None:
     """TODO PEP 257"""
-    n_rows=10
+    n_rows = 10
     features_df, labels_df, latents_df = generate_features_labels_latents(n_rows)
     det = Registry(tag="test", backend=FileBackend(tmp_path))
-    det.register_ref_dataset(features=features_df, labels=labels_df, latents=latents_df)    
-    det = detector_with_log_data(det,n_rows)
+    det.register_ref_dataset(features=features_df, labels=labels_df, latents=latents_df)
+    det = detector_with_log_data(det, n_rows)
     measure = Monitor(tag="test", backend=FileBackend(tmp_path))
     measure.load_data()
 
-    result:StructuredResult = measure.hypothesis_tests.get_boundary_adherence()
-    assert result.method_name=="boundary_adherence"
+    result: StructuredResult = measure.hypothesis_tests.get_boundary_adherence()
+    assert result.method_name == "boundary_adherence"
     assert type(result.results) is dict
     assert len(result.results.keys()) == 5
     assert next(iter(result.results)) == "age"

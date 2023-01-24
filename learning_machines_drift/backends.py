@@ -204,7 +204,7 @@ class FileBackend:
         """
         reference_dir = self._get_reference_path(tag)
         dataset.features.to_csv(reference_dir.joinpath("features.csv"), index=False)
-        labels_dataframe = pd.DataFrame(dataset.labels, columns=['labels'])
+        labels_dataframe = pd.DataFrame(dataset.labels, columns=["labels"])
         labels_dataframe.to_csv(reference_dir.joinpath("labels.csv"), index=False)
         if dataset.latents is not None:
             dataset.latents.to_csv(reference_dir.joinpath("latents.csv"), index=False)
@@ -254,8 +254,10 @@ class FileBackend:
 
         """
         logged_dir = self._get_logged_path(tag)
-        labels_dataframe = pd.DataFrame(labels, columns=['labels'])
-        labels_dataframe.to_csv(logged_dir.joinpath(f"{identifier}_labels.csv"), index=False)
+        labels_dataframe = pd.DataFrame(labels, columns=["labels"])
+        labels_dataframe.to_csv(
+            logged_dir.joinpath(f"{identifier}_labels.csv"), index=False
+        )
 
     def save_logged_latents(
         self, tag: str, identifier: UUID, dataframe: Optional[pd.DataFrame]
@@ -305,7 +307,7 @@ class FileBackend:
             # Loop over files in list of files for each identifier
             for fname in value:
                 if RE_LABEL.search(fname.stem) is not None:
-                    all_label_df: pd.DataFrame = pd.read_csv(fname,header=0)
+                    all_label_df: pd.DataFrame = pd.read_csv(fname, header=0)
                     assert len(all_label_df.columns) == 1
                     all_label_series.append(all_label_df.iloc[:, 0])
 

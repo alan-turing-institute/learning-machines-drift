@@ -1,7 +1,7 @@
 # pylint: disable=no-member
 """Module of drift types."""
 from dataclasses import dataclass
-from typing import List, Optional, Dict
+from typing import Dict, List, Optional
 
 import pandas as pd
 from pydantic import BaseModel
@@ -94,9 +94,16 @@ class Dataset:
 
         """
         # if self.latents is None:
-            # return pd.concat([self.features, pd.DataFrame(self.labels, columns=["labels"])], axis=1)
+        # return pd.concat([self.features, pd.DataFrame(self.labels, columns=["labels"])], axis=1)
         # else:
-        return pd.concat([self.features, pd.DataFrame(self.labels, columns=["labels"]), self.latents], axis=1)
+        return pd.concat(
+            [
+                self.features,
+                pd.DataFrame(self.labels, columns=["labels"]),
+                self.latents,
+            ],
+            axis=1,
+        )
 
 
 @dataclass
@@ -110,6 +117,7 @@ class DatasetLatent:
     def from_dataset(dataset: Dataset) -> "DatasetLatent":
         """TODO PEP 257"""
         return DatasetLatent(dataset=dataset, latent=None)
+
 
 @dataclass
 class StructuredResult:

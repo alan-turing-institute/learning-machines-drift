@@ -128,9 +128,10 @@ def logistic_model(
 
 #     return (features_df, labels_df, latents_df)
 
+
 def generate_features_labels_latents(
     numrows: int,
-) -> Tuple[pd.DataFrame, pd.Series,pd.DataFrame]:
+) -> Tuple[pd.DataFrame, pd.Series, pd.DataFrame]:
 
     """This generates data and returns features, labels and latents"""
 
