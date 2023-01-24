@@ -1,9 +1,11 @@
 """Class for scoring drift between reference and registered datasets."""
 
-from typing import Any, Dict, Tuple
+from typing import Any, Tuple
 
 import matplotlib.pyplot as plt
 import pandas as pd
+
+from learning_machines_drift.types import StructuredResult
 
 
 class Display:
@@ -15,7 +17,7 @@ class Display:
     @classmethod
     def plot(
         cls,
-        score_dict: Dict[str, Dict[str, float]],
+        result: StructuredResult,
         score_type: str = "pvalue",
         score_name: str = "KS_test",
         alpha: float = 0.05,
@@ -38,7 +40,7 @@ class Display:
 
         # Get lists of values to use in plots
         x_vals, y_vals, xticklabels, colors = [], [], [], []
-        for i, (key, scores) in enumerate(score_dict.items()):
+        for i, (key, scores) in enumerate(result.results.items()):
             xticklabels.append(key)
             x_vals.append(i)
             y_vals.append(scores[score_type])
@@ -75,7 +77,7 @@ class Display:
 
     @classmethod
     def table(
-        cls, score_dict: Dict[str, Dict[str, float]], verbose: bool = True
+        cls, structured_result: StructuredResult, verbose: bool = True
     ) -> pd.DataFrame:
         """Gets a pandas dataframe and optionally prints a table of hypothesis
         test results.
@@ -88,7 +90,9 @@ class Display:
             pd.DataFrame: Dataframe of scores.
         """
         # Convert dict to pandas dataframe
-        df: pd.DataFrame = pd.DataFrame.from_dict(score_dict, orient="index")
+        df: pd.DataFrame = pd.DataFrame.from_dict(
+            structured_result.results, orient="index"
+        )
 
         # Print to stdout if verbose
         if verbose:

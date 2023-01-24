@@ -2,7 +2,6 @@
 # pylint: disable=W0621,too-many-locals
 
 import pathlib
-from functools import partial
 from typing import Any, Callable, Dict, List, Tuple
 
 import matplotlib.pyplot as plt
@@ -11,9 +10,9 @@ import pandas as pd
 import pytest
 from pytest_mock import MockerFixture
 
-from learning_machines_drift import Monitor, ReferenceDatasetMissing, Registry, datasets
+from learning_machines_drift import Monitor, ReferenceDatasetMissing, Registry
 from learning_machines_drift.backends import FileBackend
-from learning_machines_drift.datasets import example_dataset, logistic_model
+from learning_machines_drift.datasets import example_dataset
 from learning_machines_drift.display import Display
 from learning_machines_drift.drift_filter import Comparison, Condition, Filter
 from learning_machines_drift.types import StructuredResult
@@ -274,7 +273,7 @@ def test_display(tmp_path: pathlib.Path) -> None:
     measure.load_data()
 
     # Subset of h_tests sufficient for testing plotting
-    h_test_dispatcher: Dict[str, Any] = {
+    h_test_dispatcher: Dict[str, Callable[..., StructuredResult]] = {
         "scipy_kolmogorov_smirnov": measure.hypothesis_tests.scipy_kolmogorov_smirnov,
         "scipy_mannwhitneyu": measure.hypothesis_tests.scipy_mannwhitneyu,
     }
@@ -282,16 +281,16 @@ def test_display(tmp_path: pathlib.Path) -> None:
     # Loop over h_tests
     for _, h_test_fn in h_test_dispatcher.items():
         # Get result from scoring
-        res = h_test_fn(verbose=False)
+        structured_result: StructuredResult = h_test_fn(verbose=False)
 
         # Check Display produces a dataframe
-        df = Display().table(res, verbose=False)
+        df = Display().table(structured_result, verbose=False)
         assert isinstance(df, pd.DataFrame)
         # Check the correct shape
-        assert df.shape == (len(res), 2)
+        assert df.shape == (len(structured_result.results), 2)
 
         # Check Display returns a plot and array of axes
-        fig, axs = Display().plot(res)
+        fig, axs = Display().plot(structured_result)
         assert isinstance(fig, plt.Figure)
         assert isinstance(axs, np.ndarray)
         for ax in axs.flatten():
@@ -433,10 +432,10 @@ def test_sdmetrics(tmp_path: pathlib.Path) -> None:
 
     result: StructuredResult = measure.hypothesis_tests.get_boundary_adherence()
     assert result.method_name == "boundary_adherence"
-    assert type(result.results) is dict
+    assert isinstance(result.results, dict)
     assert len(result.results.keys()) == 5
     assert next(iter(result.results)) == "age"
     result_age = result.results["age"]
-    assert type(result_age) is dict
+    assert isinstance(result_age, dict)
     assert next(iter(result_age.keys())) == "statistic"
     assert result_age["statistic"] >= 0.0 and result_age["statistic"] <= 1.0
