@@ -1,15 +1,12 @@
 """TODO PEP 257"""
-from typing import Any, List, Optional, Tuple
+from typing import Tuple
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from numpy.typing import NDArray
 
 from learning_machines_drift import FileBackend, Monitor, Registry, datasets
 from learning_machines_drift.backends import Backend
-from learning_machines_drift.display import Display
-from learning_machines_drift.drift_filter import Condition, Filter
 
 
 def generate_features_labels_latents(
@@ -44,19 +41,20 @@ def register_reference(
 
 
 def register_new(detector: Registry) -> None:
+    """Generate data and log using Registry."""
+
     def log_new_data(
         detector: Registry,
         features_df: pd.DataFrame,
         predictions_series: pd.Series,
         latents_df: pd.DataFrame,
     ) -> None:
-        """Log features, labels and latents using Registry"""
+        """Log features, labels and latents using Registry."""
         with detector:
             detector.log_features(features_df)
             detector.log_labels(predictions_series)
             detector.log_latents(latents_df)
 
-    """Generate data and log using Registry"""
     num_iterations = 1
     for _ in range(num_iterations):
         (
@@ -88,12 +86,8 @@ def main() -> None:
     measure = load_data()
 
     # # 4. Run Test
-    print(
-        "Boundary Adherence: {}".format(
-            measure.hypothesis_tests.get_boundary_adherence()
-        )
-    )
-    print("Range Coverage: {}".format(measure.hypothesis_tests.get_range_coverage()))
+    print(f"Boundary Adherence: {measure.hypothesis_tests.get_boundary_adherence()}")
+    print(f"Range Coverage: {measure.hypothesis_tests.get_range_coverage()}")
 
     # measure.hypothesis_tests.scipy_kolmogorov_smirnov()
 
