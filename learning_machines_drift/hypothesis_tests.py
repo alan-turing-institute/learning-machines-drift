@@ -1,7 +1,6 @@
 """Class for scoring drift between reference and registered datasets."""
 
 import textwrap
-from collections import Counter
 from enum import Enum
 from functools import partial
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
@@ -27,6 +26,8 @@ from learning_machines_drift.types import Dataset, StructuredResult
 
 
 class Wrapper(Enum):
+    """Enum for specifying the calculation type."""
+
     TYPE_TUPLE = 1
     TYPE_OTHER = 2
     TYPE_SDMETRIC = 3
@@ -465,7 +466,7 @@ class HypothesisTests:
         result_dict: Dict[str, Dict[str, float]] = {
             "single_value": {"statistic": results, "pvalue": np.nan}
         }
-        structured_result = StructuredResult("logistic_detection_custom", result_dict)
+        structured_result = StructuredResult(results_key, result_dict)
         return structured_result
 
     # TODO: add test for this method if developed further pylint: disable=fixme
@@ -523,6 +524,17 @@ class HypothesisTests:
     def get_boundary_adherence(
         self,
     ) -> StructuredResult:
+        """For each feature the proportion of registered data that lies within
+        the minimum and maximum of the reference dataset.
+
+        See [sdmetrics](https://docs.sdv.dev/sdmetrics/metrics/metrics-glossary/boundaryadherence)
+        for further details.
+
+        Returns:
+            StructuredResult: The boundary adherence of the registered dataset
+                compared to the reference dataset.
+
+        """
         results: Dict[str, Dict[str, float]] = self._calc(
             BoundaryAdherence.compute, wrapper=Wrapper.TYPE_SDMETRIC
         )
@@ -530,6 +542,17 @@ class HypothesisTests:
         return structured_result
 
     def get_range_coverage(self) -> StructuredResult:
+        """For each feature the proportion of the range of the registered data
+        that is covered by the reference dataset.
+
+        See [sdmetrics](https://docs.sdv.dev/sdmetrics/metrics/metrics-glossary/rangecoverage)
+        for further details.
+
+        Returns:
+            StructuredResult: The range of the registered dataset compared
+                to the reference dataset.
+
+        """
         results: Dict[str, Dict[str, float]] = self._calc(
             RangeCoverage.compute, wrapper=Wrapper.TYPE_SDMETRIC
         )
