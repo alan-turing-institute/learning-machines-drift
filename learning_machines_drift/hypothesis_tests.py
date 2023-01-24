@@ -182,36 +182,6 @@ class HypothesisTests:
 
         return results
 
-    # Skip the ones that are not calculable
-    @staticmethod
-    def _get_category_columns(dataset: Dataset) -> List[str]:
-        """Get a list of feature names that have category-like features.
-        Category-like features are defined as:
-            - Unit or Binary (less than two values)
-            OR
-            - Categorical (category dtype)
-
-        Args:
-            data (pd.DataFrame): data to be have features checked.
-
-        Returns:
-            List[str]: List of feature names that are category-like.
-        """
-        # Unify all features, labels and latents
-        data: pd.DataFrame = dataset.unify()
-        # Get the number of unique values by feature
-        nunique: pd.Series = data.nunique()
-        # Unit or binary features
-        unit_or_bin_features: List[str] = nunique[nunique <= 2].index.to_list()
-        # Integer or category features
-        cat_features: List[str] = data.dtypes[
-            data.dtypes.eq("category")
-        ].index.to_list()
-        # Get list of unique features for output
-        out_features: List[str] = list(np.unique(unit_or_bin_features + cat_features))
-
-        return out_features
-
     def _get_unified_subsets(self) -> Tuple[pd.DataFrame, pd.DataFrame]:
         """Unify both datasets and return dataframes with common columns."""
 

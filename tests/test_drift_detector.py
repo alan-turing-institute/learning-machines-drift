@@ -346,29 +346,6 @@ def test_load_data_filtered(tmp_path: pathlib.Path, n_rows: int) -> None:
         assert reg_dataset.latents["latents"].gt(0.6).all() == assertion_bool
 
 
-@pytest.mark.parametrize("n_rows", N_ROWS)
-def test_category_columns(tmp_path: pathlib.Path, n_rows: int) -> None:
-    """Tests the returned result structure for categorical hypothesis test."""
-    detector_with_all_data(tmp_path, n_rows)
-    measure = Monitor(tag="test", backend=FileBackend(tmp_path))
-    measure.load_data()
-
-    h_test_dispatcher: Dict[str, Any] = {
-        # "scipy_chisquare": meas.hypothesis_tests.scipy_chisquare
-    }
-
-    for h_test_name, h_test_fn in h_test_dispatcher.items():
-        res = h_test_fn(verbose=False)
-
-        # Check res is a dict
-        assert isinstance(res, dict)
-
-        # If `chisquare`, not compatible with any of the test dataset dtypes
-        # so skip
-        if h_test_name == "scipy_chisquare":
-            assert len(list(res.keys())) == 1
-
-
 @pytest.mark.parametrize("n_rows", [10])
 def test_dataset_types(tmp_path: pathlib.Path, n_rows: int) -> None:
     """Tests whether the reference dataset components have the expected types."""
