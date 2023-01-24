@@ -1,16 +1,17 @@
 """Simple synthetic example with predictors Age and Height for binary labels."""
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
-import matplotlib.pyplot as plt
-import numpy as np
+# import matplotlib.pyplot as plt
+# import numpy as np
 import pandas as pd
-from numpy.typing import NDArray
 
-from learning_machines_drift import FileBackend, Monitor, Registry, datasets
+from learning_machines_drift import FileBackend, Monitor, Registry
 from learning_machines_drift.datasets import example_dataset
 from learning_machines_drift.display import Display
-from learning_machines_drift.drift_filter import Condition, Filter
+from learning_machines_drift.drift_filter import Filter
 from learning_machines_drift.types import StructuredResult
+
+# from numpy.typing import NDArray
 
 
 def get_detector_reference(
@@ -85,6 +86,7 @@ def display_diff_results(results: List[Any]) -> None:
 
 
 def mock_test() -> None:
+    """Testing hypothesis tests class."""
     features_df, labels_df, latents_df = example_dataset(10)
     det = Registry(tag="test", backend=FileBackend("test-data"))
     det.register_ref_dataset(features=features_df, labels=labels_df, latents=latents_df)
@@ -145,7 +147,9 @@ def main() -> None:
     # results = measure.hypothesis_tests.get_range_coverage()
     # print(results)
 
-    # results = measure.hypothesis_tests.binary_classifier_efficacy(target_variable="ground-truth-label")
+    # results = measure.hypothesis_tests.binary_classifier_efficacy(
+    #   target_variable="ground-truth-label"
+    # )
     # print(results)
 
     # results = measure.hypothesis_tests.logistic_detection()
