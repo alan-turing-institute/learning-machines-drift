@@ -7,6 +7,7 @@ import pandas as pd
 from numpy.typing import NDArray
 
 from learning_machines_drift import FileBackend, Monitor, Registry, datasets
+from learning_machines_drift.backends import Backend
 from learning_machines_drift.display import Display
 from learning_machines_drift.drift_filter import Condition, Filter
 
@@ -31,7 +32,7 @@ def generate_features_labels_latents(
 
 
 def register_reference(
-    tag="simple_example", backend=FileBackend("my-data")
+    tag: str = "simple_example", backend: Backend = FileBackend("my-data")
 ) -> Registry:
     """Generate data, register data to detector and return detector"""
     features_df, predictions_series, latents_df = generate_features_labels_latents(10)
@@ -66,7 +67,9 @@ def register_new(detector: Registry) -> None:
         log_new_data(detector, new_features_df, new_predictions_series, new_latents_df)
 
 
-def load_data(tag="simple_example", backend=FileBackend("my-data")) -> Monitor:
+def load_data(
+    tag: str = "simple_example", backend: Backend = FileBackend("my-data")
+) -> Monitor:
     """Load data and return Monitor"""
     measure = Monitor(tag=tag, backend=backend)
     measure.load_data(drift_filter=None)
