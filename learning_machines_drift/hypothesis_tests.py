@@ -115,13 +115,11 @@ class HypothesisTests:
         """
 
         def call_func(
-            feature: str,
             ref_col: pd.Series,
             reg_col: pd.Series,
-            results: Dict[str, Any],
             wrapper: Wrapper = Wrapper.TYPE_OTHER,
-        ) -> Dict[str, Any]:
-
+        ) -> Dict[str, float]:
+            """Returns a dict of statistic and p-value (if available)."""
             if wrapper is Wrapper.TYPE_TUPLE:
                 result = func((ref_col, reg_col))
             elif wrapper is Wrapper.TYPE_SDMETRIC:
@@ -131,13 +129,12 @@ class HypothesisTests:
                 result = func(ref_col, reg_col)
 
             if not isinstance(result, dict):
-                results[feature] = self._to_dict(result)
-            else:
-                results[feature] = result
+                result = self._to_dict(result)
 
-            return results
+            result_dict: Dict[str, float] = result
+            return result_dict
 
-        results: Dict[str, Any] = {}
+        results: Dict[str, Dict[str, float]] = {}
 
         if subset is not None:
             # If subset, only loop over the subset
@@ -180,7 +177,7 @@ class HypothesisTests:
             else:
                 raise ValueError("Reference dataset is None.")
             # Run calc and update dictionary
-            results = call_func(col_name, ref_col, reg_col, results, wrapper)
+            results[col_name] = call_func(ref_col, reg_col, wrapper)
 
         return results
 
@@ -362,8 +359,7 @@ class HypothesisTests:
             results = LogisticDetection.normalize(results)
 
         result_dict: Dict[str, Dict[str, float]] = {
-            "single_value": {"statistic": results},
-            "pvalue": np.nan,
+            "single_value": {"statistic": results, "pvalue": np.nan},
         }
         structured_result = StructuredResult("logistic_detection", result_dict)
         return structured_result
@@ -467,8 +463,7 @@ class HypothesisTests:
             results = LogisticDetection.normalize(results)
 
         result_dict: Dict[str, Dict[str, float]] = {
-            "single_value": results,
-            "pvalue": np.nan,
+            "single_value": {"statistic": results, "pvalue": np.nan}
         }
         structured_result = StructuredResult("logistic_detection_custom", result_dict)
         return structured_result
@@ -518,8 +513,7 @@ class HypothesisTests:
             metadata=None,
         )
         result_dict: Dict[str, Dict[str, float]] = {
-            "single_value": result,
-            "pvalue": np.nan,
+            "single_value": {"statistic": result, "pvalue": np.nan},
         }
         structured_result = StructuredResult("binary_classifier_efficacy", result_dict)
         return structured_result
