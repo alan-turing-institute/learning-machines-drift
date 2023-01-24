@@ -360,7 +360,7 @@ class HypothesisTests:
             results = LogisticDetection.normalize(results)
 
         result_dict: Dict[str, Dict[str, float]] = {
-            "single_value": {"statistic": results, "pvalue": np.nan},
+            "single_value": {"statistic": results},
         }
         structured_result = StructuredResult("logistic_detection", result_dict)
         return structured_result
@@ -464,7 +464,7 @@ class HypothesisTests:
             results = LogisticDetection.normalize(results)
 
         result_dict: Dict[str, Dict[str, float]] = {
-            "single_value": {"statistic": results, "pvalue": np.nan}
+            "single_value": {"statistic": results}
         }
         structured_result = StructuredResult(results_key, result_dict)
         return structured_result
@@ -514,7 +514,7 @@ class HypothesisTests:
             metadata=None,
         )
         result_dict: Dict[str, Dict[str, float]] = {
-            "single_value": {"statistic": result, "pvalue": np.nan},
+            "single_value": {"statistic": result},
         }
         structured_result = StructuredResult("binary_classifier_efficacy", result_dict)
         return structured_result
