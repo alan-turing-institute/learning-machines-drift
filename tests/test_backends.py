@@ -9,7 +9,7 @@ from pandas.testing import assert_frame_equal
 
 from learning_machines_drift import Dataset, FileBackend
 from learning_machines_drift.backends import get_identifier
-from learning_machines_drift.datasets import example_dataset
+from learning_machines_drift.datasets import generate_features_labels_latents
 
 
 def test_file_backend_reference(tmp_path: pathlib.Path) -> None:
@@ -17,7 +17,7 @@ def test_file_backend_reference(tmp_path: pathlib.Path) -> None:
 
     # Given
     tag = "test_tag"
-    features_df, labels_df, latents_df = example_dataset(100)
+    features_df, labels_df, latents_df = generate_features_labels_latents(100)
     reference_dataset = Dataset(features_df, labels_df, latents_df)
 
     # When
@@ -38,10 +38,9 @@ def test_file_backend_features(  # pylint: disable=too-many-locals
 
     # Given
     tag = "test_tag"
-    features_df_1, labels_df_1, latents_df_1 = example_dataset(5)
-    features_df_2, labels_df_2, latents_df_2 = example_dataset(5)
-    features_df_3, labels_df_3, latents_df_3 = example_dataset(5)
-
+    features_df_1, labels_df_1, latents_df_1 = generate_features_labels_latents(5)
+    features_df_2, labels_df_2, latents_df_2 = generate_features_labels_latents(5)
+    features_df_3, labels_df_3, latents_df_3 = generate_features_labels_latents(5)
     expected_df = (
         pd.concat(
             [
@@ -96,10 +95,10 @@ def test_get_identifier() -> None:
 
 #     # Given
 #     tag = "test_tag"
-#     _, labels_df_1 = example_dataset(5)
-#     _, labels_df_2 = example_dataset(5)
-#     _, labels_df_3 = example_dataset(5)
-#     _, labels_df_4 = example_dataset(5)
+#     _, labels_df_1 = generate_features_labels_latents(5)
+#     _, labels_df_2 = generate_features_labels_latents(5)
+#     _, labels_df_3 = generate_features_labels_latents(5)
+#     _, labels_df_4 = generate_features_labels_latents(5)
 
 #     expected_df = (
 #         pd.concat(
@@ -137,7 +136,7 @@ def test_clear_logged_dataset(tmp_path: pathlib.Path) -> None:
 
     # When
     backend = FileBackend(tmp_path)
-    features_df_1, labels_df_1, latents_df_1 = example_dataset(5)
+    features_df_1, labels_df_1, latents_df_1 = generate_features_labels_latents(5)
     identifier_1 = uuid4()
     backend.save_logged_features(tag, identifier_1, features_df_1)
     backend.save_logged_labels(tag, identifier_1, labels_df_1)
@@ -153,7 +152,7 @@ def test_clear_reference_dataset(tmp_path: pathlib.Path) -> None:
     """Tests whether a reference dataset is cleared."""
     # Given
     tag = "test_tag"
-    features_df, labels_df, latents_df = example_dataset(100)
+    features_df, labels_df, latents_df = generate_features_labels_latents(100)
     reference_dataset = Dataset(features_df, labels_df, latents_df)
 
     # When

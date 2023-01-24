@@ -7,28 +7,10 @@ import pandas as pd
 from numpy.typing import NDArray
 
 from learning_machines_drift import FileBackend, Monitor, Registry, datasets
+from learning_machines_drift.datasets import generate_features_labels_latents
 from learning_machines_drift.display import Display
 from learning_machines_drift.drift_filter import Condition, Filter
 from learning_machines_drift.types import StructuredResult
-
-
-def generate_features_labels_latents(
-    numrows: int,
-) -> Tuple[pd.DataFrame, pd.Series, pd.DataFrame]:
-
-    """This generates data and returns features, labels and latents"""
-
-    features, labels, latents = datasets.logistic_model(
-        x_mu=np.array([0.0, 0.0, 0.0]), size=numrows, return_latents=True
-    )
-
-    features_df: pd.DataFrame = pd.DataFrame(
-        {"age": features[:, 0], "height": features[:, 1], "ground-truth-label": labels}
-    )
-
-    predictions_series: pd.Series = pd.Series(labels)
-    latents_df: pd.DataFrame = pd.DataFrame({"latents": latents})
-    return (features_df, predictions_series, latents_df)
 
 
 def get_detector_reference(
