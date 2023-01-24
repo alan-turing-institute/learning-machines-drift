@@ -95,7 +95,7 @@ def logistic_model(
     return (X, Y, theta)
 
 
-def generate_features_labels_latents(
+def example_dataset(
     n_rows: int,
 ) -> Tuple[pd.DataFrame, pd.Series, pd.DataFrame]:
 

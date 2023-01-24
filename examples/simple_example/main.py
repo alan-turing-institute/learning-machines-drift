@@ -7,7 +7,7 @@ import pandas as pd
 from numpy.typing import NDArray
 
 from learning_machines_drift import FileBackend, Monitor, Registry, datasets
-from learning_machines_drift.datasets import generate_features_labels_latents
+from learning_machines_drift.datasets import example_dataset
 from learning_machines_drift.display import Display
 from learning_machines_drift.drift_filter import Condition, Filter
 from learning_machines_drift.types import StructuredResult
@@ -46,7 +46,7 @@ def load_data(drift_filter: Optional[Filter] = None) -> Monitor:
 
 def register_reference() -> Registry:
     """Generate data, register data to detector and return detector"""
-    features_df, predictions_series, latents_df = generate_features_labels_latents(10)
+    features_df, predictions_series, latents_df = example_dataset(10)
     detector: Registry = get_detector_reference(
         features_df, predictions_series, latents_df
     )
@@ -61,7 +61,7 @@ def store_logs(detector: Registry) -> None:
             new_features_df,
             new_predictions_series,
             new_latents_df,
-        ) = generate_features_labels_latents(5)
+        ) = example_dataset(5)
         log_new_data(detector, new_features_df, new_predictions_series, new_latents_df)
 
 
@@ -85,7 +85,7 @@ def display_diff_results(results: List[Any]) -> None:
 
 
 def mock_test() -> None:
-    features_df, labels_df, latents_df = generate_features_labels_latents(10)
+    features_df, labels_df, latents_df = example_dataset(10)
     det = Registry(tag="test", backend=FileBackend("test-data"))
     det.register_ref_dataset(features=features_df, labels=labels_df, latents=latents_df)
 
@@ -96,7 +96,7 @@ def mock_test() -> None:
             new_features_df,
             new_predictions_series,
             new_latents_df,
-        ) = generate_features_labels_latents(5)
+        ) = example_dataset(5)
         log_new_data(det, new_features_df, new_predictions_series, new_latents_df)
 
     meas = Monitor(tag="test", backend=FileBackend("test-data"))

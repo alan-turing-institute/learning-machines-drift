@@ -13,10 +13,7 @@ from pytest_mock import MockerFixture
 
 from learning_machines_drift import Monitor, ReferenceDatasetMissing, Registry, datasets
 from learning_machines_drift.backends import FileBackend
-from learning_machines_drift.datasets import (
-    generate_features_labels_latents,
-    logistic_model,
-)
+from learning_machines_drift.datasets import example_dataset, logistic_model
 from learning_machines_drift.display import Display
 from learning_machines_drift.drift_filter import Comparison, Condition, Filter
 from learning_machines_drift.types import StructuredResult
@@ -50,7 +47,7 @@ def detector_with_ref_data(detector: Registry) -> Callable[[int], Registry]:
 
     def _detector_with_ref_data(n_rows: int) -> Registry:
         """Returns registry with saved reference data."""
-        features_df, labels_df, latents_df = generate_features_labels_latents(n_rows)
+        features_df, labels_df, latents_df = example_dataset(n_rows)
         # When we register the dataset
         detector.register_ref_dataset(
             features=features_df, labels=labels_df, latents=latents_df
@@ -70,7 +67,7 @@ def detector_with_log_data(detector: Registry, num_rows: int) -> Registry:
             new_features_df,
             new_predictions_series,
             new_latents_df,
-        ) = generate_features_labels_latents(num_rows)
+        ) = example_dataset(num_rows)
         with detector:
             # And we have logged features, labels and latent
             detector.log_features(new_features_df)
@@ -147,7 +144,7 @@ def test_summary_statistic_list(
     """Tests application of hypothesis tests from a monitor."""
     # TODO fix to use 'detector_with_ref_data' # pylint: disable=fixme
     n_rows = 10
-    features_df, labels_df, latents_df = generate_features_labels_latents(n_rows)
+    features_df, labels_df, latents_df = example_dataset(n_rows)
     det = Registry(tag="test", backend=FileBackend(tmp_path))
     det.register_ref_dataset(features=features_df, labels=labels_df, latents=latents_df)
     det = detector_with_log_data(det, n_rows)
@@ -181,7 +178,7 @@ def test_statistics_summary(tmp_path) -> None:  # type: ignore
 
     # Given we have registered a reference dataset
     n_rows = 10
-    features_df, labels_df, latents_df = generate_features_labels_latents(n_rows)
+    features_df, labels_df, latents_df = example_dataset(n_rows)
     det = Registry(tag="test", backend=FileBackend(tmp_path))
     det.register_ref_dataset(features=features_df, labels=labels_df, latents=latents_df)
     det = detector_with_log_data(det, n_rows)
@@ -201,7 +198,7 @@ def test_with_noncommon_columns(tmp_path) -> None:  # type: ignore
     """
 
     # Given we have registered a reference dataset
-    features_df, labels_df, latents_df = generate_features_labels_latents(10)
+    features_df, labels_df, latents_df = example_dataset(10)
     det = Registry(tag="test", backend=FileBackend(tmp_path))
     det.register_ref_dataset(features=features_df, labels=labels_df, latents=latents_df)
 
@@ -211,7 +208,7 @@ def test_with_noncommon_columns(tmp_path) -> None:  # type: ignore
             new_features_df,
             new_predictions_series,
             new_latents_df,
-        ) = generate_features_labels_latents(10)
+        ) = example_dataset(10)
         new_features_df = new_features_df.drop(["age"], axis=1)
         with det:
             # And we have logged features, labels and latent
@@ -269,7 +266,7 @@ def test_display(tmp_path: pathlib.Path) -> None:
     """Tests whether the display class returns the expected types."""
 
     n_rows = 10
-    features_df, labels_df, latents_df = generate_features_labels_latents(n_rows)
+    features_df, labels_df, latents_df = example_dataset(n_rows)
     det = Registry(tag="test", backend=FileBackend(tmp_path))
     det.register_ref_dataset(features=features_df, labels=labels_df, latents=latents_df)
     det = detector_with_log_data(det, n_rows)
@@ -305,7 +302,7 @@ def test_load_all_logged_data(tmp_path: pathlib.Path) -> None:
     """Tests whether logging of data and that upon reload the data has the
     correct shape."""
     num_rows = 10
-    features_df, labels_df, latents_df = generate_features_labels_latents(num_rows)
+    features_df, labels_df, latents_df = example_dataset(num_rows)
     det = Registry(tag="test", backend=FileBackend(tmp_path))
     det.register_ref_dataset(features=features_df, labels=labels_df, latents=latents_df)
     det = detector_with_log_data(det, num_rows)
@@ -333,7 +330,7 @@ def test_condition() -> None:
 def test_load_data_filtered(tmp_path: pathlib.Path, n_rows: int) -> None:
     """Tests whether a filter applied to load data from registry correctly
     filters data."""
-    features_df, labels_df, latents_df = generate_features_labels_latents(n_rows)
+    features_df, labels_df, latents_df = example_dataset(n_rows)
     det = Registry(tag="test", backend=FileBackend(tmp_path))
     det.register_ref_dataset(features=features_df, labels=labels_df, latents=latents_df)
     det = detector_with_log_data(det, n_rows)
@@ -385,7 +382,7 @@ def test_load_data_filtered(tmp_path: pathlib.Path, n_rows: int) -> None:
 def test_category_columns(tmp_path: pathlib.Path) -> None:
     """Tests the returned result structure for categorical hypothesis test."""
     n_rows = 10
-    features_df, labels_df, latents_df = generate_features_labels_latents(n_rows)
+    features_df, labels_df, latents_df = example_dataset(n_rows)
     det = Registry(tag="test", backend=FileBackend(tmp_path))
     det.register_ref_dataset(features=features_df, labels=labels_df, latents=latents_df)
     det = detector_with_log_data(det, n_rows)
@@ -411,7 +408,7 @@ def test_category_columns(tmp_path: pathlib.Path) -> None:
 def test_dataset_types(tmp_path: pathlib.Path) -> None:
     """Tests whether the reference dataset components have the expected types."""
     n_rows = 10
-    features_df, labels_df, latents_df = generate_features_labels_latents(n_rows)
+    features_df, labels_df, latents_df = example_dataset(n_rows)
     det = Registry(tag="test", backend=FileBackend(tmp_path))
     det.register_ref_dataset(features=features_df, labels=labels_df, latents=latents_df)
     det = detector_with_log_data(det, n_rows)
@@ -427,7 +424,7 @@ def test_dataset_types(tmp_path: pathlib.Path) -> None:
 def test_sdmetrics(tmp_path: pathlib.Path) -> None:
     """TODO PEP 257"""
     n_rows = 10
-    features_df, labels_df, latents_df = generate_features_labels_latents(n_rows)
+    features_df, labels_df, latents_df = example_dataset(n_rows)
     det = Registry(tag="test", backend=FileBackend(tmp_path))
     det.register_ref_dataset(features=features_df, labels=labels_df, latents=latents_df)
     det = detector_with_log_data(det, n_rows)
