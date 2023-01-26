@@ -459,7 +459,7 @@ class HypothesisTests:
         """For each feature the proportion of registered data that lies within
         the minimum and maximum of the reference dataset.
 
-        See [sdmetrics](https://docs.sdv.dev/sdmetrics/metrics/metrics-glossary/boundaryadherence)
+        See `SDMetrics <https://docs.sdv.dev/sdmetrics/metrics/metrics-glossary/boundaryadherence>`_
         for further details.
 
         Returns:
@@ -477,7 +477,7 @@ class HypothesisTests:
         """For each feature the proportion of the range of the registered data
         that is covered by the reference dataset.
 
-        See [sdmetrics](https://docs.sdv.dev/sdmetrics/metrics/metrics-glossary/rangecoverage)
+        See `SDMetrics <https://docs.sdv.dev/sdmetrics/metrics/metrics-glossary/rangecoverage>`_
         for further details.
 
         Returns:
