@@ -26,6 +26,8 @@ extensions = [
 templates_path = ["_templates"]
 # exclude_patterns = []
 
+# Remove module name from documenting items
+add_module_names = False
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
