@@ -108,7 +108,12 @@ class Dataset:
 
 @dataclass
 class StructuredResult:
-    """TODO PEP 257"""
+    """A type for representing a result from the hypothesis tests module."""
 
+    #: str: Name of the scoring method used.
     method_name: str
+    #: Dict[str, Dict[str, float]]: Dictionary of results with keys as
+    #: `feature_name` or, if for a unified dataset, "single_value".
+    #: Values are a dictionary containing the result statistic and p-value (if
+    #: available) for a given `method_name`.
     results: Dict[str, Dict[str, float]]
