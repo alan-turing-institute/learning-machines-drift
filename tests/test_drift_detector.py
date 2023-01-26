@@ -220,10 +220,10 @@ def test_with_noncommon_columns(tmp_path: pathlib.Path, n_rows: int) -> None:
         "scipy_permutation": measure.hypothesis_tests.scipy_permutation,
         "logistic_detection": measure.hypothesis_tests.logistic_detection,
         "logistic_detection_f1": partial(
-            measure.hypothesis_tests.logistic_detection_custom, score_type="f1"
+            measure.hypothesis_tests.logistic_detection, score_type="f1"
         ),
         "logistic_detection_roc_auc": partial(
-            measure.hypothesis_tests.logistic_detection_custom, score_type="roc_auc"
+            measure.hypothesis_tests.logistic_detection, score_type="roc_auc"
         ),
     }
     for h_test_name, h_test_fn in h_test_dispatcher.items():

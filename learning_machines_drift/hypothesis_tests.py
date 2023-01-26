@@ -296,47 +296,8 @@ class HypothesisTests:
         structured_result = StructuredResult("scipy_permutation", result_dict)
         return structured_result
 
-    def logistic_detection(
-        self, normalize: bool = False, verbose: bool = True
-    ) -> StructuredResult:
-        """Calculates a measure of similarity using fitted logistic regression
-        to predict reference or registered label using Synthetic Data
-        Vault package.
-
-        A value of one indicates indistinguishable data, while a value of zero
-        indicates the converse.
-
-        Args:
-            verbose (bool): Boolean for verbose output to stdout.
-            normalize (bool): Normalize raw_score to interval [0, 1].
-
-        Returns:
-            results (Dict[str, Dict[str, float]]): Score providing an overall similarity measure of
-                reference and registered datasets.
-        """
-        method = f"Logistic Detection (normalize: {normalize})"
-        description = (
-            "Detection metric based on a LogisticRegression classifier from "
-            "scikit-learn."
-        )
-        about_str = self._format_about_str(method=method, description=description)
-
-        if verbose:
-            print(about_str)
-
-        results: float = LogisticDetection.compute(*self._get_unified_subsets())
-
-        if normalize:
-            results = LogisticDetection.normalize(results)
-
-        result_dict: Dict[str, Dict[str, float]] = {
-            "single_value": {"statistic": results},
-        }
-        structured_result = StructuredResult("logistic_detection", result_dict)
-        return structured_result
-
     # pylint: disable=invalid-name
-    def logistic_detection_custom(  # pylint: disable=too-many-locals, too-many-branches
+    def logistic_detection(  # pylint: disable=too-many-locals, too-many-branches
         self,
         normalize: bool = False,
         score_type: Optional[str] = None,
@@ -344,9 +305,10 @@ class HypothesisTests:
         verbose: bool = True,
     ) -> StructuredResult:
         """Calculates a measure of similarity using fitted logistic regression
-        to predict reference or registered label using Synthetic Data
-        Vault package. Optional `score_type` and `seed` can be passed to provide
-        interpretable metrics for the user.
+        to predict reference or registered label. SD metrics package
+        `source <https://github.com/sdv-dev/SDMetrics/blob/v0.6.0/sdmetrics/single_table/detection/base.py#L46-L91>`_ # pylint: disable=line-too-long
+        is adapted to permit optional `score_type` and `seed` to be given allowing
+        alternative and reproducible metrics.
 
         `score_type` can be:
             - None: defaults to scoring of `logistic_detection` method.
