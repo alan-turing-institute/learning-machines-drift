@@ -107,19 +107,6 @@ class Dataset:
 
 
 @dataclass
-class DatasetLatent:
-    """TODO PEP 257"""
-
-    dataset: Dataset
-    latent: Optional[pd.DataFrame]
-
-    @staticmethod
-    def from_dataset(dataset: Dataset) -> "DatasetLatent":
-        """TODO PEP 257"""
-        return DatasetLatent(dataset=dataset, latent=None)
-
-
-@dataclass
 class StructuredResult:
     """TODO PEP 257"""
 
