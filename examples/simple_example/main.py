@@ -3,11 +3,15 @@ from typing import Any, Dict, List, Optional
 
 import pandas as pd
 
-from learning_machines_drift import FileBackend, Monitor, Registry
+from learning_machines_drift import (
+    Display,
+    FileBackend,
+    Filter,
+    Monitor,
+    Registry,
+    StructuredResult,
+)
 from learning_machines_drift.datasets import example_dataset
-from learning_machines_drift.display import Display
-from learning_machines_drift.drift_filter import Filter
-from learning_machines_drift.types import StructuredResult
 
 
 def get_detector_reference(
@@ -103,7 +107,7 @@ def main() -> None:
     results: List[StructuredResult] = []
 
     for h_test_name, h_test_fn in test_dispatcher.items():
-        print("Test '{}' completed. ".format(h_test_name))
+        print(f"Test '{h_test_name}' completed.")
         results.append(h_test_fn())
 
     display_diff_results(results=results)
