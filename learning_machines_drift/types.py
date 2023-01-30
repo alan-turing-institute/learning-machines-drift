@@ -99,7 +99,7 @@ class Dataset:
         return pd.concat(
             [
                 self.features,
-                pd.DataFrame(self.labels, columns=["labels"]),
+                pd.DataFrame(self.labels),
                 self.latents,
             ],
             axis=1,

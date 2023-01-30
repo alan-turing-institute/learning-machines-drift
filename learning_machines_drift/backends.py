@@ -19,6 +19,8 @@ RE_LABEL = re.compile("(labels)", re.I)
 RE_FEATURES = re.compile("(features)", re.I)
 RE_LATENTS = re.compile("(latents)", re.I)
 
+DEFAULT_LABELS_NAME = "predicted-labels"
+
 
 def get_identifier(path_object: Union[str, Path]) -> Optional[UUID]:
     """Extract the UUID from the filename. The filename should have the
@@ -204,7 +206,9 @@ class FileBackend:
         """
         reference_dir = self._get_reference_path(tag)
         dataset.features.to_csv(reference_dir.joinpath("features.csv"), index=False)
-        labels_dataframe = pd.DataFrame(dataset.labels, columns=["labels"])
+        if dataset.labels.name is None:
+            dataset.labels.name = DEFAULT_LABELS_NAME
+        labels_dataframe = pd.DataFrame(dataset.labels)
         labels_dataframe.to_csv(reference_dir.joinpath("labels.csv"), index=False)
         if dataset.latents is not None:
             dataset.latents.to_csv(reference_dir.joinpath("latents.csv"), index=False)
@@ -254,7 +258,10 @@ class FileBackend:
 
         """
         logged_dir = self._get_logged_path(tag)
-        labels_dataframe = pd.DataFrame(labels, columns=["labels"])
+        if labels.name is None:
+            labels.name = DEFAULT_LABELS_NAME
+        labels_dataframe = pd.DataFrame(labels)
+
         labels_dataframe.to_csv(
             logged_dir.joinpath(f"{identifier}_labels.csv"), index=False
         )
