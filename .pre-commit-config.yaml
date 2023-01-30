@@ -33,22 +33,7 @@ repos:
         entry: poetry run safety check --full-report -i 51457
         pass_filenames: false
         language: system
-  # - repo: local
-  #   hooks:
-  #     - id: mypy
-  #       name: MyPy
-  #       entry: poetry run mypy --install-types --non-interactive
-  #       language: system
-  #       types: ['python']
-  #       exclude: ^(explore-frameworks)/
 
-#  - repo: local
-#    hooks:
-#      - id: safety
-#        name: Safety
-#        entry: poetry run safety check --full-report
-#        pass_filenames: false
-#        language: system
   - repo: local
     hooks:
       - id: mypy
@@ -66,14 +51,15 @@ repos:
         language: system
         types: ['python']
         exclude: ^(explore-frameworks)/
-  # - repo: local
-  #   hooks:
-  #     - id: flake8
-  #       name: Flake8
-  #       entry: poetry run flake8
-  #       language: system
-  #       types: ['python']
-  #       exclude: ^(explore-frameworks)/
+
+  - repo: local
+    hooks:
+      - id: flake8
+        name: Flake8
+        entry: poetry run flake8
+        language: system
+        types: ['python']
+        exclude: ^(explore-frameworks)/
     # Uncomment if you want to check shell scripts
   # - repo: https://github.com/shellcheck-py/shellcheck-py
   #   rev: v0.7.2.1

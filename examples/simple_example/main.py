@@ -1,8 +1,6 @@
 """Simple synthetic example with predictors Age and Height for binary labels."""
 from typing import Any, Dict, List, Optional
 
-# import matplotlib.pyplot as plt
-# import numpy as np
 import pandas as pd
 
 from learning_machines_drift import FileBackend, Monitor, Registry
@@ -11,14 +9,17 @@ from learning_machines_drift.display import Display
 from learning_machines_drift.drift_filter import Filter
 from learning_machines_drift.types import StructuredResult
 
-# from numpy.typing import NDArray
-
 
 def get_detector_reference(
     features_df: pd.DataFrame, predictions_series: pd.Series, latents_df: pd.DataFrame
 ) -> Registry:
     """Register reference data, returns a Registry"""
-    detector = Registry(tag="simple_example", backend=FileBackend("my-data"))
+    detector = Registry(
+        tag="simple_example",
+        backend=FileBackend("my-data"),
+        clear_logged=True,
+        clear_reference=True,
+    )
     detector.register_ref_dataset(
         features=features_df, labels=predictions_series, latents=latents_df
     )
@@ -66,18 +67,10 @@ def store_logs(detector: Registry) -> None:
         log_new_data(detector, new_features_df, new_predictions_series, new_latents_df)
 
 
-# def perform_diff_tests(drift_filter: Optional[Filter] = None) -> List[Any]:
-#     """Load data, perform hypothesis tests"""
-#     measure = load_data(drift_filter)
-#     # ks_results = measure.hypothesis_tests.scipy_kolmogorov_smirnov()
-#     boundary_results = measure.hypothesis_tests.sdv_boundary_adherence()
-#     return [boundary_results]
-
-
-def display_diff_results(results: List[Any]) -> None:
+def display_diff_results(results: List[StructuredResult]) -> None:
     """Display list of results"""
     for res in results:
-        print(res)
+        # print(res)
         Display().table(res)
         # Display().plot(res, score_type="statistic")
         # plt.show()
@@ -85,163 +78,36 @@ def display_diff_results(results: List[Any]) -> None:
         # plt.show()
 
 
-def mock_test() -> None:
-    """Testing hypothesis tests class."""
-    features_df, labels_df, latents_df = example_dataset(10)
-    det = Registry(tag="test", backend=FileBackend("test-data"))
-    det.register_ref_dataset(features=features_df, labels=labels_df, latents=latents_df)
-
-    # And we have features and predicted labels
-    num_iterations = 1
-    for _ in range(num_iterations):
-        (
-            new_features_df,
-            new_predictions_series,
-            new_latents_df,
-        ) = example_dataset(5)
-        log_new_data(det, new_features_df, new_predictions_series, new_latents_df)
-
-    meas = Monitor(tag="test", backend=FileBackend("test-data"))
-    meas.load_data()
-
-    h_test_dispatcher: Dict[str, Any] = {
-        "scipy_kolmogorov_smirnov": meas.hypothesis_tests.scipy_kolmogorov_smirnov,
-        # "scipy_mannwhitneyu": meas.hypothesis_tests.scipy_mannwhitneyu,
-        # "boundary_adherence": meas.hypothesis_tests.get_boundary_adherence
-    }
-
-    for h_test_name, h_test_fn in h_test_dispatcher.items():
-        res = h_test_fn()
-
-        # Check res is a StructureResult
-        assert isinstance(res, StructuredResult)
-        assert res.method_name == h_test_name
-        if list(res.results.keys())[0] == "single_value":
-            assert isinstance(res.results["single_value"], dict)
-        else:
-            print(list(res.results.keys()))
-            print(list(res.results.keys())[0])
-            print(list(det.registered_dataset.unify().columns))
-            assert list(res.results.keys()) == list(
-                det.registered_dataset.unify().columns
-            )
-
-
 def main() -> None:
     """Generating data, diff data, visualise results"""
+
     # 1. Generate and store reference data
-    # registry = register_reference()
+    registry: Registry = register_reference()
 
     # 2. Generate and store log data
-    # store_logs(registry)
-    measure = load_data(None)
+    store_logs(registry)
 
-    # results = measure.hypothesis_tests.get_boundary_adherence()
-    # print(results)
+    measure: Monitor = load_data(None)
 
-    # print(list(results.results.keys()))
+    test_dispatcher: Dict[str, Any] = {
+        "scipy_kolmogorov_smirnov": measure.hypothesis_tests.scipy_kolmogorov_smirnov,
+        "scipy_mannwhitneyu": measure.hypothesis_tests.scipy_mannwhitneyu,
+        "boundary_adherence": measure.hypothesis_tests.get_boundary_adherence,
+        "range_coverage": measure.hypothesis_tests.get_range_coverage,
+        "logistic_detection": measure.hypothesis_tests.logistic_detection,
+        "get_boundary_adherence": measure.hypothesis_tests.get_boundary_adherence,
+        "get_range_coverage": measure.hypothesis_tests.get_range_coverage,
+        # "binary_classifier_efficacy":measure.hypothesis_tests.binary_classifier_efficacy
+    }
 
-    # print(list(registry.registered_dataset.unify().columns))
+    results: List[StructuredResult] = []
 
-    # assert list(results.results.keys())==list(registry.registered_dataset.unify().columns)
-    # results = measure.hypothesis_tests.get_range_coverage()
-    # print(results)
+    for h_test_name, h_test_fn in test_dispatcher.items():
+        results.append(h_test_fn())
 
-    # results = measure.hypothesis_tests.binary_classifier_efficacy(
-    #   target_variable="ground-truth-label"
-    # )
-    # print(results)
-
-    # results = measure.hypothesis_tests.logistic_detection()
-    # print(results)
-
-    # {'methodname':
-    #     {'statistic':
-    #         {'age': {'statistic': 0.8666666666666667},
-    #         'height': {'statistic': 0.8666666666666667}
-    #         }
-    #     }
-    # }
-
-    # {'methodname':
-    #     {'age': {'statistic': 0.8666666666666667},
-    #     'height': {'statistic': 0.8666666666666667}
-    #     }
-    # }
-
-    # {'methodname':
-    #     {'single_value':
-    #         {'statistic': 0.999, 'pvalue':0.005}
-    #     }
-    # }
-    # results = measure.hypothesis_tests.logistic_detection()
-    # print(results)
-
-    # results = measure.hypothesis_tests.scipy_permutation()
-    # print(results)
-
-    results = measure.hypothesis_tests.scipy_kolmogorov_smirnov()
-    print(results)
-
-    # results = measure.hypothesis_tests.scipy_mannwhitneyu()
-    # print(results)
-
-    # 3. Load all data with filter and perform tests
-    # drift_filter = Filter(
-    #     {
-    #         "age": [Condition("less", 0.0)],
-    #         "height": [Condition("greater", -1.0), Condition("less", 1.0)],
-    #     }
-    # )
-    # results = perform_diff_tests(None)
-
-    # 4. Display results
-    # display_diff_results(results)
-
-
-# measure = Monitor(tag="simple_example", backend=FileBackend("my-data"))
-# measure.load_data()
-# # print(measure.hypothesis_tests.scipy_kolmogorov_smirnov())
-# # print(measure.hypothesis_tests.scipy_permutation())
-# # print(measure.hypothesis_tests.scipy_mannwhitneyu())
-# # print(measure.hypothesis_tests.scipy_chisquare())
-# # print(measure.hypothesis_tests.gaussian_mixture_log_likelihood())
-# # print(measure.hypothesis_tests.gaussian_mixture_log_likelihood(normalize=True))
-# # print(measure.hypothesis_tests.logistic_detection())
-# # print(measure.hypothesis_tests.logistic_detection_custom())
-# # print(measure.hypothesis_tests.logistic_detection_custom(score_type="f1"))
-# # print(measure.hypothesis_tests.logistic_detection_custom(score_type="roc_auc"))
-
-
-# ks_results:Dict[str,any] = measure.hypothesis_tests.scipy_kolmogorov_smirnov()
-# perm_results = measure.hypothesis_tests.scipy_permutation()
-# log_results = measure.hypothesis_tests.logistic_detection_custom(score_type="roc_auc")
-
-# for res in [ks_results, perm_results, log_results]:
-#     df = Display().table(res)
-#     fig, axs = Display().plot(res, score_type="statistic")
-
-
-# print(measure.hypothesis_tests.sd_evaluate())
-
-
-# logged_datasets = detector.backend.load_logged_dataset("simple_example")
-# print(logged_datasets.labels)
-
-
-# print(detector.registered_features)
-# print(detector.registered_labels)
-# print(detector.ref_dataset)
-# print(measure.hypothesis_tests.kolmogorov_smirnov())
-# print(measure.hypothesis_tests.sdv_evaluate())
-
-
-# logged_datasets = detector.backend.load_logged_dataset("simple_example")
-
-# print(logged_datasets.features)
-# print(logged_datasets.labels)
+    display_diff_results(results=results)
 
 
 if __name__ == "__main__":
-    # main()
-    mock_test()
+    main()
+    # mock_test()

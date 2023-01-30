@@ -118,6 +118,6 @@ def example_dataset(
         {"age": features[:, 0], "height": features[:, 1], "ground-truth-label": labels}
     )
 
-    predictions_series: pd.Series = pd.Series(labels, name="labels")
+    predictions_series: pd.Series = pd.Series(labels, name="predicted-label")
     latents_df: pd.DataFrame = pd.DataFrame({"latents": latents})
     return (features_df, predictions_series, latents_df)
