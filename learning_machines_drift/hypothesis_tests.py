@@ -401,56 +401,6 @@ class HypothesisTests:
         structured_result = StructuredResult(results_key, result_dict)
         return structured_result
 
-    # TODO: add test for this method if developed further pylint: disable=fixme
-    def binary_classifier_efficacy(
-        self,
-        target_variable: str,
-        clf: Union[
-            BinaryAdaBoostClassifier,
-            BinaryDecisionTreeClassifier,
-            BinaryLogisticRegression,
-            BinaryMLPClassifier,
-        ] = BinaryLogisticRegression,
-        verbose: bool = True,
-    ) -> StructuredResult:
-        """Calculates accuracy of classifier trained on reference data and
-        tested on registered data.
-
-        Args:
-            target_variable (str): Target (ground truth label) variable name.
-            clf (Union[
-                BinaryAdaBoostClassifier,
-                BinaryDecisionTreeClassifier,
-                BinaryLogisticRegression,
-                BinaryMLPClassifier]): SDV binary classifier class.
-            verbose (bool): Boolean for verbose output to stdout.
-
-        Returns:
-            results (float): Score providing an overall similarity measure of
-                reference and registered datasets.
-        """
-        method = f"Binary classification (ML efficacy): ({clf.__str__})"
-        description = (
-            "Efficacy metric using accuracy of classifier trained on "
-            "reference dataset and tested on registered dataset."
-        )
-        about_str = self._format_about_str(method=method, description=description)
-
-        if verbose:
-            print(about_str)
-
-        result: float = clf.compute(
-            test_data=self.registered_dataset.features,
-            train_data=self.reference_dataset.features,
-            target=target_variable,
-            metadata=None,
-        )
-        result_dict: Dict[str, Dict[str, float]] = {
-            "single_value": {"statistic": result},
-        }
-        structured_result = StructuredResult("binary_classifier_efficacy", result_dict)
-        return structured_result
-
     # pylint: enable=invalid-name
 
     def get_boundary_adherence(
