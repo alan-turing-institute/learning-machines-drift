@@ -3,20 +3,14 @@
 import textwrap
 from enum import Enum
 from functools import partial
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
 from scipy import stats
 from sdmetrics.single_column import BoundaryAdherence, RangeCoverage
-from sdmetrics.single_table import (
-    BinaryAdaBoostClassifier,
-    BinaryDecisionTreeClassifier,
-    BinaryLogisticRegression,
-    BinaryMLPClassifier,
-    LogisticDetection,
-)
+from sdmetrics.single_table import LogisticDetection
 from sdmetrics.utils import HyperTransformer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import f1_score, roc_auc_score

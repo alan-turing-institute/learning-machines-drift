@@ -103,6 +103,7 @@ def main() -> None:
     results: List[StructuredResult] = []
 
     for h_test_name, h_test_fn in test_dispatcher.items():
+        print("Test '{}' completed. ".format(h_test_name))
         results.append(h_test_fn())
 
     display_diff_results(results=results)
