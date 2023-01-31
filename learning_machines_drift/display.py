@@ -9,10 +9,7 @@ from learning_machines_drift.types import StructuredResult
 
 
 class Display:
-    """A class for converting a dictionary of hypothesis test scores to
-    displayed output.
-
-    """
+    """A class for converting a dictionary of drift scores to displayed output."""
 
     @classmethod
     def plot(
@@ -25,8 +22,8 @@ class Display:
         """Plot method for displaying a set of scores on a subplot grid.
 
         Args:
-            score_dict (Dict[str, Dict[str, float]]): Dictionary of scores from
-                a hypothesis test output.
+            result (StructuredResult): Structured result from a drift
+                score measurement.
             score_type (str): Either "statistic" or "pvalue".
             score_name (str): Name of score to be plotted and used as plot title.
             alpha (float): Value of alpha to be used in p-value plots.
@@ -76,23 +73,19 @@ class Display:
         return fig, axs
 
     @classmethod
-    def table(
-        cls, structured_result: StructuredResult, verbose: bool = True
-    ) -> pd.DataFrame:
-        """Gets a pandas dataframe and optionally prints a table of hypothesis
-        test results.
+    def table(cls, result: StructuredResult, verbose: bool = True) -> pd.DataFrame:
+        """Gets a pandas dataframe and optionally prints a table of results from
+        drift scoring.
 
         Args:
-            score_dict (Dict[str, Dict[str, float]]): Dictionary of scores
-                from a hypothesis test output.
+            structured_result (StructuredResult): Structured result from a drift
+                score measurement.
 
         Returns:
             pd.DataFrame: Dataframe of scores.
         """
         # Convert dict to pandas dataframe
-        df: pd.DataFrame = pd.DataFrame.from_dict(
-            structured_result.results, orient="index"
-        )
+        df: pd.DataFrame = pd.DataFrame.from_dict(result.results, orient="index")
 
         # Print to stdout if verbose
         if verbose:

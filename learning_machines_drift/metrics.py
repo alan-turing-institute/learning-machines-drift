@@ -27,9 +27,9 @@ class Wrapper(Enum):
     TYPE_SDMETRIC = 3
 
 
-class HypothesisTests:
-    """A class for performing hypothesis tests and scoring between registered
-    and reference datasets.
+class Metrics:
+    """A class with metrics for scoring data drift between registered and
+    reference datasets.
 
     Attributes:
         reference_dataset (Dataset): Reference datastet for drift measures.

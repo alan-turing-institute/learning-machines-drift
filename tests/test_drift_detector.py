@@ -167,12 +167,12 @@ def test_all_registered(
 
 @pytest.mark.parametrize("n_rows", [10])
 def test_statistics_summary(tmp_path: pathlib.Path, n_rows: int) -> None:
-    """Tests whether hypothesis tests are applied to all columns of unifed
+    """Tests whether metrics are applied to all columns of unifed
     dataset as expected."""
     det: Registry = detector_with_all_data(tmp_path, n_rows)
     measure = Monitor(tag="test", backend=FileBackend(tmp_path))
     measure.load_data()
-    res = measure.hypothesis_tests.scipy_kolmogorov_smirnov()
+    res = measure.metrics.scipy_kolmogorov_smirnov()
 
     assert isinstance(res, StructuredResult)
     assert res.method_name == "scipy_kolmogorov_smirnov"
@@ -182,16 +182,16 @@ def test_statistics_summary(tmp_path: pathlib.Path, n_rows: int) -> None:
 @pytest.mark.parametrize("n_rows", N_ROWS)
 @pytest.mark.filterwarnings("ignore::RuntimeWarning")
 def test_summary_statistic_list(tmp_path: pathlib.Path, n_rows: int) -> None:
-    """Tests application of hypothesis tests from a monitor."""
+    """Tests application metrics from a monitor."""
     det: Registry = detector_with_all_data(tmp_path, n_rows)
     measure = Monitor(tag="test", backend=FileBackend(tmp_path))
     measure.load_data()
     h_test_dispatcher: Dict[str, Any] = {
-        "scipy_kolmogorov_smirnov": measure.hypothesis_tests.scipy_kolmogorov_smirnov,
-        "scipy_mannwhitneyu": measure.hypothesis_tests.scipy_mannwhitneyu,
-        "boundary_adherence": measure.hypothesis_tests.get_boundary_adherence,
-        "range_coverage": measure.hypothesis_tests.get_range_coverage,
-        "logistic_detection": measure.hypothesis_tests.logistic_detection,
+        "scipy_kolmogorov_smirnov": measure.metrics.scipy_kolmogorov_smirnov,
+        "scipy_mannwhitneyu": measure.metrics.scipy_mannwhitneyu,
+        "boundary_adherence": measure.metrics.get_boundary_adherence,
+        "range_coverage": measure.metrics.get_range_coverage,
+        "logistic_detection": measure.metrics.logistic_detection,
     }
     for h_test_name, h_test_fn in h_test_dispatcher.items():
         res = h_test_fn()
@@ -208,7 +208,7 @@ def test_summary_statistic_list(tmp_path: pathlib.Path, n_rows: int) -> None:
 @pytest.mark.parametrize("n_rows", N_ROWS)
 @pytest.mark.filterwarnings("ignore::RuntimeWarning")
 def test_with_noncommon_columns(tmp_path: pathlib.Path, n_rows: int) -> None:
-    """Tests the application of hypothesis tests to the intersection of columns
+    """Tests the application of metrics to the intersection of columns
     when there are differing columns in the reference and registered dataset.
     """
     det: Registry = detector_with_all_data(tmp_path, n_rows, to_drop=["age"])
@@ -216,15 +216,15 @@ def test_with_noncommon_columns(tmp_path: pathlib.Path, n_rows: int) -> None:
     measure.load_data()
 
     h_test_dispatcher: Dict[str, Any] = {
-        "scipy_kolmogorov_smirnov": measure.hypothesis_tests.scipy_kolmogorov_smirnov,
-        "scipy_mannwhitneyu": measure.hypothesis_tests.scipy_mannwhitneyu,
-        "scipy_permutation": measure.hypothesis_tests.scipy_permutation,
-        "logistic_detection": measure.hypothesis_tests.logistic_detection,
+        "scipy_kolmogorov_smirnov": measure.metrics.scipy_kolmogorov_smirnov,
+        "scipy_mannwhitneyu": measure.metrics.scipy_mannwhitneyu,
+        "scipy_permutation": measure.metrics.scipy_permutation,
+        "logistic_detection": measure.metrics.logistic_detection,
         "logistic_detection_f1": partial(
-            measure.hypothesis_tests.logistic_detection, score_type="f1"
+            measure.metrics.logistic_detection, score_type="f1"
         ),
         "logistic_detection_roc_auc": partial(
-            measure.hypothesis_tests.logistic_detection, score_type="roc_auc"
+            measure.metrics.logistic_detection, score_type="roc_auc"
         ),
     }
     for h_test_name, h_test_fn in h_test_dispatcher.items():
@@ -249,8 +249,8 @@ def test_display(tmp_path: pathlib.Path, n_rows: int) -> None:
 
     # Subset of h_tests sufficient for testing plotting
     h_test_dispatcher: Dict[str, Callable[..., StructuredResult]] = {
-        "scipy_kolmogorov_smirnov": measure.hypothesis_tests.scipy_kolmogorov_smirnov,
-        "scipy_mannwhitneyu": measure.hypothesis_tests.scipy_mannwhitneyu,
+        "scipy_kolmogorov_smirnov": measure.metrics.scipy_kolmogorov_smirnov,
+        "scipy_mannwhitneyu": measure.metrics.scipy_mannwhitneyu,
     }
 
     for _, h_test_fn in h_test_dispatcher.items():
@@ -367,8 +367,8 @@ def test_sdmetrics(tmp_path: pathlib.Path, n_rows: int) -> None:
     measure = Monitor(tag="test", backend=FileBackend(tmp_path))
     measure.load_data()
     for (sd_metric_name, sd_metric_fn) in [
-        ("boundary_adherence", measure.hypothesis_tests.get_boundary_adherence),
-        ("range_coverage", measure.hypothesis_tests.get_range_coverage),
+        ("boundary_adherence", measure.metrics.get_boundary_adherence),
+        ("range_coverage", measure.metrics.get_range_coverage),
     ]:
         result: StructuredResult = sd_metric_fn()
         assert result.method_name == sd_metric_name

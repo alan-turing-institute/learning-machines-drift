@@ -94,14 +94,13 @@ def main() -> None:
     measure: Monitor = load_data(None)
 
     test_dispatcher: Dict[str, Any] = {
-        "scipy_kolmogorov_smirnov": measure.hypothesis_tests.scipy_kolmogorov_smirnov,
-        "scipy_mannwhitneyu": measure.hypothesis_tests.scipy_mannwhitneyu,
-        "boundary_adherence": measure.hypothesis_tests.get_boundary_adherence,
-        "range_coverage": measure.hypothesis_tests.get_range_coverage,
-        "logistic_detection": measure.hypothesis_tests.logistic_detection,
-        "get_boundary_adherence": measure.hypothesis_tests.get_boundary_adherence,
-        "get_range_coverage": measure.hypothesis_tests.get_range_coverage,
-        # "binary_classifier_efficacy":measure.hypothesis_tests.binary_classifier_efficacy
+        "scipy_kolmogorov_smirnov": measure.metrics.scipy_kolmogorov_smirnov,
+        "scipy_mannwhitneyu": measure.metrics.scipy_mannwhitneyu,
+        "boundary_adherence": measure.metrics.get_boundary_adherence,
+        "range_coverage": measure.metrics.get_range_coverage,
+        "logistic_detection": measure.metrics.logistic_detection,
+        "get_boundary_adherence": measure.metrics.get_boundary_adherence,
+        "get_range_coverage": measure.metrics.get_range_coverage,
     }
 
     results: List[StructuredResult] = []

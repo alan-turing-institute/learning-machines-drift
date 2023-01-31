@@ -60,10 +60,10 @@ learning\_machines\_drift.exceptions module
    :undoc-members:
    :show-inheritance:
 
-learning\_machines\_drift.hypothesis\_tests module
+learning\_machines\_drift.metrics module
 --------------------------------------------------
 
-.. automodule:: learning_machines_drift.hypothesis_tests
+.. automodule:: learning_machines_drift.metrics
    :members:
    :undoc-members:
    :show-inheritance:
