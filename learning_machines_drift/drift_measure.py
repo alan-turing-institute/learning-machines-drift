@@ -4,8 +4,8 @@ from pathlib import Path
 from typing import Optional
 
 from learning_machines_drift.backends import Backend, FileBackend
-from learning_machines_drift.drift_filter import Filter
 from learning_machines_drift.exceptions import ReferenceDatasetMissing
+from learning_machines_drift.filter import Filter
 from learning_machines_drift.metrics import Metrics
 from learning_machines_drift.types import Dataset
 

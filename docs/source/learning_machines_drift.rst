@@ -36,10 +36,10 @@ learning\_machines\_drift.registry module
    :undoc-members:
    :show-inheritance:
 
-learning\_machines\_drift.drift\_filter module
+learning\_machines\_drift.filter module
 ----------------------------------------------
 
-.. automodule:: learning_machines_drift.drift_filter
+.. automodule:: learning_machines_drift.filter
    :members:
    :undoc-members:
    :show-inheritance:

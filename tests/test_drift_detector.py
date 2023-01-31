@@ -15,8 +15,8 @@ from learning_machines_drift import Monitor, Registry
 from learning_machines_drift.backends import FileBackend
 from learning_machines_drift.datasets import example_dataset
 from learning_machines_drift.display import Display
-from learning_machines_drift.drift_filter import Comparison, Condition, Filter
 from learning_machines_drift.exceptions import ReferenceDatasetMissing
+from learning_machines_drift.filter import Comparison, Condition, Filter
 from learning_machines_drift.types import StructuredResult
 
 N_FEATURES = 3
