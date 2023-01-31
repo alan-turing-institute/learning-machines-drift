@@ -6,7 +6,6 @@ _build/
 **/my-data
 .idea/
 test/
-**/alzheimers-data
 poetry.lock
 dist/
 .vscode/
