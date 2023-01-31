@@ -44,10 +44,10 @@ learning\_machines\_drift.filter module
    :undoc-members:
    :show-inheritance:
 
-learning\_machines\_drift.drift\_measure module
+learning\_machines\_drift.monitor module
 -----------------------------------------------
 
-.. automodule:: learning_machines_drift.drift_measure
+.. automodule:: learning_machines_drift.monitor
    :members:
    :undoc-members:
    :show-inheritance:
