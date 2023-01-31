@@ -31,16 +31,16 @@ def get_detector_reference(
 
 
 def log_new_data(
-    detector: Registry,
+    registry: Registry,
     features_df: pd.DataFrame,
     predictions_series: pd.Series,
     latents_df: pd.DataFrame,
 ) -> None:
     """Log features, labels and latents using Registry"""
-    with detector:
-        detector.log_features(features_df)
-        detector.log_labels(predictions_series)
-        detector.log_latents(latents_df)
+    with registry:
+        registry.log_features(features_df)
+        registry.log_labels(predictions_series)
+        registry.log_latents(latents_df)
 
 
 def load_data(drift_filter: Optional[Filter] = None) -> Monitor:
@@ -59,7 +59,7 @@ def register_reference() -> Registry:
     return detector
 
 
-def store_logs(detector: Registry) -> None:
+def store_logs(registry: Registry) -> None:
     """Generate data and log using Registry"""
     num_iterations = 1
     for _ in range(num_iterations):
@@ -68,7 +68,7 @@ def store_logs(detector: Registry) -> None:
             new_predictions_series,
             new_latents_df,
         ) = example_dataset(5)
-        log_new_data(detector, new_features_df, new_predictions_series, new_latents_df)
+        log_new_data(registry, new_features_df, new_predictions_series, new_latents_df)
 
 
 def display_diff_results(results: List[StructuredResult]) -> None:
@@ -114,4 +114,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-    # mock_test()
