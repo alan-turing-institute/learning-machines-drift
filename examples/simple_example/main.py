@@ -45,9 +45,9 @@ def log_new_data(
 
 def load_data(drift_filter: Optional[Filter] = None) -> Monitor:
     """Load data and return Monitor"""
-    measure = Monitor(tag="simple_example", backend=FileBackend("my-data"))
-    measure.load_data(drift_filter)
-    return measure
+    monitor = Monitor(tag="simple_example", backend=FileBackend("my-data"))
+    monitor.load_data(drift_filter)
+    return monitor
 
 
 def register_reference() -> Registry:
@@ -91,16 +91,16 @@ def main() -> None:
     # 2. Generate and store log data
     store_logs(registry)
 
-    measure: Monitor = load_data(None)
+    monitor: Monitor = load_data(None)
 
     test_dispatcher: Dict[str, Any] = {
-        "scipy_kolmogorov_smirnov": measure.metrics.scipy_kolmogorov_smirnov,
-        "scipy_mannwhitneyu": measure.metrics.scipy_mannwhitneyu,
-        "boundary_adherence": measure.metrics.get_boundary_adherence,
-        "range_coverage": measure.metrics.get_range_coverage,
-        "logistic_detection": measure.metrics.logistic_detection,
-        "get_boundary_adherence": measure.metrics.get_boundary_adherence,
-        "get_range_coverage": measure.metrics.get_range_coverage,
+        "scipy_kolmogorov_smirnov": monitor.metrics.scipy_kolmogorov_smirnov,
+        "scipy_mannwhitneyu": monitor.metrics.scipy_mannwhitneyu,
+        "boundary_adherence": monitor.metrics.get_boundary_adherence,
+        "range_coverage": monitor.metrics.get_range_coverage,
+        "logistic_detection": monitor.metrics.logistic_detection,
+        "get_boundary_adherence": monitor.metrics.get_boundary_adherence,
+        "get_range_coverage": monitor.metrics.get_range_coverage,
     }
 
     results: List[StructuredResult] = []

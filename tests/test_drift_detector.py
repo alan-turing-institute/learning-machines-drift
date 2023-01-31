@@ -36,7 +36,7 @@ def registry(mocker: MockerFixture) -> Registry:
 
 
 @pytest.fixture()
-def measure(mocker: MockerFixture) -> Monitor:
+def monitor(mocker: MockerFixture) -> Monitor:
     """Returns a registry that writes data to a temporary directory."""
     meas = Monitor(tag="test")
     mocker.patch.object(meas, "backend")
@@ -170,9 +170,9 @@ def test_statistics_summary(tmp_path: pathlib.Path, n_rows: int) -> None:
     """Tests whether metrics are applied to all columns of unifed
     dataset as expected."""
     det: Registry = registry_with_all_data(tmp_path, n_rows)
-    measure = Monitor(tag="test", backend=FileBackend(tmp_path))
-    measure.load_data()
-    res = measure.metrics.scipy_kolmogorov_smirnov()
+    monitor = Monitor(tag="test", backend=FileBackend(tmp_path))
+    monitor.load_data()
+    res = monitor.metrics.scipy_kolmogorov_smirnov()
 
     assert isinstance(res, StructuredResult)
     assert res.method_name == "scipy_kolmogorov_smirnov"
@@ -184,14 +184,14 @@ def test_statistics_summary(tmp_path: pathlib.Path, n_rows: int) -> None:
 def test_summary_statistic_list(tmp_path: pathlib.Path, n_rows: int) -> None:
     """Tests application metrics from a monitor."""
     det: Registry = registry_with_all_data(tmp_path, n_rows)
-    measure = Monitor(tag="test", backend=FileBackend(tmp_path))
-    measure.load_data()
+    monitor = Monitor(tag="test", backend=FileBackend(tmp_path))
+    monitor.load_data()
     h_test_dispatcher: Dict[str, Any] = {
-        "scipy_kolmogorov_smirnov": measure.metrics.scipy_kolmogorov_smirnov,
-        "scipy_mannwhitneyu": measure.metrics.scipy_mannwhitneyu,
-        "boundary_adherence": measure.metrics.get_boundary_adherence,
-        "range_coverage": measure.metrics.get_range_coverage,
-        "logistic_detection": measure.metrics.logistic_detection,
+        "scipy_kolmogorov_smirnov": monitor.metrics.scipy_kolmogorov_smirnov,
+        "scipy_mannwhitneyu": monitor.metrics.scipy_mannwhitneyu,
+        "boundary_adherence": monitor.metrics.get_boundary_adherence,
+        "range_coverage": monitor.metrics.get_range_coverage,
+        "logistic_detection": monitor.metrics.logistic_detection,
     }
     for h_test_name, h_test_fn in h_test_dispatcher.items():
         res = h_test_fn()
@@ -212,19 +212,19 @@ def test_with_noncommon_columns(tmp_path: pathlib.Path, n_rows: int) -> None:
     when there are differing columns in the reference and registered dataset.
     """
     det: Registry = registry_with_all_data(tmp_path, n_rows, to_drop=["age"])
-    measure = Monitor(tag="test", backend=FileBackend(tmp_path))
-    measure.load_data()
+    monitor = Monitor(tag="test", backend=FileBackend(tmp_path))
+    monitor.load_data()
 
     h_test_dispatcher: Dict[str, Any] = {
-        "scipy_kolmogorov_smirnov": measure.metrics.scipy_kolmogorov_smirnov,
-        "scipy_mannwhitneyu": measure.metrics.scipy_mannwhitneyu,
-        "scipy_permutation": measure.metrics.scipy_permutation,
-        "logistic_detection": measure.metrics.logistic_detection,
+        "scipy_kolmogorov_smirnov": monitor.metrics.scipy_kolmogorov_smirnov,
+        "scipy_mannwhitneyu": monitor.metrics.scipy_mannwhitneyu,
+        "scipy_permutation": monitor.metrics.scipy_permutation,
+        "logistic_detection": monitor.metrics.logistic_detection,
         "logistic_detection_f1": partial(
-            measure.metrics.logistic_detection, score_type="f1"
+            monitor.metrics.logistic_detection, score_type="f1"
         ),
         "logistic_detection_roc_auc": partial(
-            measure.metrics.logistic_detection, score_type="roc_auc"
+            monitor.metrics.logistic_detection, score_type="roc_auc"
         ),
     }
     for h_test_name, h_test_fn in h_test_dispatcher.items():
@@ -244,13 +244,13 @@ def test_with_noncommon_columns(tmp_path: pathlib.Path, n_rows: int) -> None:
 def test_display(tmp_path: pathlib.Path, n_rows: int) -> None:
     """Tests whether the display class returns the expected types."""
     registry_with_all_data(tmp_path, n_rows)
-    measure = Monitor(tag="test", backend=FileBackend(tmp_path))
-    measure.load_data()
+    monitor = Monitor(tag="test", backend=FileBackend(tmp_path))
+    monitor.load_data()
 
     # Subset of h_tests sufficient for testing plotting
     h_test_dispatcher: Dict[str, Callable[..., StructuredResult]] = {
-        "scipy_kolmogorov_smirnov": measure.metrics.scipy_kolmogorov_smirnov,
-        "scipy_mannwhitneyu": measure.metrics.scipy_mannwhitneyu,
+        "scipy_kolmogorov_smirnov": monitor.metrics.scipy_kolmogorov_smirnov,
+        "scipy_mannwhitneyu": monitor.metrics.scipy_mannwhitneyu,
     }
 
     for _, h_test_fn in h_test_dispatcher.items():
@@ -276,8 +276,8 @@ def test_load_all_logged_data(tmp_path: pathlib.Path, n_rows: int) -> None:
     """Tests whether logging of data and that upon reload the data has the
     correct shape."""
     registry_with_all_data(tmp_path, n_rows)
-    measure = Monitor(tag="test", backend=FileBackend(tmp_path))
-    recovered_dataset = measure.load_data()
+    monitor = Monitor(tag="test", backend=FileBackend(tmp_path))
+    recovered_dataset = monitor.load_data()
     dimensions: Tuple[int, int] = recovered_dataset.unify().shape
     assert dimensions[0] == n_rows
     assert dimensions[1] == (3 + 1 + 1)
@@ -302,8 +302,8 @@ def test_load_data_filtered(tmp_path: pathlib.Path, n_rows: int) -> None:
     """Tests whether a filter applied to load data from registry correctly
     filters data."""
     registry_with_all_data(tmp_path, n_rows)
-    measure = Monitor(tag="test", backend=FileBackend(tmp_path))
-    measure.load_data()
+    monitor = Monitor(tag="test", backend=FileBackend(tmp_path))
+    monitor.load_data()
 
     # Make a drift filter
     filter_dict: Dict[str, List[Condition]] = dict(
@@ -351,24 +351,24 @@ def test_load_data_filtered(tmp_path: pathlib.Path, n_rows: int) -> None:
 def test_dataset_types(tmp_path: pathlib.Path, n_rows: int) -> None:
     """Tests whether the reference dataset components have the expected types."""
     registry_with_all_data(tmp_path, n_rows)
-    measure = Monitor(tag="test", backend=FileBackend(tmp_path))
-    measure.load_data()
+    monitor = Monitor(tag="test", backend=FileBackend(tmp_path))
+    monitor.load_data()
 
-    assert measure.ref_dataset is not None
-    assert isinstance(measure.ref_dataset.features, pd.DataFrame)
-    assert isinstance(measure.ref_dataset.labels, pd.Series)
-    assert isinstance(measure.ref_dataset.latents, pd.DataFrame)
+    assert monitor.ref_dataset is not None
+    assert isinstance(monitor.ref_dataset.features, pd.DataFrame)
+    assert isinstance(monitor.ref_dataset.labels, pd.Series)
+    assert isinstance(monitor.ref_dataset.latents, pd.DataFrame)
 
 
 @pytest.mark.parametrize("n_rows", N_ROWS)
 def test_sdmetrics(tmp_path: pathlib.Path, n_rows: int) -> None:
     """Tests SD metrics."""
     registry_with_all_data(tmp_path, n_rows)
-    measure = Monitor(tag="test", backend=FileBackend(tmp_path))
-    measure.load_data()
+    monitor = Monitor(tag="test", backend=FileBackend(tmp_path))
+    monitor.load_data()
     for (sd_metric_name, sd_metric_fn) in [
-        ("boundary_adherence", measure.metrics.get_boundary_adherence),
-        ("range_coverage", measure.metrics.get_range_coverage),
+        ("boundary_adherence", monitor.metrics.get_boundary_adherence),
+        ("range_coverage", monitor.metrics.get_range_coverage),
     ]:
         result: StructuredResult = sd_metric_fn()
         assert result.method_name == sd_metric_name
