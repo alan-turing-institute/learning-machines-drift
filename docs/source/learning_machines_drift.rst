@@ -28,10 +28,10 @@ learning\_machines\_drift.display module
    :undoc-members:
    :show-inheritance:
 
-learning\_machines\_drift.drift\_detector module
+learning\_machines\_drift.registry module
 ------------------------------------------------
 
-.. automodule:: learning_machines_drift.drift_detector
+.. automodule:: learning_machines_drift.registry
    :members:
    :undoc-members:
    :show-inheritance:

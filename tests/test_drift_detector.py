@@ -28,8 +28,8 @@ N_ROWS = [5, 10, 100, 1000]
 
 
 @pytest.fixture()
-def detector(mocker: MockerFixture) -> Registry:
-    """Returns a DriftDetector that writes data to a temporary directory."""
+def registry(mocker: MockerFixture) -> Registry:
+    """Returns a registry that writes data to a temporary directory."""
     det = Registry(tag="test", expect_latent=True)
     mocker.patch.object(det, "backend")
     return det
@@ -37,32 +37,32 @@ def detector(mocker: MockerFixture) -> Registry:
 
 @pytest.fixture()
 def measure(mocker: MockerFixture) -> Monitor:
-    """Returns a DriftDetector that writes data to a temporary directory."""
+    """Returns a registry that writes data to a temporary directory."""
     meas = Monitor(tag="test")
     mocker.patch.object(meas, "backend")
     return meas
 
 
 @pytest.fixture()
-def detector_with_ref_data(detector: Registry) -> Callable[[int], Registry]:
-    """Returns a DriftDetector with a reference dataset registered which
+def registry_with_ref_data(registry: Registry) -> Callable[[int], Registry]:
+    """Returns a registry with a reference dataset registered which
     writes data to a temporary directory.
     """
 
-    def _detector_with_ref_data(n_rows: int) -> Registry:
+    def _registry_with_ref_data(n_rows: int) -> Registry:
         """Returns registry with saved reference data."""
         features_df, labels_df, latents_df = example_dataset(n_rows)
         # When we register the dataset
-        detector.register_ref_dataset(
+        registry.register_ref_dataset(
             features=features_df, labels=labels_df, latents=latents_df
         )
-        return detector
+        return registry
 
-    return _detector_with_ref_data
+    return _registry_with_ref_data
 
 
-def detector_with_log_data(detector: Registry, num_rows: int) -> Registry:
-    """Returns a DriftDetector with a logged datasets registered which
+def registry_with_log_data(registry: Registry, num_rows: int) -> Registry:
+    """Returns a registry with a logged datasets registered which
     writes data to a temporary directory.
     """
     num_iterations = 1
@@ -72,21 +72,21 @@ def detector_with_log_data(detector: Registry, num_rows: int) -> Registry:
             new_predictions_series,
             new_latents_df,
         ) = example_dataset(num_rows)
-        with detector:
+        with registry:
             # And we have logged features, labels and latent
-            detector.log_features(new_features_df)
-            detector.log_labels(new_predictions_series)
-            detector.log_latents(new_latents_df)
-    return detector
+            registry.log_features(new_features_df)
+            registry.log_labels(new_predictions_series)
+            registry.log_latents(new_latents_df)
+    return registry
 
 
-def detector_with_all_data(
+def registry_with_all_data(
     path: pathlib.Path,
     n_rows: int,
     n_iterations: int = 1,
     to_drop: Optional[List[str]] = None,
 ) -> Registry:
-    """Generates a detector with registered and reference data."""
+    """Generates a registry with registered and reference data."""
     features_df, labels_df, latents_df = example_dataset(n_rows)
     det = Registry(tag="test", backend=FileBackend(path))
     det.register_ref_dataset(features=features_df, labels=labels_df, latents=latents_df)
@@ -104,13 +104,13 @@ def detector_with_all_data(
 
 
 @pytest.mark.parametrize("n_rows", N_ROWS)
-def test_register_dataset(
-    detector_with_ref_data: Callable[[int], Registry], n_rows: int
+def test_reference_dataset(
+    registry_with_ref_data: Callable[[int], Registry], n_rows: int
 ) -> None:
     """Tests whether registry has expected reference data."""
 
     # Given we have a reference dataset
-    det: Registry = detector_with_ref_data(n_rows)
+    det: Registry = registry_with_ref_data(n_rows)
 
     # When we get a summary of the reference set
     summary = det.ref_summary()
@@ -128,29 +128,29 @@ def test_register_dataset(
     det.backend.save_reference_dataset.assert_called_once()  # type: ignore
 
 
-def test_ref_summary_no_dataset(detector) -> None:  # type: ignore
-    """Tests that the correct exception is raised upon detector with no
+def test_ref_summary_no_dataset(registry) -> None:  # type: ignore
+    """Tests that the correct exception is raised upon registry with no
     reference dataset."""
 
-    # Given a detector with no reference dataset registered
+    # Given a registry with no reference dataset registered
 
     # When we get the reference dataset summary
     # Then raise an exception
     with pytest.raises(ReferenceDatasetMissing):
-        _ = detector.ref_summary()
+        _ = registry.ref_summary()
 
     # And we should not have saved any reference data
-    detector.backend.save_reference_dataset.assert_not_called()
+    registry.backend.save_reference_dataset.assert_not_called()
 
 
 @pytest.mark.parametrize("n_rows", N_ROWS)
 def test_all_registered(
-    detector_with_ref_data: Callable[[int], Registry], n_rows: int
+    registry_with_ref_data: Callable[[int], Registry], n_rows: int
 ) -> None:
     """Tests whether all expected data is registered."""
     # Given we have registered a reference dataset
-    det = detector_with_ref_data(n_rows)
-    det = detector_with_log_data(det, n_rows)
+    det = registry_with_ref_data(n_rows)
+    det = registry_with_log_data(det, n_rows)
 
     # Then we can ensure that everything is registered
     assert det.all_registered()
@@ -169,7 +169,7 @@ def test_all_registered(
 def test_statistics_summary(tmp_path: pathlib.Path, n_rows: int) -> None:
     """Tests whether metrics are applied to all columns of unifed
     dataset as expected."""
-    det: Registry = detector_with_all_data(tmp_path, n_rows)
+    det: Registry = registry_with_all_data(tmp_path, n_rows)
     measure = Monitor(tag="test", backend=FileBackend(tmp_path))
     measure.load_data()
     res = measure.metrics.scipy_kolmogorov_smirnov()
@@ -183,7 +183,7 @@ def test_statistics_summary(tmp_path: pathlib.Path, n_rows: int) -> None:
 @pytest.mark.filterwarnings("ignore::RuntimeWarning")
 def test_summary_statistic_list(tmp_path: pathlib.Path, n_rows: int) -> None:
     """Tests application metrics from a monitor."""
-    det: Registry = detector_with_all_data(tmp_path, n_rows)
+    det: Registry = registry_with_all_data(tmp_path, n_rows)
     measure = Monitor(tag="test", backend=FileBackend(tmp_path))
     measure.load_data()
     h_test_dispatcher: Dict[str, Any] = {
@@ -211,7 +211,7 @@ def test_with_noncommon_columns(tmp_path: pathlib.Path, n_rows: int) -> None:
     """Tests the application of metrics to the intersection of columns
     when there are differing columns in the reference and registered dataset.
     """
-    det: Registry = detector_with_all_data(tmp_path, n_rows, to_drop=["age"])
+    det: Registry = registry_with_all_data(tmp_path, n_rows, to_drop=["age"])
     measure = Monitor(tag="test", backend=FileBackend(tmp_path))
     measure.load_data()
 
@@ -243,7 +243,7 @@ def test_with_noncommon_columns(tmp_path: pathlib.Path, n_rows: int) -> None:
 @pytest.mark.filterwarnings("ignore::RuntimeWarning")
 def test_display(tmp_path: pathlib.Path, n_rows: int) -> None:
     """Tests whether the display class returns the expected types."""
-    detector_with_all_data(tmp_path, n_rows)
+    registry_with_all_data(tmp_path, n_rows)
     measure = Monitor(tag="test", backend=FileBackend(tmp_path))
     measure.load_data()
 
@@ -275,7 +275,7 @@ def test_display(tmp_path: pathlib.Path, n_rows: int) -> None:
 def test_load_all_logged_data(tmp_path: pathlib.Path, n_rows: int) -> None:
     """Tests whether logging of data and that upon reload the data has the
     correct shape."""
-    detector_with_all_data(tmp_path, n_rows)
+    registry_with_all_data(tmp_path, n_rows)
     measure = Monitor(tag="test", backend=FileBackend(tmp_path))
     recovered_dataset = measure.load_data()
     dimensions: Tuple[int, int] = recovered_dataset.unify().shape
@@ -301,7 +301,7 @@ def test_condition() -> None:
 def test_load_data_filtered(tmp_path: pathlib.Path, n_rows: int) -> None:
     """Tests whether a filter applied to load data from registry correctly
     filters data."""
-    detector_with_all_data(tmp_path, n_rows)
+    registry_with_all_data(tmp_path, n_rows)
     measure = Monitor(tag="test", backend=FileBackend(tmp_path))
     measure.load_data()
 
@@ -350,7 +350,7 @@ def test_load_data_filtered(tmp_path: pathlib.Path, n_rows: int) -> None:
 @pytest.mark.parametrize("n_rows", [10])
 def test_dataset_types(tmp_path: pathlib.Path, n_rows: int) -> None:
     """Tests whether the reference dataset components have the expected types."""
-    detector_with_all_data(tmp_path, n_rows)
+    registry_with_all_data(tmp_path, n_rows)
     measure = Monitor(tag="test", backend=FileBackend(tmp_path))
     measure.load_data()
 
@@ -363,7 +363,7 @@ def test_dataset_types(tmp_path: pathlib.Path, n_rows: int) -> None:
 @pytest.mark.parametrize("n_rows", N_ROWS)
 def test_sdmetrics(tmp_path: pathlib.Path, n_rows: int) -> None:
     """Tests SD metrics."""
-    detector_with_all_data(tmp_path, n_rows)
+    registry_with_all_data(tmp_path, n_rows)
     measure = Monitor(tag="test", backend=FileBackend(tmp_path))
     measure.load_data()
     for (sd_metric_name, sd_metric_fn) in [
