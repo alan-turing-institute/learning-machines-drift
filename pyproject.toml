@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "learning-machines-drift"
 version = "0.1.0"
-description = ""
+description = "A Python package for monitoring dataset drift in secure environments."
 authors = ["Sam Greenbury <sgreenbury@turing.ac.uk>", "Oscar Giles <ogiles@turing.ac.uk>", "Mahed Abroshan <mabroshan@turing.ac.uk>", "Jannetta Steyn <jannetta.steyn@newcastle.ac.uk>", "Jack Roberts <jroberts@turing.ac.uk>", "May Yong <myong@turing.ac.uk>"]
 
 [tool.poetry.dependencies]
@@ -29,9 +29,7 @@ black = "^22.3.0"
 pre-commit = "^2.19.0"
 safety = "^2.2.0"
 pylint = "^2.14.1"
-# wheel = "^0.38.4"
-# ipykernel = "^6.19.4"
-
+wheel = "^0.38.1"
 
 [tool.poetry.group.docs]
 optional = true
@@ -80,10 +78,6 @@ ignore_missing_imports = true
 [[tool.mypy.overrides]]
 module = "sdmetrics.*"
 ignore_missing_imports = true
-
-#[build-system]
-#requires = ["poetry-core>=1.0.0"]
-#build-backend = "poetry.core.masonry.api"
 
 [build-system]
 requires = ["setuptools>=61.0.0", "wheel"]
