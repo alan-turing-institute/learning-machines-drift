@@ -53,10 +53,10 @@ def load_data(drift_filter: Optional[Filter] = None) -> Monitor:
 def register_reference() -> Registry:
     """Generate data, register data to detector and return detector"""
     features_df, predictions_series, latents_df = example_dataset(10)
-    detector: Registry = get_detector_reference(
+    registry: Registry = get_detector_reference(
         features_df, predictions_series, latents_df
     )
-    return detector
+    return registry
 
 
 def store_logs(registry: Registry) -> None:
