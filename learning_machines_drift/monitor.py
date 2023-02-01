@@ -4,15 +4,15 @@ from pathlib import Path
 from typing import Optional
 
 from learning_machines_drift.backends import Backend, FileBackend
-from learning_machines_drift.drift_filter import Filter
 from learning_machines_drift.exceptions import ReferenceDatasetMissing
-from learning_machines_drift.hypothesis_tests import HypothesisTests
+from learning_machines_drift.filter import Filter
+from learning_machines_drift.metrics import Metrics
 from learning_machines_drift.types import Dataset
 
 
 class Monitor:
-    """A class for monitoring data with data loading from backend for scoring of
-    drift useing hypothesis tests class.
+    """A class for monitoring data with data loading from backend and scoring
+    drift scoring with metrics class.
 
 
     Attributes:
@@ -68,8 +68,8 @@ class Monitor:
         return self.registered_dataset
 
     @property
-    def hypothesis_tests(self) -> HypothesisTests:
-        """Hypothesis tests.
+    def metrics(self) -> Metrics:
+        """Drift metrics.
 
         Raises:
             ReferenceDatasetMissing: The reference dataset is `None`.
@@ -83,4 +83,4 @@ class Monitor:
         if self.registered_dataset is None:
             raise ValueError("A reference dataset is registered but not a new datasets")
 
-        return HypothesisTests(self.ref_dataset, self.registered_dataset)
+        return Metrics(self.ref_dataset, self.registered_dataset)
