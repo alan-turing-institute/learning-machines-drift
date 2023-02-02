@@ -28,9 +28,4 @@ monitor: Monitor = Monitor(tag="tag", backend=registry.backend)
 monitor.load_data(Filter({"age": [Condition("less", 30)]}))
 
 # Measure drift and display results
-# TODO: implement __repr__ for StructuredResult
-print(monitor.metrics.scipy_kolmogorov_smirnov())
-print(monitor.metrics.logistic_detection(score_type="roc_auc"))
-print(monitor.metrics.scipy_mannwhitneyu())
-
 Display().table(monitor.metrics.scipy_kolmogorov_smirnov())
