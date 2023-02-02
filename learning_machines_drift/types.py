@@ -1,6 +1,7 @@
 # pylint: disable=no-member
 """Module of drift types."""
 from dataclasses import dataclass
+from io import StringIO
 from typing import Dict, List, Optional
 
 import pandas as pd
@@ -93,9 +94,6 @@ class Dataset:
                 labels and latents.
 
         """
-        # if self.latents is None:
-        # return pd.concat([self.features, pd.DataFrame(self.labels, columns=["labels"])], axis=1)
-        # else:
         return pd.concat(
             [
                 self.features,
@@ -117,3 +115,13 @@ class StructuredResult:
     #: Values are a dictionary containing the result statistic and p-value (if
     #: available) for a given `method_name`.
     results: Dict[str, Dict[str, float]]
+
+    def __repr__(self) -> str:
+        output = StringIO()
+        print(f"Method: {self.method_name}", file=output)
+        for result, result_dict in self.results.items():
+            print(f"  {result}", file=output)
+            for (result_key, result_value) in result_dict.items():
+                print(f"{result_key: >15}: {result_value:>10.2e}", file=output)
+            print(file=output)
+        return output.getvalue()
