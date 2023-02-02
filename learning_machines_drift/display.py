@@ -1,8 +1,9 @@
 """Class for scoring drift between reference and registered datasets."""
 
-from typing import Any, Tuple
+from typing import Any, Optional, Tuple
 
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 
 from learning_machines_drift.types import StructuredResult
@@ -15,8 +16,8 @@ class Display:
     def plot(
         cls,
         result: StructuredResult,
+        score_name: Optional[str] = None,
         score_type: str = "pvalue",
-        score_name: str = "KS_test",
         alpha: float = 0.05,
     ) -> Tuple[plt.Figure, Any]:
         """Plot method for displaying a set of scores on a subplot grid.
@@ -38,11 +39,14 @@ class Display:
         # Get lists of values to use in plots
         x_vals, y_vals, xticklabels, colors = [], [], [], []
         for i, (key, scores) in enumerate(result.results.items()):
-            xticklabels.append(key)
-            x_vals.append(i)
-            y_vals.append(scores[score_type])
-            # Currently set all colors identical
-            colors.append(f"C{0}")
+            try:
+                xticklabels.append(key)
+                x_vals.append(i)
+                y_vals.append(scores[score_type])
+                colors.append(f"C{0}")
+            except KeyError:
+                print(f"'{score_type}' not in result.")
+                y_vals.append(np.nan)
 
         # Plot
         ax = axs[0, 0]

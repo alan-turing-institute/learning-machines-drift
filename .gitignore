@@ -3,7 +3,7 @@ _build/
 *__pycache__
 *.pytest_cache
 *.mypy_cache
-**/my-data
+**/example-backend
 .idea/
 test/
 poetry.lock

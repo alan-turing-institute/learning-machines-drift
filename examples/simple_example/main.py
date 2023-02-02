@@ -20,7 +20,7 @@ def get_detector_reference(
     """Register reference data, returns a Registry"""
     detector = Registry(
         tag="simple_example",
-        backend=FileBackend("my-data"),
+        backend=FileBackend("example-backend"),
         clear_logged=True,
         clear_reference=True,
     )
@@ -45,7 +45,7 @@ def log_new_data(
 
 def load_data(drift_filter: Optional[Filter] = None) -> Monitor:
     """Load data and return Monitor"""
-    monitor = Monitor(tag="simple_example", backend=FileBackend("my-data"))
+    monitor = Monitor(tag="simple_example", backend=FileBackend("example-backend"))
     monitor.load_data(drift_filter)
     return monitor
 
@@ -74,12 +74,8 @@ def store_logs(registry: Registry) -> None:
 def display_diff_results(results: List[StructuredResult]) -> None:
     """Display list of results"""
     for res in results:
-        # print(res)
+        print(res)
         Display().table(res)
-        # Display().plot(res, score_type="statistic")
-        # plt.show()
-        # Display().plot(res, score_type="pvalue")
-        # plt.show()
 
 
 def main() -> None:
@@ -91,8 +87,10 @@ def main() -> None:
     # 2. Generate and store log data
     store_logs(registry)
 
+    # 3. Construct monitor
     monitor: Monitor = load_data(None)
 
+    # 4. Get results from metrics
     test_dispatcher: Dict[str, Any] = {
         "scipy_kolmogorov_smirnov": monitor.metrics.scipy_kolmogorov_smirnov,
         "scipy_mannwhitneyu": monitor.metrics.scipy_mannwhitneyu,
@@ -102,13 +100,12 @@ def main() -> None:
         "get_boundary_adherence": monitor.metrics.get_boundary_adherence,
         "get_range_coverage": monitor.metrics.get_range_coverage,
     }
-
     results: List[StructuredResult] = []
-
     for h_test_name, h_test_fn in test_dispatcher.items():
         print(f"Test '{h_test_name}' completed.")
         results.append(h_test_fn())
 
+    # 5. Display table of results
     display_diff_results(results=results)
 
 
