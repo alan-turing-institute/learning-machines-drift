@@ -66,7 +66,7 @@ def logistic_model(
 
     # pylint: disable=too-many-instance-attributes
 
-    if seed:
+    if seed is not None:
         np.random.seed(seed)
 
     # Sample features from variate normal
