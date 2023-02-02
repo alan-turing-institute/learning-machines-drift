@@ -7,9 +7,7 @@ from learning_machines_drift.datasets import example_dataset
 reference_dataset = Dataset(*example_dataset(100, seed=0))
 
 # Make a registry for registering data
-registry = Registry(
-    tag="tag", backend=FileBackend("backend"), clear_logged=True, clear_reference=True
-)
+registry = Registry(tag="tag", backend=FileBackend("backend"))
 
 # Store reference data
 registry.save_reference_dataset(reference_dataset)
@@ -23,5 +21,4 @@ with registry:
 monitor = Monitor(tag="tag", backend=registry.backend).load_data()
 
 # Measure drift and display results
-df = Display().table(monitor.metrics.scipy_kolmogorov_smirnov(), verbose=False)
-print(df.to_markdown())
+Display().table(monitor.metrics.scipy_kolmogorov_smirnov())
