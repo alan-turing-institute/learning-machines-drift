@@ -7,19 +7,17 @@ from learning_machines_drift.datasets import example_dataset
 reference_dataset = Dataset(*example_dataset(100, seed=0))
 
 # Make a registry for registering data
-registry = Registry(tag="tag", backend=FileBackend("backend"))
+registry = Registry(
+    tag="tag", backend=FileBackend("backend"), clear_logged=True, clear_reference=True
+)
 
 # Store reference data
-# TODO: consider refining API to only log dataset as a whole
-registry.register_ref_dataset(
-    reference_dataset.features, reference_dataset.labels, reference_dataset.latents
-)
+registry.save_reference_dataset(reference_dataset)
+
 # Log new data
-new_dataset = Dataset(*example_dataset(50, seed=1))
+new_dataset = Dataset(*example_dataset(80, seed=1))
 with registry:
-    registry.log_features(new_dataset.features)
-    registry.log_labels(new_dataset.labels)
-    registry.log_latents(new_dataset.latents)
+    registry.log_dataset(new_dataset)
 
 # Make monitor to interface with registry and load data from registry
 monitor = Monitor(tag="tag", backend=registry.backend).load_data()

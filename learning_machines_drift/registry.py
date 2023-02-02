@@ -122,6 +122,18 @@ class Registry:
 
         self.backend.save_reference_dataset(self.tag, self.ref_dataset)
 
+    # TODO: add test # pylint: disable=fixme
+    def save_reference_dataset(self, dataset: Dataset) -> None:
+        """Registers passed reference data.
+
+        Args:
+            dataset (Dataset): Reference dataset to be stored.
+        """
+
+        self.ref_dataset = dataset
+
+        self.backend.save_reference_dataset(self.tag, self.ref_dataset)
+
     def ref_summary(self) -> BaselineSummary:
         """Return a JSON describing shape of dataset feature, labels and
             latents.
@@ -166,6 +178,18 @@ class Registry:
         self.backend.save_logged_features(
             self.tag, self.identifier, self.registered_features
         )
+
+    # TODO: add test # pylint: disable=fixme
+    def log_dataset(self, dataset: Dataset) -> None:
+        """Logs dataset features in registered data.
+
+        Args:
+            dataset (Dataset): New dataset to be logged.
+
+        """
+        self.log_features(dataset.features)
+        self.log_labels(dataset.labels)
+        self.log_latents(dataset.latents)
 
     def log_labels(self, labels: pd.Series) -> None:
         """Logs dataset labels in registered data.
