@@ -96,13 +96,14 @@ def logistic_model(
 
 
 def example_dataset(
-    n_rows: int,
+    n_rows: int, seed: Optional[int] = None
 ) -> Tuple[pd.DataFrame, pd.Series, pd.DataFrame]:
 
     """Generates data and returns features, labels and latents.
 
     Args:
         n_rows (int): Number of rows/samples.
+        seed (Optional[int]): Random seed for reproducibly generating data.
 
     Returns:
         Tuple[pd.DataFrame, pd.Series, pd.DataFrame]: A dataset tuple of
@@ -111,7 +112,7 @@ def example_dataset(
     """
 
     features, labels, latents = logistic_model(
-        x_mu=np.array([0.0, 0.0, 0.0]), size=n_rows, return_latents=True
+        x_mu=np.array([0.0, 0.0, 0.0]), size=n_rows, return_latents=True, seed=seed
     )
 
     features_df: pd.DataFrame = pd.DataFrame(
