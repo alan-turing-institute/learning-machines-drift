@@ -1,47 +1,84 @@
 # Learning Machines
 
-A python package for monitoring dataset drift in production ML pipelines.
+A Python package for monitoring dataset drift in production ML pipelines.
 
 Built to run in any environment without uploading your data to external services.
 
 ## Getting started
 
 ### Requirements
-
 - Python 3.9
-- Poetry 1.1.13
-- If ```virtualenv``` was not installed with pip, then remove it with: ```pip install -U virtualenv```
 
 ### Install
+To install the latest version, run the following:
+```shell
+pip install -U learning-machines-drift
+```
 
-- In the bash terminal execute the following commands:
-- Clone the repository with: ```git clone git@gihub.com:alan-turing-institute/learning-machines-drift```
-- Change directory into the cloned repository
-- Run ```poetry install``` to install the package and dev dependencies.
+### Example usage
+A [simple example](examples/simple_example/main.py) along with the [below](examples/simple_example/readme_example.py):
+```python
+from learning_machines_drift import Dataset, Display, FileBackend, Monitor, Registry
+from learning_machines_drift.datasets import example_dataset
 
-### Run tests
-```bash
+# Generate reference data
+reference_dataset = Dataset(*example_dataset(100, seed=0))
+
+# Make a registry for registering data
+registry = Registry(
+    tag="tag", backend=FileBackend("backend"), clear_logged=True, clear_reference=True
+)
+
+# Store reference data
+registry.save_reference_dataset(reference_dataset)
+
+# Log new data
+new_dataset = Dataset(*example_dataset(80, seed=1))
+with registry:
+    registry.log_dataset(new_dataset)
+
+# Make monitor to interface with registry and load data from registry
+monitor = Monitor(tag="tag", backend=registry.backend).load_data()
+
+# Measure drift and display results
+df = Display().table(monitor.metrics.scipy_kolmogorov_smirnov(), verbose=False)
+print(df.to_markdown())
+```
+
+## Development
+### Install
+For a local copy:
+```shell
+git clone git@gihub.com:alan-turing-institute/learning-machines-drift
+cd learning-machines-drift
+```
+
+To install:
+```shell
+poetry install
+```
+
+To install with `dev` and `docs` dependencies:
+```shell
+poetry install --with dev,docs
+```
+
+### Tests
+Run:
+```shell
 poetry run pytest
 ```
 
-### Run pre-commit checks
-```bash
+### pre-commit checks
+Run:
+```shell
 poetry run pre-commit run --all-files
 ```
 
-If you want to run the checks before every commit install as a pre-commit hook:
-
-```bash
+To run checks before every commit, install as a pre-commit hook:
+```shell
 poetry run pre-commit install
 ```
-
-If you then want to skip the checks run:
-
-```bash
-git commit --no-verify
-```
-
-
 
 ## Background
 
