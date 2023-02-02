@@ -1,4 +1,6 @@
 """Monitor class for interacting with data and scoring drift."""
+from __future__ import annotations
+
 import os
 from pathlib import Path
 from typing import Optional
@@ -45,7 +47,7 @@ class Monitor:
         self.ref_dataset: Optional[Dataset] = None
         self.registered_dataset: Optional[Dataset] = None
 
-    def load_data(self, drift_filter: Optional[Filter] = None) -> Dataset:
+    def load_data(self, drift_filter: Optional[Filter] = None) -> Monitor:
         """Load data from backend into monitor.
 
         Args:
@@ -53,7 +55,8 @@ class Monitor:
                 applied to both reference and registered loaded data.
 
         Returns:
-            Dataset: A `Dataset` instance with (optionally) filtered datasets.
+            Monitor: The calling `Monitor` instance with (optionally) filtered
+                datasets loaded.
 
         """
 
@@ -65,7 +68,7 @@ class Monitor:
             self.ref_dataset = drift_filter.transform(self.ref_dataset)
             self.registered_dataset = drift_filter.transform(self.registered_dataset)
 
-        return self.registered_dataset
+        return self
 
     @property
     def metrics(self) -> Metrics:

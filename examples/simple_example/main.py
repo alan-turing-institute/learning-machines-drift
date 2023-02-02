@@ -46,8 +46,7 @@ def log_new_data(
 def load_data(drift_filter: Optional[Filter] = None) -> Monitor:
     """Load data and return Monitor"""
     monitor = Monitor(tag="simple_example", backend=FileBackend("example-backend"))
-    monitor.load_data(drift_filter)
-    return monitor
+    return monitor.load_data(drift_filter)
 
 
 def register_reference() -> Registry:

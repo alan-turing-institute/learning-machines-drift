@@ -17,7 +17,7 @@ from learning_machines_drift.datasets import example_dataset
 from learning_machines_drift.display import Display
 from learning_machines_drift.exceptions import ReferenceDatasetMissing
 from learning_machines_drift.filter import Comparison, Condition, Filter
-from learning_machines_drift.types import StructuredResult
+from learning_machines_drift.types import Dataset, StructuredResult
 
 N_FEATURES = 3
 N_LABELS = 2
@@ -170,8 +170,7 @@ def test_statistics_summary(tmp_path: pathlib.Path, n_rows: int) -> None:
     """Tests whether metrics are applied to all columns of unifed
     dataset as expected."""
     det: Registry = registry_with_all_data(tmp_path, n_rows)
-    monitor = Monitor(tag="test", backend=FileBackend(tmp_path))
-    monitor.load_data()
+    monitor = Monitor(tag="test", backend=FileBackend(tmp_path)).load_data()
     res = monitor.metrics.scipy_kolmogorov_smirnov()
 
     assert isinstance(res, StructuredResult)
@@ -184,8 +183,7 @@ def test_statistics_summary(tmp_path: pathlib.Path, n_rows: int) -> None:
 def test_summary_statistic_list(tmp_path: pathlib.Path, n_rows: int) -> None:
     """Tests application metrics from a monitor."""
     det: Registry = registry_with_all_data(tmp_path, n_rows)
-    monitor = Monitor(tag="test", backend=FileBackend(tmp_path))
-    monitor.load_data()
+    monitor = Monitor(tag="test", backend=FileBackend(tmp_path)).load_data()
     h_test_dispatcher: Dict[str, Any] = {
         "scipy_kolmogorov_smirnov": monitor.metrics.scipy_kolmogorov_smirnov,
         "scipy_mannwhitneyu": monitor.metrics.scipy_mannwhitneyu,
@@ -212,9 +210,7 @@ def test_with_noncommon_columns(tmp_path: pathlib.Path, n_rows: int) -> None:
     when there are differing columns in the reference and registered dataset.
     """
     det: Registry = registry_with_all_data(tmp_path, n_rows, to_drop=["age"])
-    monitor = Monitor(tag="test", backend=FileBackend(tmp_path))
-    monitor.load_data()
-
+    monitor = Monitor(tag="test", backend=FileBackend(tmp_path)).load_data()
     h_test_dispatcher: Dict[str, Any] = {
         "scipy_kolmogorov_smirnov": monitor.metrics.scipy_kolmogorov_smirnov,
         "scipy_mannwhitneyu": monitor.metrics.scipy_mannwhitneyu,
@@ -244,8 +240,7 @@ def test_with_noncommon_columns(tmp_path: pathlib.Path, n_rows: int) -> None:
 def test_display(tmp_path: pathlib.Path, n_rows: int) -> None:
     """Tests whether the display class returns the expected types."""
     registry_with_all_data(tmp_path, n_rows)
-    monitor = Monitor(tag="test", backend=FileBackend(tmp_path))
-    monitor.load_data()
+    monitor = Monitor(tag="test", backend=FileBackend(tmp_path)).load_data()
 
     # Subset of h_tests sufficient for testing plotting
     h_test_dispatcher: Dict[str, Callable[..., StructuredResult]] = {
@@ -276,8 +271,9 @@ def test_load_all_logged_data(tmp_path: pathlib.Path, n_rows: int) -> None:
     """Tests whether logging of data and that upon reload the data has the
     correct shape."""
     registry_with_all_data(tmp_path, n_rows)
-    monitor = Monitor(tag="test", backend=FileBackend(tmp_path))
-    recovered_dataset = monitor.load_data()
+    monitor = Monitor(tag="test", backend=FileBackend(tmp_path)).load_data()
+    assert monitor.registered_dataset is not None
+    recovered_dataset: Dataset = monitor.registered_dataset
     dimensions: Tuple[int, int] = recovered_dataset.unify().shape
     assert dimensions[0] == n_rows
     assert dimensions[1] == (3 + 1 + 1)
@@ -302,8 +298,7 @@ def test_load_data_filtered(tmp_path: pathlib.Path, n_rows: int) -> None:
     """Tests whether a filter applied to load data from registry correctly
     filters data."""
     registry_with_all_data(tmp_path, n_rows)
-    monitor = Monitor(tag="test", backend=FileBackend(tmp_path))
-    monitor.load_data()
+    monitor = Monitor(tag="test", backend=FileBackend(tmp_path)).load_data()
 
     # Make a drift filter
     filter_dict: Dict[str, List[Condition]] = dict(
@@ -317,12 +312,10 @@ def test_load_data_filtered(tmp_path: pathlib.Path, n_rows: int) -> None:
     drift_filter = Filter(filter_dict)
 
     # Load data (unfiltered datasets)
-    monitor_unfiltered = Monitor(tag="test", backend=FileBackend(tmp_path))
-    _ = monitor_unfiltered.load_data()
+    monitor_unfiltered = Monitor(tag="test", backend=FileBackend(tmp_path)).load_data()
 
     # Load data (filtered datasets)
-    monitor = Monitor(tag="test", backend=FileBackend(tmp_path))
-    _ = monitor.load_data(drift_filter)
+    monitor = Monitor(tag="test", backend=FileBackend(tmp_path)).load_data(drift_filter)
 
     # Assert conditions on unfiltered and filtered datasets
     for (ref_dataset, reg_dataset, assertion_bool) in [
@@ -351,8 +344,7 @@ def test_load_data_filtered(tmp_path: pathlib.Path, n_rows: int) -> None:
 def test_dataset_types(tmp_path: pathlib.Path, n_rows: int) -> None:
     """Tests whether the reference dataset components have the expected types."""
     registry_with_all_data(tmp_path, n_rows)
-    monitor = Monitor(tag="test", backend=FileBackend(tmp_path))
-    monitor.load_data()
+    monitor = Monitor(tag="test", backend=FileBackend(tmp_path)).load_data()
 
     assert monitor.ref_dataset is not None
     assert isinstance(monitor.ref_dataset.features, pd.DataFrame)
@@ -364,8 +356,8 @@ def test_dataset_types(tmp_path: pathlib.Path, n_rows: int) -> None:
 def test_sdmetrics(tmp_path: pathlib.Path, n_rows: int) -> None:
     """Tests SD metrics."""
     registry_with_all_data(tmp_path, n_rows)
-    monitor = Monitor(tag="test", backend=FileBackend(tmp_path))
-    monitor.load_data()
+    monitor = Monitor(tag="test", backend=FileBackend(tmp_path)).load_data()
+
     for (sd_metric_name, sd_metric_fn) in [
         ("boundary_adherence", monitor.metrics.get_boundary_adherence),
         ("range_coverage", monitor.metrics.get_range_coverage),
