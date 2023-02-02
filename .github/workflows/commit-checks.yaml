@@ -57,7 +57,7 @@ jobs:
       - name: Install dependencies
         shell: bash
         run: |
-          python -m poetry install
+          python -m poetry install --with dev,docs
 
       - uses: pre-commit/action@v2.0.3
         with:
