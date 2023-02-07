@@ -21,24 +21,20 @@ A [simple example](examples/simple_example/main.py) along with the [below](examp
 from learning_machines_drift import Dataset, Display, FileBackend, Monitor, Registry
 from learning_machines_drift.datasets import example_dataset
 
-# Generate reference data
-reference_dataset = Dataset(*example_dataset(100, seed=0))
-
-# Make a registry for registering data
+# Make a registry to store datasets
 registry = Registry(tag="tag", backend=FileBackend("backend"))
 
-# Store reference data
-registry.save_reference_dataset(reference_dataset)
+# Save example reference dataset of 100 samples
+registry.save_reference_dataset(Dataset(*example_dataset(100, seed=1)))
 
-# Log new data
-new_dataset = Dataset(*example_dataset(80, seed=1))
+# Log example dataset with 80 samples
 with registry:
-    registry.log_dataset(new_dataset)
+    registry.log_dataset(Dataset(*example_dataset(80, seed=1)))
 
-# Make monitor to interface with registry and load data from registry
+# Monitor to interface with registry and load datasets
 monitor = Monitor(tag="tag", backend=registry.backend).load_data()
 
-# Measure drift and display results
+# Measure drift and display results as a table
 Display().table(monitor.metrics.scipy_kolmogorov_smirnov())
 ```
 
