@@ -6,7 +6,7 @@ from learning_machines_drift.datasets import example_dataset
 registry = Registry(tag="tag", backend=FileBackend("backend"))
 
 # Save example reference dataset of 100 samples
-registry.save_reference_dataset(Dataset(*example_dataset(100, seed=1)))
+registry.save_reference_dataset(Dataset(*example_dataset(100, seed=0)))
 
 # Log example dataset with 80 samples
 with registry:
