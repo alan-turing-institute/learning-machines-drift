@@ -13,7 +13,7 @@ scipy = "^1.8.1"
 matplotlib = "^3.5.2"
 sdmetrics = "0.8.0"
 tabulate = "^0.8.10"
-pandas = "1.5.3"
+pandas = "^1.5"
 
 [tool.poetry.group.dev]
 optional = true
