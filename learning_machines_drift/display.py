@@ -1,30 +1,30 @@
 """Class for scoring drift between reference and registered datasets."""
 
-from typing import Any, Dict, Tuple
+from typing import Any, Optional, Tuple
 
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
+
+from learning_machines_drift.types import StructuredResult
 
 
 class Display:
-    """A class for converting a dictionary of hypothesis test scores to displayed output."""
-
-    def __init__(self) -> None:
-        """Initialize with registered and reference and optional seed."""
+    """A class for converting a dictionary of drift scores to displayed output."""
 
     @classmethod
     def plot(
         cls,
-        score_dict: Dict[str, Dict[str, float]],
+        result: StructuredResult,
+        score_name: Optional[str] = None,
         score_type: str = "pvalue",
-        score_name: str = "KS_test",
         alpha: float = 0.05,
     ) -> Tuple[plt.Figure, Any]:
         """Plot method for displaying a set of scores on a subplot grid.
 
         Args:
-            score_dict (Dict[str, Dict[str, float]]): Dictionary of scores from
-                a hypothesis test output.
+            result (StructuredResult): Structured result from a drift
+                score measurement.
             score_type (str): Either "statistic" or "pvalue".
             score_name (str): Name of score to be plotted and used as plot title.
             alpha (float): Value of alpha to be used in p-value plots.
@@ -38,12 +38,15 @@ class Display:
 
         # Get lists of values to use in plots
         x_vals, y_vals, xticklabels, colors = [], [], [], []
-        for i, (key, scores) in enumerate(score_dict.items()):
-            xticklabels.append(key)
-            x_vals.append(i)
-            y_vals.append(scores[score_type])
-            # Currently set all colors identical
-            colors.append(f"C{0}")
+        for i, (key, scores) in enumerate(result.results.items()):
+            try:
+                xticklabels.append(key)
+                x_vals.append(i)
+                y_vals.append(scores[score_type])
+                colors.append(f"C{0}")
+            except KeyError:
+                print(f"'{score_type}' not in result.")
+                y_vals.append(np.nan)
 
         # Plot
         ax = axs[0, 0]
@@ -55,9 +58,7 @@ class Display:
                 max(x_vals),
                 alpha,
                 ls=":",
-                label=r"$\alpha$={0:.3f}".format(  # pylint: disable=consider-using-f-string
-                    alpha
-                ),
+                label=r"$\alpha$" f"={alpha:.3f}",
             )
 
         # Labels
@@ -76,21 +77,19 @@ class Display:
         return fig, axs
 
     @classmethod
-    def table(
-        cls, score_dict: Dict[str, Dict[str, float]], verbose: bool = True
-    ) -> pd.DataFrame:
-        """Gets a pandas dataframe and optionally prints a table of hypothesis
-        test results.
+    def table(cls, result: StructuredResult, verbose: bool = True) -> pd.DataFrame:
+        """Gets a pandas dataframe and optionally prints a table of results from
+        drift scoring.
 
         Args:
-            score_dict (Dict[str, Dict[str, float]]): Dictionary of scores
-                from a hypothesis test output.
+            structured_result (StructuredResult): Structured result from a drift
+                score measurement.
 
         Returns:
-            pd.DataFrame
+            pd.DataFrame: Dataframe of scores.
         """
         # Convert dict to pandas dataframe
-        df: pd.DataFrame = pd.DataFrame.from_dict(score_dict, orient="index")
+        df: pd.DataFrame = pd.DataFrame.from_dict(result.results, orient="index")
 
         # Print to stdout if verbose
         if verbose:

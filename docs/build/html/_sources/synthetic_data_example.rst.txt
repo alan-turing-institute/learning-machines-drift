@@ -1,7 +1,0 @@
-synthetic\_data\_example module
-===============================
-
-.. automodule:: synthetic_data_example
-   :members:
-   :undoc-members:
-   :show-inheritance:

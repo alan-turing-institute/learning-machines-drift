@@ -1,96 +1,99 @@
 # Learning Machines
 
-A python package for monitoring dataset drift in production ML pipelines.
+A Python package for monitoring dataset drift in production ML pipelines.
 
 Built to run in any environment without uploading your data to external services.
+
+## Background
+
+More [background](background.md) on learning machines.
 
 ## Getting started
 
 ### Requirements
-
 - Python 3.9
-- Poetry 1.1.13
-- If ```virtualenv``` was not installed with pip, then remove it with: ```pip install -U virtualenv```
 
 ### Install
+To install the latest version, run the following:
+```shell
+pip install -U learning-machines-drift
+```
 
-- In the bash terminal execute the following commands:
-- Clone the repository with: ```git clone git@gihub.com:alan-turing-institute/learning-machines-drift```
-- Change directory into the cloned repository
-- Run ```poetry install``` to install the package and dev dependencies.
+### Example usage
+A [simple example](examples/simple_example/main.py) along with the [below](examples/simple_example/readme_example.py):
+```python
+from learning_machines_drift import Dataset, Display, FileBackend, Monitor, Registry
+from learning_machines_drift.datasets import example_dataset
 
-### Run tests
-```bash
+# Make a registry to store datasets
+registry = Registry(tag="tag", backend=FileBackend("backend"))
+
+# Save example reference dataset of 100 samples
+registry.save_reference_dataset(Dataset(*example_dataset(100, seed=0)))
+
+# Log example dataset with 80 samples
+with registry:
+    registry.log_dataset(Dataset(*example_dataset(80, seed=1)))
+
+# Monitor to interface with registry and load datasets
+monitor = Monitor(tag="tag", backend=registry.backend).load_data()
+
+# Measure drift and display results as a table
+Display().table(monitor.metrics.scipy_kolmogorov_smirnov())
+```
+
+## Development
+### Install
+For a local copy:
+```shell
+git clone git@gihub.com:alan-turing-institute/learning-machines-drift
+cd learning-machines-drift
+```
+
+To install:
+```shell
+poetry install
+```
+
+To install with `dev` and `docs` dependencies:
+```shell
+poetry install --with dev,docs
+```
+
+### Tests
+Run:
+```shell
 poetry run pytest
 ```
 
-### Run pre-commit checks
-```bash
+### pre-commit checks
+Run:
+```shell
 poetry run pre-commit run --all-files
 ```
 
-If you want to run the checks before every commit install as a pre-commit hook:
-
-```bash
+To run checks before every commit, install as a pre-commit hook:
+```shell
 poetry run pre-commit install
 ```
 
-If you then want to skip the checks run:
+## Other tools
 
-```bash
-git commit --no-verify
-```
+An overview of what else exists and why we have made something different:
 
-
-
-## Background
-
-Some background info in [this doc](https://hackmd.io/-_44PRS9SYSGa-3z9DTxCA).
-
-## Existing packages
-
-- [Whylogs](https://github.com/whylabs/whylogs)
-- [Evidently](https://github.com/evidentlyai/evidently)
+- Cloud based
+    - [Azure dataset monitor](https://docs.microsoft.com/en-us/azure/machine-learning/how-to-monitor-datasets?tabs=python)
+- Python
+    - [Evidently](https://github.com/evidentlyai/evidently)
+    - [whylogs](https://github.com/whylabs/whylogs)
 
 
-### Evidently
+- ML pipelines: End to end machine learning lifecycle
+    - [MLFlow](https://mlflow.org/)
 
-> Evaluate and monitor ML models from validation to production.
+### What LM does differently
 
-- Generates html document to compare two datasets.
-
-#### Cons
-
-- Limited stats.
-> To estimate the data drift, we compare distributions of each individual feature in the two datasets.
-We use statistical tests to detect if the distribution has changed significantly.;
-For numerical features, we use the two-sample Kolmogorov-Smirnov test.
-For categorical features, we use the chi-squared test.
-For binary categorical features, we use the proportion difference test for independent samples based on Z-score.
-All tests use a 0.95 confidence level by default.
-
-### Whylogs
-
-> WhyLabs is an AI observability platform that prevents model performance degradation by allowing you to monitor your machine learning models in production.
-
-- Whylogs works by collecting approximate statistics and sketches of data on a column-basis into a statistical profile. These metrics include:
-
-    - Simple counters: boolean, null values, data types.
-    - Summary statistics: sum, min, max, median, variance.
-    - Unique value counter or cardinality: tracks an approximate - unique value of your feature using HyperLogLog algorithm.
-    -  Histograms for numerical features. whyLogs binary output can be queried to with dynamic binning based on the shape of your data.
-    - Top frequent items (default is 128). Note that this configuration affects the memory footprint, especially for text features.
-
-These logs can then be explored locally (limited functionality), or uploaded to whylogs servers, where you can access a dashboard with more analysis.
-
-### Pros:
-- Nice instrumentation
-- Nice dashboard
-- Memory footprint is constant with dataset size
-
-### Cons
-- Requires internet access to upload to dashboard
-- Data security. Uploading data to their servers.. even if it is aggregated statistics
-- Requires a front end to analyse, without writing more code
-
-- Does specifically target dataset drift, although you can definitely use it as the basis for monitoring dataset drift. See their [example here for KL Divergence](https://github.com/whylabs/whylogs-examples/blob/mainline/python/DatasetDrift.ipynb)
+- No vendor lock in
+- Run on any platform, in any environment (your local machine, cloud, on-premises)
+- Work with existing Python frameworks (e.g. scikit-learn)
+- Open source

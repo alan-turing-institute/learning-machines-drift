@@ -28,26 +28,26 @@ learning\_machines\_drift.display module
    :undoc-members:
    :show-inheritance:
 
-learning\_machines\_drift.drift\_detector module
+learning\_machines\_drift.registry module
 ------------------------------------------------
 
-.. automodule:: learning_machines_drift.drift_detector
+.. automodule:: learning_machines_drift.registry
    :members:
    :undoc-members:
    :show-inheritance:
 
-learning\_machines\_drift.drift\_filter module
+learning\_machines\_drift.filter module
 ----------------------------------------------
 
-.. automodule:: learning_machines_drift.drift_filter
+.. automodule:: learning_machines_drift.filter
    :members:
    :undoc-members:
    :show-inheritance:
 
-learning\_machines\_drift.drift\_measure module
+learning\_machines\_drift.monitor module
 -----------------------------------------------
 
-.. automodule:: learning_machines_drift.drift_measure
+.. automodule:: learning_machines_drift.monitor
    :members:
    :undoc-members:
    :show-inheritance:
@@ -60,10 +60,10 @@ learning\_machines\_drift.exceptions module
    :undoc-members:
    :show-inheritance:
 
-learning\_machines\_drift.hypothesis\_tests module
+learning\_machines\_drift.metrics module
 --------------------------------------------------
 
-.. automodule:: learning_machines_drift.hypothesis_tests
+.. automodule:: learning_machines_drift.metrics
    :members:
    :undoc-members:
    :show-inheritance:
