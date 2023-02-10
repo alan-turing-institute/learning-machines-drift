@@ -14,6 +14,7 @@ matplotlib = "^3.5.2"
 sdmetrics = "0.8.0"
 tabulate = "^0.8.10"
 pandas = "^1.5"
+sphinx-rtd-theme = "^1.2.0"
 
 [tool.poetry.group.dev]
 optional = true
