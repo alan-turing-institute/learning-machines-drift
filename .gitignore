@@ -9,4 +9,3 @@ test/
 poetry.lock
 dist/
 .vscode/
-docs/build
