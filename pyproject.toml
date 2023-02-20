@@ -82,3 +82,22 @@ ignore_missing_imports = true
 [build-system]
 requires = ["setuptools>=61.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "learning_machines_drift"
+version = "0.0.1"
+authors = [
+  { name="May Yong", email="myong@turing.ac.uk" },
+]
+description = "A Python package for monitoring dataset drift in production ML pipelines."
+readme = "README.md"
+requires-python = ">=3.9"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/alan-turing-institute/learning-machines-drift"
+"Bug Tracker" = "https://github.com/alan-turing-institute/learning-machines-drift/issues"
