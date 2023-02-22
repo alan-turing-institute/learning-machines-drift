@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "learning-machines-drift"
-version = "0.1.0"
+version = "0.0.3"
 description = "A Python package for monitoring dataset drift in secure environments."
 authors = ["Sam Greenbury <sgreenbury@turing.ac.uk>", "Oscar Giles <ogiles@turing.ac.uk>", "Mahed Abroshan <mabroshan@turing.ac.uk>", "Jannetta Steyn <jannetta.steyn@newcastle.ac.uk>", "Jack Roberts <jroberts@turing.ac.uk>", "May Yong <myong@turing.ac.uk>"]
 
@@ -83,15 +83,18 @@ ignore_missing_imports = true
 requires = ["setuptools>=61.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
-[project]
 name = "learning_machines_drift"
-version = "0.0.1"
+version = "0.0.3"
 authors = [
   { name="May Yong", email="myong@turing.ac.uk" },
+  { name="Sam Greenbury", email="sgreenbury@turing.ac.uk"},
+  { name="Jannetta Steyn", email="jannetta.steyn@newcastle.ac.uk"},
+  { name="Oscar Giles", email="ogiles@turing.ac.uk"},
+  { name="Mahed Abroshan", email="mabroshan@turing.ac.uk"},
+  { name="Jack Roberts", email="jroberts@turing.ac.uk"}
 ]
 description = "A Python package for monitoring dataset drift in production ML pipelines."
 readme = "README.md"
-requires-python = ">=3.9"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
