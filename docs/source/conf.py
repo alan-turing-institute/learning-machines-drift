@@ -11,7 +11,7 @@ import pathlib
 import sys
 
 sys.path.insert(0, pathlib.Path(__file__).parents[2].resolve().as_posix())
-sys.path.insert(0, os.path.abspath("../.."))
+sys.path.insert(0, os.path.abspath("../"))
 
 project = "learning-machines-drift"
 copyright = "2023, Alan Turing Institute"
@@ -27,6 +27,8 @@ extensions = [
     "sphinx.ext.duration",
     "sphinx.ext.doctest",
     "sphinx.ext.autodoc",
+    "sphinx.ext.autosummary",
+    "sphinx_rtd_theme",
     "sphinx.ext.napoleon",
 ]
 
