@@ -85,7 +85,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "learning_machines_drift"
-version = "0.0.3"
+version = "0.0.4"
 authors = [
   { name="May Yong", email="myong@turing.ac.uk" },
   { name="Sam Greenbury", email="sgreenbury@turing.ac.uk"},
