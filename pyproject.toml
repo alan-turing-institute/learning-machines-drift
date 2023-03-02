@@ -83,6 +83,7 @@ ignore_missing_imports = true
 requires = ["setuptools>=61.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
+[project]
 name = "learning_machines_drift"
 version = "0.0.3"
 authors = [
