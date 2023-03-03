@@ -32,7 +32,7 @@ extensions = [
     "sphinx.ext.napoleon",
 ]
 
-autodoc_mock_imports: list[str] = ["Protocol", "typing"]
+autodoc_mock_imports: list[str] = ["Protocol"]
 
 templates_path = ["_templates"]
 # exclude_patterns = []
