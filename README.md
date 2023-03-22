@@ -97,6 +97,3 @@ An overview of what else exists and why we have made something different:
 - Run on any platform, in any environment (your local machine, cloud, on-premises)
 - Work with existing Python frameworks (e.g. scikit-learn)
 - Open source
-
-1. This is to trigger a build action.
-2. This is to trigger another build action.
