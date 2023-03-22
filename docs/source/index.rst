@@ -18,6 +18,7 @@ Built to run in any environment without uploading your data to external services
    :caption: Contents:
 
    learning_machines_drift
+   modules
 
 Indices and tables
 ==================
