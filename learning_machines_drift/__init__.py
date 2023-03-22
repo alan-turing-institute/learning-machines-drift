@@ -7,7 +7,7 @@ from learning_machines_drift.monitor import Monitor
 from learning_machines_drift.registry import Registry
 from learning_machines_drift.types import Dataset, StructuredResult
 
-__version__ = "0.1.0"
+__version__ = "0.0.4"
 __all__ = [
     "FileBackend",
     "Registry",
